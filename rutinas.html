@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registro de Rutinas de Gimnasio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+
+    /* ===========================
+       VARIABLES DE COLOR
+       =========================== */
+
+    :root {
+      --bg: #f3f4f6;
+      --text: #111;
+      --card-bg: #ffffff;
+      --card-border: #ccc;
+      --table-header: #eee;
+      --control-bg: #ffffff;
+      --meta-text: #666;
+    }
+
+    /* MODO OSCURO (por defecto) */
+    :root.dark {
+      --bg: #0f1116;
+      --text: #f1f1f1;
+      --card-bg: #1a1c22;
+      --card-border: #444;
+      --table-header: #222;
+      --control-bg: #1a1c22;
+      --meta-text: #bbb;
+    }
+
+    /* Transiciones suaves */
+    * {
+      transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    /* ===========================
+       ESTILOS GENERALES
+       =========================== */
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 0;
+      color: var(--text);
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 1rem 1.5rem;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 1rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 1rem;
+      background: var(--control-bg);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      align-items: center;
+    }
+
+    select, input {
+      padding: 0.4rem;
+      font-size: 0.9rem;
+      border-radius: 5px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text);
+    }
+
+    button {
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #ddd;
+      color: black;
+    }
+
+    #exercises-container {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .exercise-card {
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.7rem;
+      margin-bottom: 1rem;
+      background: var(--card-bg);
+    }
+
+    #status-text {
+      font-size: 0.8rem;
+      margin-left: auto;
+      opacity: 0.7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: .5rem;
+    }
+    table, th, td {
+      border: 1px solid var(--card-border);
+    }
+    th {
+      background: var(--table-header);
+    }
+    td, th {
+      padding: 4px;
+    }
+
+    /* ===========================
+       AJUSTES DE CAMPOS + TEXTO
+       =========================== */
+
+    .exercise-table td input {
+      width: 100%;
+      height: 22px;
+      font-size: 0.75rem;
+      padding: 1px 3px;
+      box-sizing: border-box;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-small {
+      padding: 3px 6px !important;
+      font-size: 0.75rem !important;
+    }
+
+    .exercise-notes p {
+      margin: 3px 0;
+      font-size: 0.82rem;
+    }
+
+    .exercise-title {
+      font-size: 1rem !important;
+      font-weight: bold !important;
+    }
+
+    .exercise-meta {
+      font-size: 0.8rem !important;
+      color: var(--meta-text) !important;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Registro de Rutina de Gimnasio</h1>
+  <p>Selecciona la rutina, registra tus series y exporta la sesión.</p>
+</header>
+
+<main>
+
+  <!-- CONTROLES SUPERIORES -->
+  <div class="controls">
+    
+    <div>
+      <label>Fecha</label><br>
+      <input type="date" id="date-input">
+    </div>
+
+    <div>
+      <label>Semana</label><br>
+      <select id="week-select">
+        <option value="Semana 1">Semana 1</option>
+        <option value="Semana 2">Semana 2</option>
+        <option value="Semana 3">Semana 3</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Día</label><br>
+      <select id="day-select">
+        <option value="Día 1">Día 1 (Empuje)</option>
+        <option value="Día 2">Día 2 (Tirón)</option>
+        <option value="Día 3">Día 3 (Pierna/Core)</option>
+      </select>
+    </div>
+
+    <button id="load-routine-btn" class="btn-secondary">Cargar Rutina</button>
+    <button id="export-png-btn" class="btn-primary">Exportar en PNG</button>
+
+    <!-- BOTÓN MODO OSCURO/CLARO -->
+    <button id="toggle-theme-btn" class="btn-secondary">🌙 / ☀️</button>
+
+    <span id="status-text"></span>
+  </div>
+
+
+  <!-- AÑADIR EJERCICIOS -->
+  <div class="controls">
+    <label>Añadir ejercicio</label>
+    <select id="predefined-exercise-select"></select>
+    <button id="add-predefined-btn" class="btn-secondary btn-small">Añadir</button>
+    <button id="add-custom-btn" class="btn-secondary btn-small">Ejercicio personalizado</button>
+  </div>
+
+  <!-- CONTENEDOR DONDE SE RENDERIZAN LOS EJERCICIOS -->
+  <div id="exercises-container"></div>
+
+</main>
+
+<!-- Librería para exportar imágenes -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<!-- Scripts externos -->
+<script src="ejercicios.js"></script>
+<script src="app.js"></script>
+
+<!-- ===========================
+     SCRIPT PARA MODO OSCURO/CLARO
+     =========================== -->
+<script>
+  const savedTheme = localStorage.getItem("gym-theme");
+
+  if (!savedTheme) {
+    document.documentElement.classList.add("dark");
+    localStorage.setItem("gym-theme", "dark");
+  } else {
+    document.documentElement.classList.toggle("dark", savedTheme === "dark");
+  }
+
+  const themeBtn = document.getElementById("toggle-theme-btn");
+  themeBtn.addEventListener("click", () => {
+    const isDark = document.documentElement.classList.toggle("dark");
+    localStorage.setItem("gym-theme", isDark ? "dark" : "light");
+  });
+</script>
+
+</body>
+</html>
