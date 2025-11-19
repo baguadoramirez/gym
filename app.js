@@ -1,5 +1,5 @@
 /* ==========================================================
-   app.js — versión estable y depurada (v4: Persistencia corregida)
+   app.js — versión limpia y corregida (v5: Reseteo en Recarga + Persistencia de Dolor)
    Requiere: ejercicios.js + html2canvas + rutinas.html
    ========================================================== */
 
@@ -51,16 +51,15 @@ function setStatus(msg) {
 function checkSensationsForm() {
     let isValid = true;
     
-    // 1. Sensaciones generales
+    // 1. Sensaciones generales y cansancio
     if (!senseGeneralInput.value || senseGeneralInput.value.trim() === '') {
         isValid = false;
     }
-    // 2. Cansancio percibido
     if (!senseTirednessInput.value || senseTirednessInput.value.trim() === '') {
         isValid = false;
     }
 
-    // 3. Dolor específico (si 'si' está seleccionado)
+    // 2. Dolor específico (si 'si' está seleccionado)
     if (sensePainSelect.value === 'si') {
         if (!painZoneInput.value || painZoneInput.value.trim() === '') {
             isValid = false;
@@ -136,16 +135,24 @@ function buildExerciseCard(exData) {
   left.style.display = "flex";
   left.style.flexDirection = "column";
 
+  // Nota: Si el ejercicio es personalizado, exData.hacer/noHacer/trucos serán vacíos
+  const musculoDisplay = exData.musculo || "N/A";
+  const seccionDisplay = exData.seccion || "N/A";
+  const hacerDisplay = exData.hacer || "Descripción no disponible para ejercicios personalizados.";
+  const noHacerDisplay = exData.noHacer || "N/A";
+  const trucosDisplay = exData.trucos || "N/A";
+
+
   left.innerHTML = `
     <div class="exercise-title" style="font-weight:bold; font-size:1rem;">
       ${exData.nombre}
     </div>
 
     <div class="exercise-meta exercise-muscle-section" 
-         data-musculo="${exData.musculo || ""}"
-         data-seccion="${exData.seccion || ""}"
+         data-musculo="${musculoDisplay}"
+         data-seccion="${seccionDisplay}"
          style="font-size:0.8rem; color:var(--meta-text); margin-top:2px;">
-      ${exData.musculo} – ${exData.seccion}
+      ${musculoDisplay} – ${seccionDisplay}
     </div>
   `;
 
@@ -157,7 +164,7 @@ function buildExerciseCard(exData) {
   removeBtn.onclick = () => {
     card.remove();
     saveSession();
-    loadSession(); 
+    loadSession(); // Necesario para refrescar el painExerciseSelect
   };
 
   header.appendChild(left);
@@ -168,9 +175,9 @@ function buildExerciseCard(exData) {
   const notes = document.createElement("div");
   notes.className = "exercise-notes";
   notes.innerHTML = `
-    <p><strong>Cómo hacerlo:</strong> ${exData.hacer || ""}</p>
-    <p><strong>Evitar:</strong> ${exData.noHacer || ""}</p>
-    <p><strong>Trucos:</strong> ${exData.trucos || ""}</p>
+    <p><b>Cómo hacerlo:</b> ${hacerDisplay}</p>
+    <p><b>Evitar:</b> ${noHacerDisplay}</p>
+    <p><b>Trucos:</b> ${trucosDisplay}</p>
   `;
 
   card.appendChild(notes);
@@ -215,7 +222,7 @@ function saveSession() {
   const key = sessionKey();
   const cards = document.querySelectorAll(".exercise-card");
   
-  // CORRECCIÓN: Capturamos el valor antes de la posible reconstrucción del select.
+  // Capturamos el valor antes de la posible reconstrucción del select.
   const selectedPainExercise = painExerciseSelect.value; 
 
   const data = {
@@ -230,7 +237,7 @@ function saveSession() {
       tiredness: senseTirednessInput.value,
       pain: sensePainSelect.value,
       painZone: painZoneInput.value,
-      painExercise: selectedPainExercise // Usamos el valor capturado.
+      painExercise: selectedPainExercise
     }
   };
 
@@ -239,11 +246,21 @@ function saveSession() {
     
     let mus = "";
     let sec = "";
+    let hacer = "";
+    let noHacer = "";
+    let trucos = "";
+
     const metaElement = card.querySelector(".exercise-muscle-section");
     if (metaElement) {
         mus = metaElement.getAttribute("data-musculo") || "";
         sec = metaElement.getAttribute("data-seccion") || "";
     }
+    
+    const tpl = exerciseTemplates[name] || {};
+    hacer = tpl.hacer ?? "";
+    noHacer = tpl.noHacer ?? "";
+    trucos = tpl.trucos ?? "";
+
     
     const tbody = card.querySelector("tbody");
     const rows = tbody ? Array.from(tbody.querySelectorAll("tr")) : [];
@@ -260,15 +277,13 @@ function saveSession() {
       };
     });
 
-    const tpl = exerciseTemplates[name] || {};
-    
     data.exercises.push({
       nombre: name,
-      musculo: mus || tpl.musculo || "",
-      seccion: sec || tpl.seccion || "",
-      hacer: tpl.hacer ?? "",
-      noHacer: tpl.noHacer ?? "",
-      trucos: tpl.trucos ?? "",
+      musculo: mus,
+      seccion: sec,
+      hacer: hacer,
+      noHacer: noHacer,
+      trucos: trucos,
       sets: sets
     });
   });
@@ -280,7 +295,7 @@ function saveSession() {
   const currentExerciseNames = data.exercises.map(ex => ex.nombre);
   populatePainExerciseSelect(currentExerciseNames); 
 
-  // 2. Restaurar la selección en el DOM
+  // 2. Restaurar la selección en el DOM (en caso de que la lista haya cambiado)
   painExerciseSelect.value = data.sensations.painExercise; 
 
   checkSensationsForm();
@@ -294,9 +309,11 @@ function saveSession() {
 function populatePredefinedSelect() {
   predefinedSelect.innerHTML = `<option value="">Añadir ejercicio...</option>`;
   
-  const sortedNames = Object.keys(exerciseTemplates).sort();
+  // Solo usa los ejercicios que tienen definición completa (y elimina duplicados)
+  const allNames = Object.keys(exerciseTemplates);
+  const uniqueAndSortedNames = [...new Set(allNames)].sort();
   
-  sortedNames.forEach(name => {
+  uniqueAndSortedNames.forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
@@ -312,16 +329,17 @@ function populatePredefinedSelect() {
 function populatePainExerciseSelect(exerciseNames) {
     painExerciseSelect.innerHTML = `<option value="">Seleccionar ejercicio...</option>`;
     
+    // Usa un Set para asegurar nombres únicos
+    const uniqueNames = [...new Set(exerciseNames)];
+    
     // NUEVO: Añadir opción "No identificado"
     const noSeOpt = document.createElement("option");
     noSeOpt.value = "No identificado";
     noSeOpt.textContent = "No identificado";
     painExerciseSelect.appendChild(noSeOpt);
     
-    // Usa un Set para asegurar nombres únicos y luego ordena
-    const sortedNames = [...new Set(exerciseNames)].sort(); 
-    
-    sortedNames.forEach(name => {
+    // Ordena los nombres de los ejercicios
+    uniqueNames.sort().forEach(name => {
         const opt = document.createElement("option");
         opt.value = name;
         opt.textContent = name;
@@ -344,12 +362,11 @@ function loadSession() {
   
   exercisesContainer.innerHTML = "";
   
-  // Limpiar campos de sensaciones antes de cargar
+  // 1. Limpiar campos de sensaciones antes de cargar
   senseGeneralInput.value = "";
   senseTirednessInput.value = "";
   sensePainSelect.value = "no";
   painZoneInput.value = "";
-  
   painDetailsDiv.style.display = "none";
   
   let currentExercises = [];
@@ -358,14 +375,14 @@ function loadSession() {
   // *Si hay datos guardados, cargarlos*
   if (saved && saved.exercises?.length > 0) {
     saved.exercises.forEach(ex => {
-      const tpl = exerciseTemplates[ex.nombre] || {};
+      // Usar los datos guardados, ya que los personalizados no están en exerciseTemplates
       exercisesContainer.appendChild(buildExerciseCard({
         nombre: ex.nombre,
-        musculo: ex.musculo ?? tpl.musculo ?? "",
-        seccion: ex.seccion ?? tpl.seccion ?? "",
-        hacer: tpl.hacer ?? "",
-        noHacer: tpl.noHacer ?? "",
-        trucos: tpl.trucos ?? "",
+        musculo: ex.musculo ?? "N/A",
+        seccion: ex.seccion ?? "N/A",
+        hacer: ex.hacer ?? "",
+        noHacer: ex.noHacer ?? "",
+        trucos: ex.trucos ?? "",
         sets: ex.sets ?? []
       }));
     });
@@ -393,8 +410,8 @@ function loadSession() {
       const tpl = exerciseTemplates[name] || {};
       exercisesContainer.appendChild(buildExerciseCard({
         nombre: name,
-        musculo: tpl.musculo ?? "",
-        seccion: tpl.seccion ?? "",
+        musculo: tpl.musculo ?? "N/A",
+        seccion: tpl.seccion ?? "N/A",
         hacer: tpl.hacer ?? "",
         noHacer: tpl.noHacer ?? "",
         trucos: tpl.trucos ?? "",
@@ -411,10 +428,10 @@ function loadSession() {
     setStatus("No hay rutina definida");
   }
   
-  // 1. Llenar el selector de dolor (incluye "No identificado")
+  // 2. Llenar el selector de dolor (incluye "No identificado")
   populatePainExerciseSelect(currentExercises); 
 
-  // 2. Establecer el valor guardado (CORRECCIÓN: se hace aquí, después de poblar las opciones)
+  // 3. Establecer el valor guardado
   painExerciseSelect.value = savedPainExercise; 
   
   checkSensationsForm();
@@ -434,8 +451,8 @@ addPredefinedBtn.onclick = () => {
   exercisesContainer.appendChild(
     buildExerciseCard({
       nombre: name,
-      musculo: tpl.musculo ?? "",
-      seccion: tpl.seccion ?? "",
+      musculo: tpl.musculo ?? "N/A",
+      seccion: tpl.seccion ?? "N/A",
       hacer: tpl.hacer ?? "",
       noHacer: tpl.noHacer ?? "",
       trucos: tpl.trucos ?? "",
@@ -591,6 +608,9 @@ sensePainSelect.addEventListener('change', () => {
         painDetailsDiv.style.display = 'flex'; 
     } else {
         painDetailsDiv.style.display = 'none';
+        // Opcional: limpiar los campos cuando se desactiva el dolor
+        painZoneInput.value = ""; 
+        painExerciseSelect.value = "";
     }
     saveSession(); 
 });
@@ -599,16 +619,35 @@ sensePainSelect.addEventListener('change', () => {
 senseGeneralInput.addEventListener("input", saveSession);
 senseTirednessInput.addEventListener("input", saveSession);
 painZoneInput.addEventListener("input", saveSession);
-painExerciseSelect.addEventListener("change", saveSession); // El change es necesario para capturar la selección de "No identificado" o un ejercicio
+painExerciseSelect.addEventListener("change", saveSession); // El change es necesario para capturar la selección
 
 
 // -------------------------
 // INICIALIZACIÓN
 // -------------------------
 
-populatePredefinedSelect(); 
-loadSession(); 
+// Listener para el botón de cargar/cambiar rutina (adicional al change)
+loadBtn.addEventListener("click", loadSession);
 
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // ** IMPLEMENTACIÓN DEL RESETEADO AL RECARGAR **
+    // Borrar la información de la sesión anterior guardada
+    // Esto asegura que la página se vea "limpia" de datos de ejercicios al abrir.
+    localStorage.removeItem(sessionKey());
+    // (Opcional, pero se recomienda borrar solo la clave activa si usas una única para sensaciones)
+    // localStorage.removeItem('sensationsData'); 
+    
+    // Restablecer selectores y cargar
+    weekSelect.value = 'Semana 1';
+    daySelect.value = 'Día 1';
+
+    populatePredefinedSelect(); 
+    loadSession(); 
+});
+
+
+// Añadir listeners para que los cambios de fecha/selectores recarguen la sesión
 dateInput.addEventListener("change", loadSession);
 weekSelect.addEventListener("change", loadSession);
 daySelect.addEventListener("change", loadSession);
