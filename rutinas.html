@@ -201,6 +201,70 @@
       color: var(--meta-text) !important;
     }
 
+    /* ===========================
+       ESTILOS DEL SWITCH (Modo Oscuro)
+       =========================== */
+    .theme-switch-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px; /* Espacio entre la etiqueta y el switch */
+    }
+
+    .theme-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px; /* Ancho del switch */
+        height: 28px; /* Alto del switch */
+    }
+
+    /* Ocultar el input checkbox por defecto */
+    .theme-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    /* El control deslizante (slider) */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--meta-text); /* Color apagado */
+        transition: .4s;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: var(--control-bg); /* El círculo interno */
+        transition: .4s;
+    }
+
+    /* Cuando está chequeado (Modo Oscuro ON) */
+    input:checked + .slider {
+        background-color: #2563eb; /* Color azul cuando está ON */
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px); /* Mover el círculo */
+    }
+
+    /* Forma redonda (round) */
+    .slider.round {
+        border-radius: 28px;
+    }
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
   </style>
 </head>
 
@@ -240,8 +304,13 @@
 
     <button id="load-routine-btn" class="btn-secondary">Cargar Rutina</button>
 
-    <button id="toggle-theme-btn" class="btn-secondary">🌙 / ☀️</button>
-
+    <div class="theme-switch-wrapper">
+      <label for="dark-mode-switch">Modo oscuro</label>
+      <label class="theme-switch">
+          <input type="checkbox" id="dark-mode-switch">
+          <span class="slider round"></span>
+      </label>
+    </div>
     <span id="status-text"></span>
   </div>
 
@@ -297,18 +366,26 @@
 <script src="app.js"></script>
 
 <script>
+  // Script Modificado para el nuevo switch
+  const themeSwitch = document.getElementById("dark-mode-switch");
+  const htmlElement = document.documentElement;
   const savedTheme = localStorage.getItem("gym-theme");
-
-  if (!savedTheme) {
-    document.documentElement.classList.add("dark");
+  
+  // Inicialización: aplica el tema guardado o el oscuro por defecto.
+  if (!savedTheme || savedTheme === "dark") {
+    htmlElement.classList.add("dark");
     localStorage.setItem("gym-theme", "dark");
+    themeSwitch.checked = true; // Marca el switch si es modo oscuro
   } else {
-    document.documentElement.classList.toggle("dark", savedTheme === "dark");
+    htmlElement.classList.remove("dark");
+    localStorage.setItem("gym-theme", "light");
+    themeSwitch.checked = false; 
   }
 
-  const themeBtn = document.getElementById("toggle-theme-btn");
-  themeBtn.addEventListener("click", () => {
-    const isDark = document.documentElement.classList.toggle("dark");
+  // Listener para el evento 'change' del switch
+  themeSwitch.addEventListener("change", () => {
+    const isDark = themeSwitch.checked;
+    htmlElement.classList.toggle("dark", isDark);
     localStorage.setItem("gym-theme", isDark ? "dark" : "light");
   });
 </script>
