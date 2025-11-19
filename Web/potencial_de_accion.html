@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Neurona didáctica: de los EPSPs al potencial de acción (200 ms)</title>
+<style>
+  :root{
+    --ink:#222; --muted:#666;
+    --dep:#ff9800; --peak:#ffc107; --rep:#2196f3; --ahp:#9c27b0; --rest:#9e9e9e;
+    --spike:#ffb300; --myelin:#cfd8dc; --axon:#b0bec5; --nt:#42a5f5;
+    --dendr:#bdbdbd; --ex:#2aa84a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:#fff}
+  header{padding:16px; border-bottom:1px solid #eee}
+  header h1{margin:0 0 6px; font-size:1.24rem}
+  header p{margin:6px 0; color:var(--muted); line-height:1.45}
+  main{display:grid; gap:14px; padding:14px; max-width:1100px; margin:0 auto}
+  @media (min-width:980px){ main{grid-template-columns:1fr 1fr;} }
+  .card{border:1px solid #eee; border-radius:12px; padding:12px}
+  .row{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+  button{background:#0b57d0; color:#fff; border:none; padding:10px 12px; border-radius:10px; font-weight:700; cursor:pointer}
+  button:active{transform:translateY(1px)}
+  .small{color:var(--muted); font-size:.95rem}
+  #plot{width:100%; height:340px; border:1px solid #eee; border-radius:12px}
+
+  /* SVG / neurona */
+  svg{width:100%; height:auto; max-height:560px}
+  .label{font-size:12px; fill:#555}
+  .axonBody{fill:var(--axon)}
+  .myelin{fill:var(--myelin)}
+  .nodeDot{fill:var(--spike); opacity:0}
+  .spikeDot{fill:var(--spike); opacity:0}
+  .nt{fill:var(--nt)}
+  .dpath{stroke:var(--dendr); stroke-width:10; fill:none; stroke-linecap:round}
+  .epsp{fill:var(--ex)}
+
+  /* Callouts (letreros con flecha) */
+  .callout-box{fill:#fff; stroke:#ddd; rx:6}
+  .callout-text{font-size:12px; fill:#333}
+  .callout-line{stroke:#999; stroke-width:1.5; fill:none; marker-end:url(#arrow)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cómo un EPSP puede generar un potencial de acción</h1>
+  <p>
+    Pulsa <b>Provocar EPSP</b>. Verás un pequeño impulso (EPSP) que nace en una <b>dendrita</b> y viaja hacia el <b>soma</b>. Allí se “suma” con otros EPSPs.
+    Si la despolarización es suficiente, la neurona produce un <b>potencial de acción</b> (PA). En el gráfico (ventana de <b>200 ms</b>) se distinguen sus fases:
+    <i>despolarización</i>, <i>pico</i>, <i>repolarización</i> y <i>poshiperpolarización</i>. Después, el PA avanza por el <b>axón</b> (saltando por los <b>nódulos</b>) y el <b>botón terminal</b> libera neurotransmisor.
+  </p>
+</header>
+
+<main>
+  <!-- Controles y gráfico -->
+  <section class="card">
+    <div class="row">
+      <button id="btnEPSP">Provocar EPSP</button>
+      <span class="small">Prueba 1–3 clics seguidos (se suman). Eje vertical: –90 a +50 mV.</span>
+    </div>
+    <canvas id="plot" width="1000" height="340" aria-label="Potencial de membrana (200 ms)"></canvas>
+    <p id="status" class="small">Listo.</p>
+  </section>
+
+  <!-- Neurona: dendritas → soma (tocando) → axón (3 nodos) (tocando) → terminal (tocando) -->
+  <section class="card">
+    <svg id="diagram" viewBox="0 0 1150 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dendritas, soma, axón y botón terminal con etiquetas">
+      <!-- Marcador flecha para callouts -->
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#999"/>
+        </marker>
+      </defs>
+
+      <!-- Dendritas que desembocan en el soma -->
+      <path id="d1" class="dpath" d="M70,160 C140,120 200,120 260,150 S340,200 300,210" />
+      <path id="d2" class="dpath" d="M60,220 C140,240 210,230 270,210 S340,195 300,210" />
+      <path id="d3" class="dpath" d="M90,290 C160,300 220,280 255,250 S320,210 300,210" />
+
+      <!-- Soma (derecha a 394 px) -->
+      <ellipse id="soma" cx="330" cy="210" rx="64" ry="86" fill="#fafafa" stroke="#bdbdbd" stroke-width="2"/>
+
+      <!-- Axón pegado al soma: empieza exactamente donde acaba el soma (x=394) -->
+      <rect id="axonRect" x="394" y="196" width="360" height="28" rx="6" class="axonBody"/>
+      <g id="myelinGroup"></g>
+      <g id="nodeDots"></g>
+      <!-- punto amarillo al inicio del axón -->
+      <circle id="initSpike" cx="404" cy="210" r="7" class="spikeDot"/>
+
+      <!-- Botón terminal pegado al axón:
+           el rectángulo del axón acaba en x=394+360=754.
+           El botón (elipse) toca al axón por la izquierda: centro x = 754 + rx = 814 -->
+      <g id="terminal" transform="translate(814,210)">
+        <ellipse cx="0" cy="0" rx="60" ry="40" fill="#fafafa" stroke="#bdbdbd" stroke-width="2"/>
+        <g id="ntCloud"></g> <!-- solo neurotransmisores saliendo (sin compuertas de Ca²⁺) -->
+      </g>
+
+      <!-- ======= Letreros y flechas (colocados para no tapar) ======= -->
+      <!-- Dendritas -->
+      <rect x="80" y="80" width="200" height="28" class="callout-box"/>
+      <text x="90" y="98" class="callout-text">Dendritas (experimentan EPSPs)</text>
+      <path d="M140,108 C180,140 220,150 260,150" class="callout-line"/>
+
+      <!-- Soma -->
+      <rect x="240" y="320" width="180" height="28" class="callout-box"/>
+      <text x="250" y="338" class="callout-text">Soma (se suman los EPSPs)</text>
+      <path d="M300,320 C320,280 330,250 330,220" class="callout-line"/>
+
+      <!-- Axón + mielina -->
+      <rect x="470" y="120" width="50" height="28" class="callout-box"/>
+      <text x="480" y="138" class="callout-text">Axón</text>
+      <path d="M500,148 C500,172 500,190 500,196" class="callout-line"/>
+
+      <!-- Nódulo de Ranvier -->
+      <rect x="620" y="320" width="160" height="28" class="callout-box"/>
+      <text x="630" y="338" class="callout-text">Nódulo de Ranvier (salto)</text>
+      <path d="M700,320 C700,280 700,240 700,210" class="callout-line"/>
+
+      <!-- Botón terminal -->
+      <rect x="900" y="120" width="170" height="28" class="callout-box"/>
+      <text x="910" y="138" class="callout-text">Botón terminal (libera NT)</text>
+      <path d="M975,148 C975,172 880,190 874,210" class="callout-line"/>
+    </svg>
+  </section>
+</main>
+
+<script>
+/* ============================================================
+   1) Modelo Hodgkin–Huxley + sinapsis excitatoria (AMPA)
+   ============================================================ */
+const HH = { C:1.0, gNa:120.0, gK:36.0, gL:0.3, ENa:50.0, EK:-77.0, EL:-54.4 };
+const SYN = {
+  Eexc: 0.0,   // mV (AMPA ~0 mV)
+  tau: 5.0,    // ms (decadencia del EPSC)
+  gPeak: 0.12  // mS/cm² por EPSP (1–3 clics → PA nítido)
+};
+const DT = 0.02;     // ms (paso HH)
+const SPEED = 0.10;  // 30% del tiempo real (rápido y visible, en ms)
+
+/* Estado HH */
+let V = -65.0, m, h, n;
+let gSyn = 0.0;
+let t_ms = 0.0;
+let lastPeak_t = -1e9;
+
+function alpha_n(V){ return 0.01*(V+55)/(1 - Math.exp(-(V+55)/10)); }
+function beta_n(V){  return 0.125*Math.exp(-(V+65)/80); }
+function alpha_m(V){ return 0.1*(V+40)/(1 - Math.exp(-(V+40)/10)); }
+function beta_m(V){  return 4*Math.exp(-(V+65)/18); }
+function alpha_h(V){ return 0.07*Math.exp(-(V+65)/20); }
+function beta_h(V){  return 1/(1 + Math.exp(-(V+35)/10)); }
+function initGates(V0){
+  const an=alpha_n(V0), bn=beta_n(V0), am=alpha_m(V0), bm=beta_m(V0), ah=alpha_h(V0), bh=beta_h(V0);
+  n = an/(an+bn); m = am/(am+bm); h = ah/(ah+bh);
+}
+initGates(V);
+
+/* Botón: crea EPSP dendrítico (animación + acoplo a soma) */
+document.getElementById('btnEPSP').addEventListener('click', ()=> spawnDendriticEPSP());
+
+/* ============================================================
+   2) Gráfico (–90..+50 mV) — ventana deslizante 200 ms
+   ============================================================ */
+const canvas = document.getElementById('plot'), ctx = canvas.getContext('2d');
+const Y_MIN=-90, Y_MAX=50, X_WINDOW_MS = 200;
+
+function resizeCanvasForDPR(){
+  const dpr=window.devicePixelRatio||1, w=canvas.clientWidth, h=canvas.clientHeight;
+  canvas.width=w*dpr; canvas.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+resizeCanvasForDPR(); window.addEventListener('resize', resizeCanvasForDPR);
+let trace=[];
+function mapY(mV){ const H=canvas.clientHeight; const f=(mV - Y_MIN)/(Y_MAX - Y_MIN); return Math.max(10, Math.min(H-26, H-26 - f*(H-36))); }
+function ppm(){ const W=canvas.clientWidth; return (W-56)/X_WINDOW_MS; }
+
+function drawAxes(){
+  const W=canvas.clientWidth,H=canvas.clientHeight;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#eaeaea'; ctx.beginPath(); ctx.moveTo(46,10); ctx.lineTo(46,H-26); ctx.lineTo(W-10,H-26); ctx.stroke();
+  ctx.fillStyle='#666'; ctx.font='12px system-ui';
+  [-90,-80,-70,-60,-50,-40,-20,0,20,40,50].forEach(v=>{
+    const y=mapY(v); ctx.strokeStyle='#f5f5f5'; ctx.beginPath(); ctx.moveTo(46,y); ctx.lineTo(W-10,y); ctx.stroke(); ctx.fillText(v+' mV',8,y+4);
+  });
+  // referencia de ≈umbral
+  ctx.strokeStyle='#ddd'; const yTh=mapY(-55); ctx.beginPath(); ctx.moveTo(46,yTh); ctx.lineTo(W-10,yTh); ctx.stroke(); ctx.fillText('≈ Umbral',50,yTh-6);
+}
+
+function colorForPhase(dV, V, Vprev){
+  const s = getComputedStyle(document.documentElement);
+  if (V > 0) return s.getPropertyValue('--peak');     // pico / overshoot
+  if (V < HH.EL) return s.getPropertyValue('--ahp');  // poshiperpolarización
+  if (dV > 0 && V > -55) return s.getPropertyValue('--dep'); // despolarización
+  if (dV < 0 && V > HH.EL) return s.getPropertyValue('--rep'); // repolarización
+  return s.getPropertyValue('--rest');                // reposo/integración
+}
+
+function drawTrace(){
+  drawAxes();
+  if(trace.length<2) return;
+  const W=canvas.clientWidth, k=ppm();
+  const tMax = trace[trace.length-1].t, tMin = tMax - X_WINDOW_MS;
+  ctx.lineWidth=2;
+
+  while(trace.length && trace[0].t < tMin - 5) trace.shift();
+
+  for(let i=1;i<trace.length;i++){
+    const a=trace[i-1], b=trace[i];
+    const x1=46+(a.t-tMin)*k, x2=46+(b.t-tMin)*k;
+    if(x2 < 46) continue; if(x1 > W-10) break;
+    const y1=mapY(a.V), y2=mapY(b.V);
+    ctx.strokeStyle = colorForPhase(b.V-a.V, b.V, a.V);
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  }
+}
+
+/* ============================================================
+   3) EPSPs dendríticos: viajan sobre la dendrita y se acoplan al soma
+   ============================================================ */
+const svg = document.getElementById('diagram');
+const paths = ['d1','d2','d3'].map(id=>document.getElementById(id));
+function pathLen(p){ return p.getTotalLength(); }
+function ptAt(p,d){ const q=p.getPointAtLength(d); return {x:q.x,y:q.y}; }
+
+class DendriticEPSP{
+  constructor(pathEl){
+    this.p = pathEl; this.L=pathLen(this.p);
+    this.s = Math.random()*this.L*0.35; // nace distal
+    this.amp = 1.0;
+    this.decay = 0.998;       // leve atenuación por cable
+    this.speed = this.L*4.0;  // rápido (ms)
+    this.coupling = 1.0e-9;   // nS/step en zona proximal
+    this.arrivalPulse = SYN.gPeak; // pulso final en el soma
+    this.node = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    this.node.setAttribute('r','4'); this.node.setAttribute('class','epsp');
+    svg.appendChild(this.node);
+    this.updateNode();
+  }
+  updateNode(){
+    const {x,y} = ptAt(this.p, this.s);
+    this.node.setAttribute('cx', x.toFixed(2));
+    this.node.setAttribute('cy', y.toFixed(2));
+    this.node.setAttribute('opacity', Math.max(0.2, Math.min(1, 0.2 + 0.8*this.amp)).toFixed(2));
+    this.node.setAttribute('r', (3 + 2*this.amp).toFixed(2));
+  }
+  step(dt_ms){
+    const dt_s = dt_ms/1000;
+    this.s += this.speed * dt_s;
+    this.amp *= Math.pow(this.decay, dt_ms);
+    const frac = this.s / this.L;
+
+    // Acoplo continuo en el 20% final (nS → mS/cm² aprox. didáctica)
+    if(frac>=0.80 && frac<0.98){ gSyn += (this.coupling * this.amp) * 1e-3; }
+    this.updateNode();
+
+    if(frac>=0.98){ gSyn += this.arrivalPulse * this.amp; this.destroy(); return true; }
+    if(this.amp<0.12){ this.destroy(); return true; }
+    return false;
+  }
+  destroy(){ try{ svg.removeChild(this.node); }catch{} this.dead=true; }
+}
+let epsps = [];
+function spawnDendriticEPSP(){
+  const p = paths[Math.floor(Math.random()*paths.length)];
+  epsps.push(new DendriticEPSP(p));
+}
+
+/* ============================================================
+   4) Axón (3 nodos) y botón terminal (tocando) — animaciones
+   ============================================================ */
+const axonRect = document.getElementById('axonRect');
+const myelinGroup = document.getElementById('myelinGroup');
+const nodeDotsGroup = document.getElementById('nodeDots');
+const initSpike = document.getElementById('initSpike');
+
+function buildMyelin(nSheaths=4){
+  myelinGroup.innerHTML=''; nodeDotsGroup.innerHTML='';
+  const r=axonRect.getBBox(); const gap=12; const segW=(r.width-(nSheaths-1)*gap)/nSheaths; const y=r.y, h=r.height, x0=r.x;
+  for(let i=0;i<nSheaths;i++){
+    const x=x0+i*(segW+gap);
+    const seg=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    seg.setAttribute('x',x); seg.setAttribute('y',y+2); seg.setAttribute('width',segW); seg.setAttribute('height',h-4); seg.setAttribute('rx',6); seg.setAttribute('class','myelin');
+    myelinGroup.appendChild(seg);
+    if(i>0){
+      const nd=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      nd.setAttribute('cx', x-gap/2); nd.setAttribute('cy', y+h/2); nd.setAttribute('r', 6); nd.setAttribute('class','nodeDot');
+      nodeDotsGroup.appendChild(nd);
+    }
+  }
+}
+buildMyelin(4);
+
+function showInitSpike(){ initSpike.style.opacity=1; setTimeout(()=> initSpike.style.opacity=0, 160); }
+function propagateAlongNodes(){
+  const nodes = Array.from(nodeDotsGroup.querySelectorAll('.nodeDot'));
+  const perNode = 70; // rápido (ms) pero visible
+  nodes.forEach((n,i)=>{
+    setTimeout(()=>{ n.style.opacity=1; setTimeout(()=> n.style.opacity=0, 120); }, i*perNode);
+  });
+}
+
+/* Botón terminal: solo neurotransmisores saliendo (sin compuertas) */
+const ntCloud = document.getElementById('ntCloud');
+function releaseNeurotransmitter(){
+  for(let k=0;k<10;k++){
+    const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('cx', 20 + Math.random()*6);
+    dot.setAttribute('cy', -5 + Math.random()*10);
+    dot.setAttribute('r', 3);
+    dot.setAttribute('class','nt');
+    ntCloud.appendChild(dot);
+    const dx=40+Math.random()*40, dy=(Math.random()*16)-8;
+    const anim = dot.animate(
+      [{transform:'translate(0,0)',opacity:1},{transform:`translate(${dx}px,${dy}px)`,opacity:0}],
+      {duration:420+Math.random()*250, easing:'ease-out', fill:'forwards'}
+    );
+    anim.onfinish=()=> ntCloud.removeChild(dot);
+  }
+}
+
+/* ============================================================
+   5) Simulación HH + sincronía con animaciones
+   ============================================================ */
+const statusEl = document.getElementById('status');
+//document.getElementById('btnEPSP').addEventListener('click', spawnDendriticEPSP);
+
+function stepHH(sim_dt_ms){
+  // Sinapsis
+  gSyn *= Math.exp(-sim_dt_ms / SYN.tau);
+
+  // Compuertas HH
+  const an=alpha_n(V), bn=beta_n(V), am=alpha_m(V), bm=beta_m(V), ah=alpha_h(V), bh=beta_h(V);
+  n += sim_dt_ms * (an*(1-n) - bn*n);
+  m += sim_dt_ms * (am*(1-m) - bm*m);
+  h += sim_dt_ms * (ah*(1-h) - bh*h);
+
+  // Corrientes y membrana
+  const gNa_t = HH.gNa*Math.pow(m,3)*h, gK_t=HH.gK*Math.pow(n,4);
+  const INa=gNa_t*(V-HH.ENa), IK=gK_t*(V-HH.EK), IL=HH.gL*(V-HH.EL), ISyn=gSyn*(V - SYN.Eexc);
+  const Vprev = V;
+  V += sim_dt_ms * ( -(INa+IK+IL) - ISyn ) / HH.C;
+
+  // Pico (dispara visuales una sola vez por PA)
+  const justPeaked = (Vprev>0 && V<=0);
+  if(justPeaked && (t_ms - lastPeak_t) > 3.0){
+    lastPeak_t = t_ms;
+    showInitSpike();
+    propagateAlongNodes();
+    setTimeout(()=> releaseNeurotransmitter(), 3*70 + 120); // tras el último nodo
+  }
+
+  // Traza y estado
+  trace.push({t:t_ms, V});
+  statusEl.textContent = `t = ${t_ms.toFixed(1)} ms · V = ${V.toFixed(1)} mV · g_syn = ${gSyn.toFixed(3)} mS/cm²`;
+}
+
+/* Bucle común (dendritas → soma → HH → axón → terminal) */
+let lastTS=null;
+function loop(ts){
+  if(lastTS===null) lastTS=ts;
+  const real_dt = Math.min(40, ts - lastTS); lastTS = ts;
+  let sim_dt = real_dt * SPEED;
+
+  while(sim_dt > 0){
+    const step = Math.min(DT, sim_dt);
+
+    // EPSPs dendríticos avanzan y acoplan su efecto al soma
+    for(let i=epsps.length-1;i>=0;i--){
+      if(epsps[i].dead){ epsps.splice(i,1); continue; }
+      const done = epsps[i].step(step);
+      if(done) epsps.splice(i,1);
+    }
+
+    // Integra HH
+    t_ms += step;
+    stepHH(step);
+    sim_dt -= step;
+  }
+
+  drawTrace();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

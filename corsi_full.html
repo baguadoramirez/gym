@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Corsi Blocks – Repetición Directa</title>
+  <style>
+    html { font-size: 3vh; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      background: black; color: white; font-family: Arial, sans-serif;
+      overflow: hidden; touch-action: manipulation;
+    }
+    #trialCounter {
+      position: fixed; top: 1vh; right: 1vh;
+      color: red; font-size: 1.2rem; font-weight: bold; z-index: 10000;
+    }
+    #canvas {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; background: black;
+    }
+    #feedback {
+      position: absolute; bottom: 2vh; width: 100%;
+      text-align: center; font-size: 1.2rem;
+    }
+    #modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+    #modalContent {
+      background: #000; color: #fff;
+      padding: 2rem; border-radius: 1rem;
+      text-align: center; width: 90vw; max-width: 400px;
+    }
+    #modalContent label, #modalContent p {
+      display: block; font-size: 1rem; margin-bottom: 1rem;
+    }
+    #modalContent input {
+      width: 80vw; max-width: 300px;
+      font-size: 1.2rem; padding: 1rem;
+      margin: 0.5rem auto; display: block;
+      border: none; border-radius: 0.5rem; text-align: center;
+    }
+    button {
+      font-size: 1.2rem; padding: 1rem 2rem;
+      margin-top: 1rem; border: none;
+      border-radius: 0.5rem; background: #444;
+      color: #fff; cursor: pointer;
+    }
+    button:active { background: #666; }
+    #summary {
+      position: absolute; top: 5vh; left: 50%;
+      transform: translateX(-50%);
+      background: #222; padding: 2rem; border-radius: 1rem;
+      max-height: 90vh; overflow-y: auto;
+      text-align: center; display: none; width: 90vw;
+    }
+    #summary h2, #summary h3 {
+      font-size: 1.2rem; margin: 1rem 0;
+    }
+    #graph {
+      display: block; margin: 2rem auto; max-width: 80vw; background: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="trialCounter">Ensayo 0/14</div>
+
+  <div id="modal">
+    <div id="modalContent">
+      <label>Nombre:<br><input id="nameInput" type="text" /></label>
+      <label>Edad:<br><input id="ageInput" type="number" /></label>
+      <p>Este experimento se mostrará en pantalla completa.<br>Haz clic para comenzar.</p>
+      <button onclick="startExperiment()">Comenzar experimento</button>
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+  <div id="feedback"></div>
+
+  <div id="summary">
+    <h2 id="thanksText"></h2>
+    <h3 id="feedbackSpan"></h3>
+    <button onclick="downloadCSV()">Descargar CSV</button>
+    <div id="graph"></div>
+  </div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx    = canvas.getContext("2d");
+
+let blockSize, blockPositions = [];
+const blockPercents = [
+  [0.28,0.32],[0.72,0.28],[0.50,0.22],
+  [0.35,0.50],[0.65,0.48],[0.26,0.70],
+  [0.50,0.62],[0.74,0.68],[0.52,0.42]
+];
+
+let maxTrials=14, currentLength=3, incorrectStreak=0;
+let trialCount=0, sequence=[], clickedOrder=[], clickedBlocks=[];
+let showingSequence=false, acceptingInput=false;
+let results=[], participantName='', participantAge=0, trialStartTime=0;
+
+// Ajusta canvas y posiciones
+function resizeCanvas(){
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  blockSize = Math.min(canvas.width,canvas.height)*0.1;
+  blockPositions = blockPercents.map(([px,py])=>[
+    px*canvas.width - blockSize/2,
+    py*canvas.height- blockSize/2
+  ]);
+  if(!showingSequence && !acceptingInput && trialCount===0) drawBlocks();
+}
+window.addEventListener("resize",resizeCanvas);
+resizeCanvas();
+
+function startExperiment(){
+  participantName = document.getElementById("nameInput").value || "Anon";
+  participantAge  = document.getElementById("ageInput").value  || 0;
+  document.getElementById("modal").style.display = "none";
+  const rfs = document.documentElement.requestFullscreen ||
+              document.documentElement.webkitRequestFullscreen ||
+              document.documentElement.mozRequestFullScreen ||
+              document.documentElement.msRequestFullscreen;
+  if(rfs) rfs.call(document.documentElement);
+  nextTrial();
+}
+
+function updateCounter(){
+  document.getElementById("trialCounter")
+          .textContent = `Ensayo ${trialCount}/${maxTrials}`;
+}
+
+function generateSequence(len){
+  const counts = Array(blockPositions.length).fill(0),
+        seq = [];
+  while(seq.length < len){
+    const idx = Math.floor(Math.random()*blockPositions.length),
+          last = seq[seq.length-1],
+          allowRepeat = len>=8;
+    if(idx!==last && counts[idx] < (allowRepeat?2:1)){
+      seq.push(idx);
+      counts[idx]++;
+    }
+  }
+  return seq;
+}
+
+// Dibuja bloques con el "fade" clásico
+function drawBlocks(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const now = performance.now();
+  blockPositions.forEach(([x,y],i)=>{
+    const clicks = clickedBlocks.filter(b=>b.index===i);
+    let baseColor = "white";
+    if(clicks.length>0){
+      let maxFade = 0;
+      clicks.forEach(c=>{
+        const dt = now - c.time;
+        const fade = Math.max(0, 1 - dt/1000);
+        if(fade > maxFade) maxFade = fade;
+      });
+      const g = Math.floor(255 * maxFade);
+      baseColor = `rgb(${255 - g},255,${255 - g})`;
+    }
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(x,y,blockSize,blockSize);
+    ctx.strokeStyle = "black";
+    ctx.lineWidth   = 2;
+    ctx.strokeRect(x,y,blockSize,blockSize);
+  });
+  if(acceptingInput) requestAnimationFrame(drawBlocks);
+}
+
+function highlightBlock(i,color){
+  const [x,y] = blockPositions[i];
+  ctx.fillStyle = color;
+  ctx.fillRect(x,y,blockSize,blockSize);
+  ctx.strokeStyle = "white";
+  ctx.lineWidth   = 2;
+  ctx.strokeRect(x,y,blockSize,blockSize);
+}
+
+// Ahora cada bloque se resalta con intervalo de 1000 ms
+function showSequence(i){
+  document.body.style.cursor = "none";
+  if(i >= sequence.length){
+    showingSequence = false;
+    acceptingInput  = true;
+    trialStartTime  = performance.now();
+    drawBlocks();
+    document.body.style.cursor = "auto";
+    return;
+  }
+  showingSequence = true;
+  drawBlocks();
+  highlightBlock(sequence[i], "red");
+  setTimeout(() => showSequence(i + 1), 1000);
+}
+
+function nextTrial(){
+  clickedOrder = [];
+  clickedBlocks = [];
+  sequence = generateSequence(currentLength);
+  trialCount++;
+  updateCounter();
+  drawBlocks();
+  // también retrasamos 1000ms antes de comenzar la secuencia
+  setTimeout(() => showSequence(0), 1000);
+}
+
+canvas.addEventListener("pointerdown",e=>{
+  if(!acceptingInput) return;
+  const rect = canvas.getBoundingClientRect(),
+        mx = e.clientX - rect.left,
+        my = e.clientY - rect.top;
+  for(let i=0;i<blockPositions.length;i++){
+    const [x,y]=blockPositions[i];
+    if(mx>=x&&mx<=x+blockSize&&my>=y&&my<=y+blockSize){
+      clickedOrder.push(i);
+      clickedBlocks.push({index:i,time:performance.now()});
+      drawBlocks();
+      highlightBlock(i,"blue");
+      if(clickedOrder.length === sequence.length){
+        acceptingInput = false;
+        const rt = performance.now() - trialStartTime;
+        checkResponse(rt);
+      }
+      break;
+    }
+  }
+});
+
+function checkResponse(responseTime){
+  const correct   = clickedOrder.every((v,i)=>v===sequence[i]),
+        numCorrect= clickedOrder.filter((v,i)=>v===sequence[i]).length,
+        acumulado = results.reduce((s,r)=>s+r.aciertos,0);
+  results.push({
+    name: participantName, age: participantAge,
+    trial: trialCount,
+    sequence: sequence.join(""),
+    response: clickedOrder.join(""),
+    correct_io: correct?1:0,
+    mean: 0, sd: 0,
+    aciertos: numCorrect,
+    acumulado_aciertos: acumulado+numCorrect,
+    tiempo_respuesta: Math.round(responseTime)
+  });
+  document.getElementById("feedback").textContent = correct?"¡Correcto!":"Incorrecto";
+  if(correct){
+    incorrectStreak=0; currentLength++;
+  } else {
+    incorrectStreak++;
+    if(incorrectStreak>=2 && currentLength>2){
+      currentLength--; incorrectStreak=0;
+    }
+  }
+  setTimeout(()=>{
+    document.getElementById("feedback").textContent="";
+    if(trialCount<maxTrials) nextTrial();
+    else showSummary();
+  },1000);
+}
+
+function downloadCSV(){
+  const header =
+    "nombre,edad,n_trial,secuencia,secuencia introducida,correct_io,mean,sd,aciertos,acumulado_aciertos,tiempo_respuesta\n";
+  const body = results.map(r=>(
+    `${r.name},${r.age},${r.trial},${r.sequence},${r.response},`+
+    `${r.correct_io},${r.mean},${r.sd},${r.aciertos},`+
+    `${r.acumulado_aciertos},${r.tiempo_respuesta}`
+  )).join("\n");
+  const blob = new Blob([header+body],{type:"text/csv"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "results.csv";
+  link.click();
+}
+
+function logistic(x,a,b){return 1/(1+Math.exp(-(a+b*x)));}
+
+function fitLogistic(data){
+  const g={};
+  data.forEach(r=>{
+    const L=r.sequence.length;
+    g[L]=g[L]||{correct:0,total:0};
+    g[L].total++;
+    if(r.correct_io) g[L].correct++;
+  });
+  for(let L=3;L<=12;L++) if(!g[L]) g[L]={correct:0,total:1};
+  const x=[],y=[];
+  Object.keys(g).forEach(k=>{x.push(+k); y.push(g[k].correct/g[k].total);});
+  let a=0,b=1,lr=0.001;
+  for(let e=0;e<100000;e++){
+    let da=0,db=0;
+    for(let i=0;i<x.length;i++){
+      const p=logistic(x[i],a,b), err=p-y[i];
+      da+=err; db+=err*x[i];
+    }
+    a-=lr*da; b-=lr*db;
+  }
+  return { cpd:-a/b, sd:Math.PI/(b*Math.sqrt(3)), a,b,x,y };
+}
+
+function showGraphLogistic(a,b,x,y){
+  const c=document.createElement('canvas'),
+        ct=c.getContext('2d');
+  c.width=600; c.height=400; ct.clearRect(0,0,600,400);
+  ct.strokeStyle="#000"; ct.lineWidth=1;
+  ct.beginPath(); ct.moveTo(50,350); ct.lineTo(550,350);
+  ct.moveTo(50,50); ct.lineTo(50,350); ct.stroke();
+  ct.fillStyle="#000"; ct.font="14px Arial";
+  ct.fillText("Longitud de la secuencia",200,380);
+  ct.save(); ct.translate(15,250); ct.rotate(-Math.PI/2);
+  ct.fillText("Proporción de aciertos",0,0); ct.restore();
+  [0,0.2,0.4,0.6,0.8,1].forEach(v=>{
+    const yp=350-v*300;
+    ct.fillText(v.toFixed(1),20,yp+5);
+    ct.beginPath(); ct.moveTo(45,yp); ct.lineTo(55,yp); ct.stroke();
+  });
+  for(let i=3;i<=12;i++){
+    const xp=50+((i-3)/9)*500;
+    ct.fillText(i,xp-5,365);
+    ct.beginPath(); ct.moveTo(xp,345); ct.lineTo(xp,355); ct.stroke();
+  }
+  ct.beginPath(); ct.strokeStyle="blue"; ct.lineWidth=2;
+  for(let i=0;i<=100;i++){
+    const val=3+i*(9/100), prob=logistic(val,a,b),
+          xp=50+((val-3)/9)*500, yp=350-prob*300;
+    i===0?ct.moveTo(xp,yp):ct.lineTo(xp,yp);
+  }
+  ct.stroke();
+  ct.fillStyle="red";
+  x.forEach((v,i)=>{
+    const xp=50+((v-3)/9)*500, yp=350-y[i]*300;
+    ct.beginPath(); ct.arc(xp,yp,4,0,2*Math.PI); ct.fill();
+  });
+  return c;
+}
+
+function showSummary(){
+  document.getElementById("canvas").style.display="none";
+  const s = document.getElementById("summary");
+  s.style.display="block";
+  document.getElementById("thanksText").textContent="Gracias por participar";
+  const fb = document.getElementById("feedbackSpan");
+  if(results.every(r=>r.correct_io===1)){
+    fb.textContent="Has acertado todas las secuencias. No se puede estimar el punto de corte del 50%.";
+    document.getElementById("graph").innerHTML="<p>No se puede generar gráfica.</p>";
+    return;
+  }
+  const {cpd,sd,a,b,x,y} = fitLogistic(results);
+  results.forEach(r=>{r.mean=cpd.toFixed(2);r.sd=sd.toFixed(2);});
+  fb.textContent=`Punto de corte (50% aciertos): ≈ ${cpd.toFixed(2)} bloques.`;
+  const g = showGraphLogistic(a,b,x,y);
+  const c = document.getElementById("graph");
+  c.innerHTML=""; c.appendChild(g);
+}
+</script>
+</body>
+</html>
