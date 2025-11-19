@@ -72,6 +72,31 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       align-items: center;
     }
+    
+    /* ESTILO PARA EL FORMULARIO DE SENSACIONES */
+    .sensations-form {
+      flex-direction: column; 
+      align-items: flex-start; 
+      gap: 0; 
+    }
+    .sensations-form .control-row {
+      display: flex; 
+      flex-direction: column; 
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    .sensations-form input, .sensations-form select {
+        width: 100%;
+        box-sizing: border-box; 
+    }
+    /* Estilo para los detalles de dolor (aparece/desaparece con JS) */
+    .sensations-form #pain-details {
+        border-left: 3px solid #f97316; /* Color naranja para destacar */
+        padding-left: 10px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
 
     select, input {
       padding: 0.4rem;
@@ -92,6 +117,12 @@
     .btn-primary {
       background: #2563eb;
       color: white;
+    }
+    
+    /* Estilo para el botón deshabilitado */
+    .btn-primary:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
     }
 
     .btn-secondary {
@@ -182,7 +213,6 @@
 
 <main>
 
-  <!-- CONTROLES SUPERIORES -->
   <div class="controls">
     
     <div>
@@ -209,38 +239,63 @@
     </div>
 
     <button id="load-routine-btn" class="btn-secondary">Cargar Rutina</button>
-    <button id="export-png-btn" class="btn-primary">Exportar en PNG</button>
 
-    <!-- BOTÓN MODO OSCURO/CLARO -->
     <button id="toggle-theme-btn" class="btn-secondary">🌙 / ☀️</button>
 
     <span id="status-text"></span>
   </div>
 
 
-  <!-- AÑADIR EJERCICIOS -->
   <div class="controls">
     <label>Añadir ejercicio</label>
     <select id="predefined-exercise-select"></select>
     <button id="add-predefined-btn" class="btn-secondary btn-small">Añadir</button>
     <button id="add-custom-btn" class="btn-secondary btn-small">Ejercicio personalizado</button>
   </div>
-
-  <!-- CONTENEDOR DONDE SE RENDERIZAN LOS EJERCICIOS -->
+  
   <div id="exercises-container"></div>
+  
+  <div id="final-controls-container" style="margin-top: 1rem;">
+    <div class="controls sensations-form" id="sensations-controls">
+      <h3>Cuestionario de Post-Entrenamiento</h3>
+      
+      <div class="control-row">
+        <label for="sense-general">Sensaciones generales del entreno 0-10 (muy mal - excelente)</label>
+        <input type="number" id="sense-general" min="0" max="10" placeholder="Ej: 8">
+      </div>
+
+      <div class="control-row">
+        <label for="sense-tiredness">Cansancio percibido 0-10</label>
+        <input type="number" id="sense-tiredness" min="0" max="10" placeholder="Ej: 6">
+      </div>
+
+      <div class="control-row">
+        <label for="sense-pain">Dolor en algún músculo (sí/no)</label>
+        <select id="sense-pain">
+          <option value="no">No</option>
+          <option value="si">Sí</option>
+        </select>
+      </div>
+
+      <div class="control-row pain-details" id="pain-details" style="display:none;">
+        <label for="pain-zone">Zona del dolor</label>
+        <input type="text" id="pain-zone" placeholder="Ej: Hombro derecho">
+        
+        <label for="pain-exercise">Identificar si algún ejercicio puede haber sido el responsable</label>
+        <select id="pain-exercise"></select>
+      </div>
+    </div>
+    
+    <button id="export-png-btn" class="btn-primary" style="width:100%; margin-top: 1rem;" disabled>Generar y Exportar PNG</button>
+  </div>
 
 </main>
 
-<!-- Librería para exportar imágenes -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-<!-- Scripts externos -->
 <script src="ejercicios.js"></script>
 <script src="app.js"></script>
 
-<!-- ===========================
-     SCRIPT PARA MODO OSCURO/CLARO
-     =========================== -->
 <script>
   const savedTheme = localStorage.getItem("gym-theme");
 

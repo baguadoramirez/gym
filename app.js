@@ -1,6 +1,6 @@
 /* ==========================================================
-   app.js — versión estable y depurada
-   Requiere: ejercicios.js + html2canvas + index.html
+   app.js — versión estable y depurada (v4: Persistencia corregida)
+   Requiere: ejercicios.js + html2canvas + rutinas.html
    ========================================================== */
 
 // Elementos del DOM
@@ -9,13 +9,21 @@ const weekSelect = document.getElementById("week-select");
 const daySelect = document.getElementById("day-select");
 
 const loadBtn = document.getElementById("load-routine-btn");
-const exportBtn = document.getElementById("export-png-btn");
+const exportBtn = document.getElementById("export-png-btn"); 
 
 const exercisesContainer = document.getElementById("exercises-container");
 const predefinedSelect = document.getElementById("predefined-exercise-select");
 const addPredefinedBtn = document.getElementById("add-predefined-btn");
 const addCustomBtn = document.getElementById("add-custom-btn");
 const statusText = document.getElementById("status-text");
+
+// CAMPOS DE SENSACIONES
+const senseGeneralInput = document.getElementById("sense-general");
+const senseTirednessInput = document.getElementById("sense-tiredness");
+const sensePainSelect = document.getElementById("sense-pain");
+const painDetailsDiv = document.getElementById("pain-details");
+const painZoneInput = document.getElementById("pain-zone");
+const painExerciseSelect = document.getElementById("pain-exercise");
 
 // Fecha inicial
 dateInput.value = new Date().toISOString().slice(0, 10);
@@ -34,6 +42,37 @@ function setStatus(msg) {
   setTimeout(() => {
     if (statusText.textContent === msg) statusText.textContent = "";
   }, 1500);
+}
+
+
+// -------------------------
+// FUNCIÓN DE VALIDACIÓN 
+// -------------------------
+function checkSensationsForm() {
+    let isValid = true;
+    
+    // 1. Sensaciones generales
+    if (!senseGeneralInput.value || senseGeneralInput.value.trim() === '') {
+        isValid = false;
+    }
+    // 2. Cansancio percibido
+    if (!senseTirednessInput.value || senseTirednessInput.value.trim() === '') {
+        isValid = false;
+    }
+
+    // 3. Dolor específico (si 'si' está seleccionado)
+    if (sensePainSelect.value === 'si') {
+        if (!painZoneInput.value || painZoneInput.value.trim() === '') {
+            isValid = false;
+        }
+        // Validar que se haya seleccionado un ejercicio O "No identificado"
+        if (!painExerciseSelect.value || painExerciseSelect.value.trim() === '') {
+            isValid = false;
+        }
+    }
+    
+    exportBtn.disabled = !isValid;
+    return isValid;
 }
 
 
@@ -102,7 +141,10 @@ function buildExerciseCard(exData) {
       ${exData.nombre}
     </div>
 
-    <div class="exercise-meta" style="font-size:0.8rem; color:var(--meta-text); margin-top:2px;">
+    <div class="exercise-meta exercise-muscle-section" 
+         data-musculo="${exData.musculo || ""}"
+         data-seccion="${exData.seccion || ""}"
+         style="font-size:0.8rem; color:var(--meta-text); margin-top:2px;">
       ${exData.musculo} – ${exData.seccion}
     </div>
   `;
@@ -113,27 +155,9 @@ function buildExerciseCard(exData) {
   removeBtn.className = "btn-secondary btn-small";
   
   removeBtn.onclick = () => {
-    const name = card.querySelector(".exercise-title").textContent.trim();
-
-    // 1. Eliminar visualmente
     card.remove();
-
-    // 2. Obtener clave
-    const key = sessionKey();
-    const saved = JSON.parse(localStorage.getItem(key) || "null") || {
-      date: dateInput.value,
-      week: weekSelect.value,
-      day: daySelect.value,
-      exercises: []
-    };
-
-    // 3. Eliminar de la memoria
-    saved.exercises = saved.exercises.filter(ex => ex.nombre !== name);
-
-    // 4. Guardar aunque quede vacío
-    localStorage.setItem(key, JSON.stringify(saved));
-
-    setStatus("Ejercicio eliminado (fijado en sesión)");
+    saveSession();
+    loadSession(); 
   };
 
   header.appendChild(left);
@@ -183,27 +207,44 @@ function buildExerciseCard(exData) {
 }
 
 
-
 // -------------------------
-// GUARDAR SESIÓN
+// GUARDAR SESIÓN (Y SENSACIONES)
 // -------------------------
 
 function saveSession() {
   const key = sessionKey();
   const cards = document.querySelectorAll(".exercise-card");
+  
+  // CORRECCIÓN: Capturamos el valor antes de la posible reconstrucción del select.
+  const selectedPainExercise = painExerciseSelect.value; 
 
   const data = {
     date: dateInput.value,
     week: weekSelect.value,
     day: daySelect.value,
-    exercises: []
+    exercises: [],
+    
+    // SENSACIONES
+    sensations: {
+      general: senseGeneralInput.value,
+      tiredness: senseTirednessInput.value,
+      pain: sensePainSelect.value,
+      painZone: painZoneInput.value,
+      painExercise: selectedPainExercise // Usamos el valor capturado.
+    }
   };
 
   cards.forEach(card => {
     const name = card.querySelector(".exercise-title")?.textContent.trim() || "";
-    const mus = card.querySelector(".exercise-muscle")?.textContent.trim() || "";
-    const sec = card.querySelector(".exercise-section")?.textContent.trim() || "";
-
+    
+    let mus = "";
+    let sec = "";
+    const metaElement = card.querySelector(".exercise-muscle-section");
+    if (metaElement) {
+        mus = metaElement.getAttribute("data-musculo") || "";
+        sec = metaElement.getAttribute("data-seccion") || "";
+    }
+    
     const tbody = card.querySelector("tbody");
     const rows = tbody ? Array.from(tbody.querySelectorAll("tr")) : [];
     
@@ -219,25 +260,78 @@ function saveSession() {
       };
     });
 
+    const tpl = exerciseTemplates[name] || {};
+    
     data.exercises.push({
       nombre: name,
-      musculo: mus,
-      seccion: sec,
-      hacer: exerciseTemplates[name]?.hacer ?? "",
-      noHacer: exerciseTemplates[name]?.noHacer ?? "",
-      trucos: exerciseTemplates[name]?.trucos ?? "",
+      musculo: mus || tpl.musculo || "",
+      seccion: sec || tpl.seccion || "",
+      hacer: tpl.hacer ?? "",
+      noHacer: tpl.noHacer ?? "",
+      trucos: tpl.trucos ?? "",
       sets: sets
     });
   });
 
   localStorage.setItem(key, JSON.stringify(data));
   setStatus("Guardado");
+  
+  // 1. Repopulate the list of exercises for the pain selector
+  const currentExerciseNames = data.exercises.map(ex => ex.nombre);
+  populatePainExerciseSelect(currentExerciseNames); 
+
+  // 2. Restaurar la selección en el DOM
+  painExerciseSelect.value = data.sensations.painExercise; 
+
+  checkSensationsForm();
 }
 
 
+// -------------------------
+// FUNCIÓN PARA EL SELECTOR DE AÑADIR EJERCICIO (TODOS)
+// -------------------------
+
+function populatePredefinedSelect() {
+  predefinedSelect.innerHTML = `<option value="">Añadir ejercicio...</option>`;
+  
+  const sortedNames = Object.keys(exerciseTemplates).sort();
+  
+  sortedNames.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    predefinedSelect.appendChild(opt);
+  });
+}
+
 
 // -------------------------
-// CARGAR SESIÓN O RUTINA BASE
+// FUNCIÓN PARA EL SELECTOR DE DOLOR (SOLO EJERCICIOS DE HOY + "No identificado")
+// -------------------------
+
+function populatePainExerciseSelect(exerciseNames) {
+    painExerciseSelect.innerHTML = `<option value="">Seleccionar ejercicio...</option>`;
+    
+    // NUEVO: Añadir opción "No identificado"
+    const noSeOpt = document.createElement("option");
+    noSeOpt.value = "No identificado";
+    noSeOpt.textContent = "No identificado";
+    painExerciseSelect.appendChild(noSeOpt);
+    
+    // Usa un Set para asegurar nombres únicos y luego ordena
+    const sortedNames = [...new Set(exerciseNames)].sort(); 
+    
+    sortedNames.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        painExerciseSelect.appendChild(opt);
+    });
+}
+
+
+// -------------------------
+// CARGAR SESIÓN O RUTINA BASE (Y SENSACIONES)
 // -------------------------
 
 function loadSession() {
@@ -246,10 +340,21 @@ function loadSession() {
 
   const week = weekSelect.value;
   const day = daySelect.value;
-
   const routine = routines[week]?.[day];
+  
   exercisesContainer.innerHTML = "";
-
+  
+  // Limpiar campos de sensaciones antes de cargar
+  senseGeneralInput.value = "";
+  senseTirednessInput.value = "";
+  sensePainSelect.value = "no";
+  painZoneInput.value = "";
+  
+  painDetailsDiv.style.display = "none";
+  
+  let currentExercises = [];
+  let savedPainExercise = ""; // Inicializamos variable para guardar el valor guardado
+  
   // *Si hay datos guardados, cargarlos*
   if (saved && saved.exercises?.length > 0) {
     saved.exercises.forEach(ex => {
@@ -264,12 +369,26 @@ function loadSession() {
         sets: ex.sets ?? []
       }));
     });
+    
+    currentExercises = saved.exercises.map(ex => ex.nombre); 
+    
+    // Cargar sensaciones guardadas
+    if (saved.sensations) {
+      senseGeneralInput.value = saved.sensations.general ?? "";
+      senseTirednessInput.value = saved.sensations.tiredness ?? "";
+      sensePainSelect.value = saved.sensations.pain ?? "no";
+      painZoneInput.value = saved.sensations.painZone ?? "";
+      savedPainExercise = saved.sensations.painExercise ?? ""; // Almacenamos el valor
+      
+      if (sensePainSelect.value === 'si') {
+          painDetailsDiv.style.display = 'flex'; 
+      }
+    }
     setStatus("Cargado desde memoria");
-    return;
   }
 
   // *Si no hay guardados pero sí rutina definida*
-  if (routine) {
+  else if (routine) { 
     routine.forEach(name => {
       const tpl = exerciseTemplates[name] || {};
       exercisesContainer.appendChild(buildExerciseCard({
@@ -278,32 +397,33 @@ function loadSession() {
         seccion: tpl.seccion ?? "",
         hacer: tpl.hacer ?? "",
         noHacer: tpl.noHacer ?? "",
+        trucos: tpl.trucos ?? "",
         sets: []
       }));
     });
-
+    
+    currentExercises = routine; 
     setStatus("Cargado desde rutina base");
-    return;
   }
 
   // *Si no hay nada*
-  setStatus("No hay rutina definida");
+  else {
+    setStatus("No hay rutina definida");
+  }
+  
+  // 1. Llenar el selector de dolor (incluye "No identificado")
+  populatePainExerciseSelect(currentExercises); 
+
+  // 2. Establecer el valor guardado (CORRECCIÓN: se hace aquí, después de poblar las opciones)
+  painExerciseSelect.value = savedPainExercise; 
+  
+  checkSensationsForm();
 }
 
 
 // -------------------------
 // AÑADIR EJERCICIO PREDEFINIDO
 // -------------------------
-
-function populatePredefinedSelect() {
-  predefinedSelect.innerHTML = `<option value="">Añadir ejercicio...</option>`;
-  Object.keys(exerciseTemplates).sort().forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    predefinedSelect.appendChild(opt);
-  });
-}
 
 addPredefinedBtn.onclick = () => {
   const name = predefinedSelect.value;
@@ -318,6 +438,7 @@ addPredefinedBtn.onclick = () => {
       seccion: tpl.seccion ?? "",
       hacer: tpl.hacer ?? "",
       noHacer: tpl.noHacer ?? "",
+      trucos: tpl.trucos ?? "",
       sets: []
     })
   );
@@ -337,10 +458,11 @@ addCustomBtn.onclick = () => {
   exercisesContainer.appendChild(
     buildExerciseCard({
       nombre: name,
-      musculo: "",
-      seccion: "",
+      musculo: "Personalizado", 
+      seccion: "N/A", 
       hacer: "",
       noHacer: "",
+      trucos: "",
       sets: []
     })
   );
@@ -353,6 +475,11 @@ addCustomBtn.onclick = () => {
 // EXPORTACIÓN A PNG (FORMATO TABLA)
 // -------------------------
 exportBtn.onclick = () => {
+  // Doble verificación de validación
+  if (!checkSensationsForm()) {
+    return alert("Por favor, completa todo el cuestionario de Post-Entrenamiento antes de exportar.");
+  }
+
   const key = sessionKey();
   const saved = JSON.parse(localStorage.getItem(key) || "null");
   if (!saved) return alert("No hay datos registrados hoy.");
@@ -363,47 +490,86 @@ exportBtn.onclick = () => {
   exportDiv.style.padding = "20px";
   exportDiv.style.fontFamily = "sans-serif";
   exportDiv.style.width = "fit-content";
+  exportDiv.style.color = "#000"; 
 
-  // Cabecera
+  // Cabecera: Solo la fecha
   const title = document.createElement("h2");
-  title.textContent = `${saved.date} — ${saved.week} — ${saved.day}`;
+  title.textContent = `${saved.date}`; 
+  title.style.color = "#000"; 
   exportDiv.appendChild(title);
 
   // Tabla
   const table = document.createElement("table");
   table.style.borderCollapse = "collapse";
   table.style.fontSize = "12px";
+  table.style.color = "#000"; 
 
+  // Estilos de la cabecera (Texto blanco, fondo oscuro)
   table.innerHTML = `
-    <tr style="background:#f0f0f0; font-weight:bold;">
-      <th style="border:1px solid #333; padding:4px;">Ejercicio</th>
-      <th style="border:1px solid #333; padding:4px;">Serie</th>
-      <th style="border:1px solid #333; padding:4px;">Peso</th>
-      <th style="border:1px solid #333; padding:4px;">Reps</th>
-      <th style="border:1px solid #333; padding:4px;">Fallo</th>
-      <th style="border:1px solid #333; padding:4px;">Reps fallo</th>
-      <th style="border:1px solid #333; padding:4px;">Notas</th>
+    <tr style="background:#111; font-weight:bold;"> 
+      <th style="border:1px solid #333; padding:4px; color:#fff;">Ejercicio</th>
+      <th style="border:1px solid #333; padding:4px; color:#fff;">Serie</th>
+      <th style="border:1px solid #333; padding:4px; color:#fff;">Peso</th>
+      <th style="border:1px solid #333; padding:4px; color:#fff;">Reps</th>
+      <th style="border:1px solid #333; padding:4px; color:#fff;">Fallo</th>
+      <th style="border:1px solid #333; padding:4px; color:#fff;">Reps fallo</th>
+      <th style="border:1px solid #333; padding:4px; color:#fff;">Notas</th>
     </tr>
   `;
 
-  // Rellenar tabla con todos los sets
+  // Rellenar tabla con todos los sets (texto negro)
   saved.exercises.forEach(ex => {
     ex.sets.forEach(set => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td style="border:1px solid #333; padding:4px;">${ex.nombre}</td>
-        <td style="border:1px solid #333; padding:4px;">${set.serie ?? ""}</td>
-        <td style="border:1px solid #333; padding:4px;">${set.peso ?? ""}</td>
-        <td style="border:1px solid #333; padding:4px;">${set.reps ?? ""}</td>
-        <td style="border:1px solid #333; padding:4px;">${set.fallo ? "Sí" : "No"}</td>
-        <td style="border:1px solid #333; padding:4px;">${set.repsFallo ?? ""}</td>
-        <td style="border:1px solid #333; padding:4px;">${set.obs ?? ""}</td>
+        <td style="border:1px solid #333; padding:4px; color:#000;">${ex.nombre}</td>
+        <td style="border:1px solid #333; padding:4px; color:#000;">${set.serie ?? ""}</td>
+        <td style="border:1px solid #333; padding:4px; color:#000;">${set.peso ?? ""}</td>
+        <td style="border:1px solid #333; padding:4px; color:#000;">${set.reps ?? ""}</td>
+        <td style="border:1px solid #333; padding:4px; color:#000;">${set.fallo ? "Sí" : "No"}</td>
+        <td style="border:1px solid #333; padding:4px; color:#000;">${set.repsFallo ?? ""}</td>
+        <td style="border:1px solid #333; padding:4px; color:#000;">${set.obs ?? ""}</td>
       `;
       table.appendChild(tr);
     });
   });
 
   exportDiv.appendChild(table);
+
+  // AÑADIR SENSACIONES AL EXPORT (Texto negro)
+  const sensations = saved.sensations || {};
+  const sensDiv = document.createElement('div');
+  sensDiv.style.marginTop = '20px';
+  sensDiv.style.borderTop = '1px solid #000';
+  sensDiv.style.paddingTop = '10px';
+  sensDiv.style.color = "#000";
+  
+  let painText = "";
+  if (sensations.pain === 'si') {
+      painText = `Sí (${sensations.painZone || 'Zona N/A'} - Ejercicio: ${sensations.painExercise || 'N/A'})`;
+  } else {
+      painText = 'No';
+  }
+  
+  // Usar párrafos para formato de fila separada
+  sensDiv.innerHTML = `
+      <p style="font-weight:bold; margin: 3px 0; color:#000; font-size:14px;">Métricas Subjetivas:</p>
+      <p style="margin: 3px 0; color:#000; font-size:12px;">- Sensaciones generales (0-10): ${sensations.general || 'N/A'}</p>
+      <p style="margin: 3px 0; color:#000; font-size:12px;">- Cansancio percibido (0-10): ${sensations.tiredness || 'N/A'}</p>
+      <p style="margin: 3px 0; color:#000; font-size:12px;">- Dolor en algún músculo: ${painText}</p>
+  `;
+  exportDiv.appendChild(sensDiv);
+  
+  // MARCA DE AGUA (Texto negro)
+  const footer = document.createElement('p');
+  footer.textContent = 'Registrado con GymTracker by Borja Aguado';
+  footer.style.fontSize = '10px';
+  footer.style.textAlign = 'right';
+  footer.style.marginTop = '15px';
+  footer.style.color = "#000";
+  exportDiv.appendChild(footer);
+  
+  // Añadir al DOM para que html2canvas pueda capturarlo
   document.body.appendChild(exportDiv);
 
   // Exportar a PNG
@@ -417,13 +583,31 @@ exportBtn.onclick = () => {
 };
 
 
+// -------------------------
+// MANEJADOR DE SENSACIONES
+// -------------------------
+sensePainSelect.addEventListener('change', () => {
+    if (sensePainSelect.value === 'si') {
+        painDetailsDiv.style.display = 'flex'; 
+    } else {
+        painDetailsDiv.style.display = 'none';
+    }
+    saveSession(); 
+});
+
+// Añadir listeners para guardar automáticamente y validar
+senseGeneralInput.addEventListener("input", saveSession);
+senseTirednessInput.addEventListener("input", saveSession);
+painZoneInput.addEventListener("input", saveSession);
+painExerciseSelect.addEventListener("change", saveSession); // El change es necesario para capturar la selección de "No identificado" o un ejercicio
+
 
 // -------------------------
 // INICIALIZACIÓN
 // -------------------------
 
-populatePredefinedSelect();
-loadSession();
+populatePredefinedSelect(); 
+loadSession(); 
 
 dateInput.addEventListener("change", loadSession);
 weekSelect.addEventListener("change", loadSession);
