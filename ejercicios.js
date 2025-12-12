@@ -354,7 +354,58 @@ const exerciseTemplates = {
     hacer: "<b>Inclínate ligeramente hacia adelante</b> y sujeta firmemente los agarres. <b>Controla la apertura y el retorno</b>; no permitas que las placas se toquen.",
     noHacer: "<b>No te inclines excesivamente</b> hacia adelante o hacia atrás; un ligero ángulo es suficiente. Evita soltar el peso de golpe.",
     trucos: "<b>Inclínate un poco hacia atrás</b> y sujeta el asiento; esto maximiza el rango de movimiento. Mantén una <b>pausa de 1-2 segundos</b> en la máxima apertura para enfatizar el glúteo medio."
-  }
+  },
+
+  "Flexiones": {
+    musculo: "Pectoral / Tríceps",
+    seccion: "General",
+    hacer: "Cuerpo alineado de pies a cabeza. <b>Activa el core</b> y baja controlando hasta que el pecho se aproxime al suelo. Empuja manteniendo los codos a 30–45° del torso.",
+    noHacer: "<b>No hundas la cadera</b> ni eleves el glúteo. No abras los codos en exceso.",
+    trucos: "Imagina que <b>empujas el suelo hacia atrás</b>. Para más pecho, inclina ligeramente el torso hacia delante."
+  },
+
+  "Flexiones declinadas": {
+    musculo: "Pectoral",
+    seccion: "Superior",
+    hacer: "Pies elevados sobre banco. Mantén el cuerpo firme y baja lentamente hasta que el pecho esté alineado con las manos.",
+    noHacer: "<b>No pierdas la alineación corporal</b>. Evita rebotes.",
+    trucos: "Cuanto más altos los pies, mayor énfasis en el pectoral superior."
+  },
+
+  "Press banca barra": {
+    musculo: "Pectoral",
+    seccion: "Media (Esternal)",
+    hacer: "Escápulas retraídas y pies firmes en el suelo. Baja la barra al esternón medio y empuja verticalmente.",
+    noHacer: "<b>No rebotes la barra</b> ni abras los codos a 90°.",
+    trucos: "Piensa en <b>empujar el banco con la espalda</b> para mayor estabilidad."
+  },
+
+  "Dominadas asistidas máquina": {
+    musculo: "Dorsal",
+    seccion: "Vertical",
+    hacer: "Pecho elevado y tirón iniciando con la <b>depresión escapular</b>. Lleva el pecho hacia la barra.",
+    noHacer: "<b>No balancees el cuerpo</b> ni tires solo con los brazos.",
+    trucos: "Cuanta menos ayuda, mayor activación del dorsal."
+  },
+
+  "Bicicleta estática": {
+    musculo: "Cardio",
+    seccion: "Aeróbico",
+    hacer: "Pedaleo continuo a ritmo moderado, manteniendo una postura erguida y respiración controlada.",
+    noHacer: "No encorves la espalda ni pedalees con excesiva resistencia.",
+    trucos: "Ideal como <b>finisher</b> o recuperación activa post-entreno."
+  },
+
+  "Elevación de talones en máquina": {
+  musculo: "Gemelos",
+  seccion: "Sóleo y Gastrocnemio",
+  hacer: "<b>Coloca la parte media del pie</b> sobre la plataforma, dejando los talones libres. Realiza una <b>extensión completa del tobillo</b>, subiendo los talones lo más alto posible. Baja lentamente hasta sentir un estiramiento profundo.",
+  noHacer: "<b>No rebotes</b> en la parte baja del movimiento. No acortes el recorrido ni flexiones las rodillas en exceso para ayudarte.",
+  trucos: "Mantén una <b>pausa de 1–2 segundos arriba</b> en máxima contracción. Para enfatizar el sóleo, realiza el ejercicio con <b>rodillas ligeramente flexionadas</b>; para gastrocnemio, mantenlas extendidas."
+}
+
+
+
 };
 
 
@@ -364,75 +415,181 @@ const exerciseTemplates = {
 
 const routines = {
   "Semana 1": {
-    "Día 1": [
+    "Día 1 – Tren superior (tirón + pecho secundario)": [
       "Press pecho en máquina",
-      "Press inclinado mancuernas",
       "Aperturas en máquina/polea",
+      "Dominadas asistidas máquina",
+      "Remo máquina pecho apoyado",
+      "Curl martillo",
+      "Tríceps en polea",
+      "Bicicleta estática"
+    ],
+  
+    "Día 2 – Tren superior (empuje + hombro y brazos)": [
+      "Press banca barra",
+      "Flexiones",
+      "Flexiones declinadas",
+      "Dominadas asistidas máquina",
       "Press militar mancuernas",
-      "Elevaciones laterales",
+      "Curl martillo",
       "Tríceps en polea"
     ],
-    "Día 2": [
-      "Jalón al pecho",
-      "Remo polea sentado",
-      "Face pull",
-      "Curl martillo",
-      "Curl bíceps"
-    ],
-    "Día 3": [
+  
+    "Día 3 – Tren inferior + core": [
+      "Sentadilla goblet",
       "Prensa de piernas",
-      "Extensión cuádriceps",
-      "Curl femoral",
-      "Zancadas mancuernas"
+      "Zancadas mancuernas",
+      "Elevación de talones en máquina"
     ]
   },
 
   "Semana 2": {
-    "Día 1": [
-      "Press declinado mancuernas",
-      "Aperturas inclinadas",
-      "Press Arnold",
-      "Elevaciones frontales",
+    "Día 1 – Tren superior (tirón + pecho secundario)": [
+      "Remo máquina pecho apoyado",
+      "Jalón al pecho",
+      "Press pecho en máquina",
+      "Aperturas en máquina/polea",
+      "Face pull",
+      "Curl martillo",
+      "Tríceps en polea"
+    ],
+    "Día 2 – Tren superior (empuje + hombro y brazos)": [
+      "Press máquina vertical",
+      "Press militar mancuernas",
+      "Jalón al pecho",
+      "Elevaciones laterales",
+      "Curl bíceps",
       "Tríceps cuerda 1 mano"
     ],
-    "Día 2": [
-      "Jalón supino",
-      "Remo máquina pecho apoyado",
-      "Pullover polea",
-      "Pájaros mancuernas",
-      "Curl Scott"
-    ],
-    "Día 3": [
+    "Día 3 – Tren inferior + core": [
+      "Prensa de piernas",
       "Hack machine",
-      "Prensa pies juntos arriba",
-      "Curl femoral sentado",
+      "Curl femoral",
+      "Extensión cuádriceps",
+      "Zancadas mancuernas",
       "Abducción máquina"
     ]
   },
 
   "Semana 3": {
-    "Día 1": [
+    "Día 1 – Tren superior (tirón + pecho secundario)": [
+      "Remo máquina pecho apoyado",
+      "Jalón al pecho",
+      "Press pecho en máquina",
+      "Aperturas en máquina/polea",
+      "Face pull",
+      "Curl martillo",
+      "Tríceps en polea"
+    ],
+    "Día 2 – Tren superior (empuje + hombro y brazos)": [
       "Press máquina vertical",
-      "Press neutral grip mancuernas",
-      "Cruces desde abajo",
-      "Press Arnold",
-      "Elevaciones laterales polea"
+      "Press militar mancuernas",
+      "Jalón al pecho",
+      "Elevaciones laterales",
+      "Curl bíceps",
+      "Tríceps cuerda 1 mano"
     ],
-    "Día 2": [
-      "Jalón estrecho triángulo",
-      "Remo inclinado a dos manos",
-      "Remo polea alta ancho",
+    "Día 3 – Tren inferior + core": [
+      "Prensa de piernas",
+      "Hack machine",
+      "Curl femoral",
+      "Extensión cuádriceps",
+      "Zancadas mancuernas",
+      "Abducción máquina",
+      "Elevación de talones en máquina"
+    ]
+  },
+
+  "Semana 4": {
+    "Día 1 – Tren superior (tirón + pecho secundario)": [
+      "Remo polea sentado",
+      "Jalón supino",
+      "Press inclinado mancuernas",
+      "Aperturas inclinadas",
       "Reverse fly máquina",
-      "Curl concentrado"
+      "Curl bíceps",
+      "Tríceps en polea"
     ],
-    "Día 3": [
+
+    "Día 2 – Tren superior (empuje + hombro y brazos)": [
+      "Press Arnold",
+      "Press máquina vertical",
+      "Jalón al pecho",
+      "Elevaciones laterales polea",
+      "Curl martillo",
+      "Tríceps cuerda 1 mano"
+    ],
+
+    "Día 3 – Tren inferior + core": [
+      "Hack machine",
       "Prensa sumo",
+      "Curl femoral sentado",
+      "Extensión cuádriceps",
+      "Abducción máquina"
+    ]
+  },
+  "Semana 5": {
+    "Día 1 – Tren superior (tirón + pecho secundario)": [
+      "Remo máquina pecho apoyado",
+      "Jalón estrecho triángulo",
+      "Press pecho en máquina",
+      "Cruces desde abajo",
+      "Face pull",
+      "Curl concentrado",
+      "Tríceps en polea"
+    ],
+
+    "Día 2 – Tren superior (empuje + hombro y brazos)": [
+      "Press neutral grip mancuernas",
+      "Press militar mancuernas",
+      "Jalón al pecho",
+      "Elevaciones laterales",
+      "Curl Scott",
+      "Tríceps cuerda 1 mano"
+    ],
+
+    "Día 3 – Tren inferior + core": [
+      "Prensa de piernas",
+      "Zancadas mancuernas",
+      "Curl femoral",
       "Extensión cuádriceps isométrica",
+      "Step-up banco",
+      "Elevación de talones en máquina"
+    ]
+  },
+  "Semana 6": {
+    "Día 1 – Tren superior (tirón + pecho secundario)": [
+      "Remo polea alta ancho",
+      "Jalón al pecho",
+      "Press máquina vertical",
+      "Aperturas en máquina/polea",
+      "Pájaros mancuernas",
+      "Curl bíceps",
+      "Tríceps en polea"
+    ],
+
+    "Día 2 – Tren superior (empuje + hombro y brazos)": [
+      "Press Arnold",
+      "Press inclinado mancuernas",
+      "Jalón supino",
+      "Elevaciones laterales polea",
+      "Curl martillo",
+      "Tríceps cuerda 1 mano"
+    ],
+
+    "Día 3 – Tren inferior + core": [
+      "Prensa pies juntos arriba",
       "Curl femoral 1 pierna",
-      "Step-up banco"
+      "Hack machine",
+      "Extensión cuádriceps",
+      "Abducción máquina"
     ]
   }
+
+
+
 };
+
 
 // Exportar
 window.exerciseTemplates = exerciseTemplates;
