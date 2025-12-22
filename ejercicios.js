@@ -11,6 +11,7 @@ Contiene:
 const exerciseTemplates = {
   // ======= PECHO 💎 =======
   "Press pecho en máquina": {
+    grupo: "Pecho",
     musculo: "Pectoral",
     seccion: "Media (Esternal)",
     hacer: "<b>Configura el asiento</b> para que los agarres estén a la altura del medio pecho. <b>Retrae y deprime las escápulas</b> firmemente contra el respaldo. Inicia el empuje desde el pecho (no desde los hombros), manteniendo los codos en un ángulo de 45°-60° respecto al torso. <b>Controla la fase negativa (excéntrica)</b>, volviendo a la posición inicial lentamente (3-4 segundos).",
@@ -19,6 +20,7 @@ const exerciseTemplates = {
   },
 
   "Press inclinado mancuernas": {
+    grupo: "Pecho",
     musculo: "Pectoral",
     seccion: "Superior (Clavicular)",
     hacer: "Banco ajustado entre <b>30° y 45°</b> (cuanto más bajo, mejor para aislar el pectoral superior). Mantén las <b>escápulas retraídas y pegadas</b> al banco. Baja las mancuernas de forma controlada hacia la parte alta del pecho, con los codos a unos 45° del torso. El movimiento debe ser en <b>arco de dentro a fuera</b> en la bajada.",
@@ -27,6 +29,7 @@ const exerciseTemplates = {
   },
 
   "Aperturas en máquina/polea": {
+    grupo: "Pecho",
     musculo: "Pectoral",
     seccion: "General (Énfasis en estiramiento)",
     hacer: "<b>Fija los codos en una ligera flexión</b> (semiflexionados) y mantén ese ángulo constante. Abre en un arco amplio hasta sentir un <b>fuerte estiramiento</b> del pectoral. Cierra el movimiento en el centro, apretando la parte interna del pecho.",
@@ -35,6 +38,7 @@ const exerciseTemplates = {
   },
 
   "Press declinado mancuernas": {
+    grupo: "Pecho",
     musculo: "Pectoral",
     seccion: "Inferior (Abdominal)",
     hacer: "Asegura bien los pies en el soporte. <b>Controla la bajada</b> de las mancuernas hacia la parte más baja del pecho o superior del abdomen. Mantén una <b>retracción escapular muy estricta</b> para proteger los hombros.",
@@ -43,6 +47,7 @@ const exerciseTemplates = {
   },
 
   "Cruces desde abajo": {
+    grupo: "Pecho",
     musculo: "Pectoral",
     seccion: "Superior (Clavicular)",
     hacer: "Inicia con las poleas en la posición más baja. Da un paso adelante, inclínate ligeramente y <b>mantén el codo semiflexionado</b>. Sube y cruza las manos por delante del pecho hasta la altura de los hombros o cara.",
@@ -402,10 +407,287 @@ const exerciseTemplates = {
   hacer: "<b>Coloca la parte media del pie</b> sobre la plataforma, dejando los talones libres. Realiza una <b>extensión completa del tobillo</b>, subiendo los talones lo más alto posible. Baja lentamente hasta sentir un estiramiento profundo.",
   noHacer: "<b>No rebotes</b> en la parte baja del movimiento. No acortes el recorrido ni flexiones las rodillas en exceso para ayudarte.",
   trucos: "Mantén una <b>pausa de 1–2 segundos arriba</b> en máxima contracción. Para enfatizar el sóleo, realiza el ejercicio con <b>rodillas ligeramente flexionadas</b>; para gastrocnemio, mantenlas extendidas."
-}
+},
 
+  // ======= EJERCICIOS BÁSICOS ADICIONALES =======
 
+  "Sentadillas": {
+    grupo: "Piernas",
+    musculo: "Cuádriceps",
+    seccion: "General (Completo)",
+    hacer: "<b>Coloca los pies al ancho de hombros</b>, con las puntas ligeramente hacia afuera. Baja lentamente hasta que los muslos queden paralelos al suelo o ligeramente por debajo, manteniendo la espalda recta y el pecho elevado. Empuja con los talones para subir.",
+    noHacer: "<b>No dejes que las rodillas se pasen de los dedos de los pies</b>. Evita arquear la espalda o inclinarte excesivamente hacia adelante. No uses impulso o rebote en la bajada.",
+    trucos: "Mantén la <b>mirada al frente</b> para ayudar a mantener la columna neutra. Imagina que estás sentándote en una silla invisible. Para mayor estabilidad, <b>activa el core</b> contrayendo el abdomen durante todo el movimiento."
+  },
 
+  "Sentadilla goblet": {
+    grupo: "Piernas",
+    musculo: "Cuádriceps",
+    seccion: "General (Técnica y profundidad)",
+    hacer: "Sujeta una mancuerna o kettlebell pegada al pecho. <b>Abre los pies al ancho de hombros</b> con puntas ligeramente hacia afuera. Baja controlando la cadera y las rodillas, manteniendo el torso erguido y el peso en los talones. Sube empujando el suelo.",
+    noHacer: "<b>No redondees la espalda</b> ni dejes caer el pecho. Evita que las rodillas colapsen hacia adentro. No rebotes al final del recorrido.",
+    trucos: "Piensa en <b>llevar los codos hacia dentro de las rodillas</b> al bajar para ganar profundidad. Mantén una <b>pausa de 1 segundo</b> abajo para mejorar control y movilidad."
+  },
+
+  "Peso muerto": {
+    grupo: "Espalda",
+    musculo: "Espalda",
+    seccion: "Completa (Énfasis en isquiotibiales y glúteos)",
+    hacer: "<b>Coloca los pies al ancho de hombros</b>, agarra la barra con un grip mixto o prono. Mantén la espalda recta, baja la barra deslizándola por las piernas hasta que llegue al suelo o justo por encima. Levanta empujando con los talones y extendiendo las caderas.",
+    noHacer: "<b>No redondees la espalda</b> en ningún momento. Evita levantar con los brazos; el movimiento debe venir de las piernas y glúteos. No dejes que la barra se aleje del cuerpo.",
+    trucos: "Piensa en <b>'empujar el suelo con los pies'</b> en lugar de tirar con la espalda. Mantén los hombros retraídos y el pecho elevado. Si eres principiante, usa una barra ligera o mancuernas para practicar la forma."
+  },
+
+  "Press de banca": {
+    grupo: "Pecho",
+    musculo: "Pectoral",
+    seccion: "Media (Esternal)",
+    hacer: "<b>Acuéstate en el banco</b> con los pies firmes en el suelo. Agarra la barra con un grip ligeramente más ancho que los hombros. Baja la barra controladamente hasta tocar el pecho, luego empuja hacia arriba extendiendo los brazos.",
+    noHacer: "<b>No arquees la espalda excesivamente</b>. Evita rebotar la barra en el pecho. No dejes que los codos se abran a 90° o más.",
+    trucos: "Mantén los <b>hombros retraídos</b> contra el banco. Imagina que estás <b>'aplastando' algo entre las manos</b> al subir. Usa un spotter si es posible para cargas pesadas."
+  },
+
+  "Dominadas": {
+    grupo: "Espalda",
+    musculo: "Espalda",
+    seccion: "Superior (Dorsal ancho)",
+    hacer: "<b>Cuelga de la barra</b> con un grip prono más ancho que los hombros. Baja lentamente hasta que los brazos queden completamente extendidos, luego tira hacia arriba hasta que la barbilla pase la barra.",
+    noHacer: "<b>No uses impulso o balanceo</b>. Evita encogerte de hombros al subir. No dejes que el cuerpo se balancee.",
+    trucos: "Si eres principiante, usa asistencia o bandas elásticas. Enfócate en <b>contraer los omóplatos</b> al bajar. Mantén el core activado para evitar el balanceo."
+  },
+
+  "Remo con barra": {
+    grupo: "Espalda",
+    musculo: "Espalda",
+    seccion: "Media (Trapecio y romboides)",
+    hacer: "<b>Inclínate hacia adelante</b> con las rodillas ligeramente flexionadas. Agarra la barra con un grip prono. Tira de la barra hacia el abdomen, manteniendo los codos cerca del cuerpo, luego baja controladamente.",
+    noHacer: "<b>No uses los brazos solos</b>; el movimiento debe venir de la espalda. Evita redondear la espalda. No dejes que los hombros se eleven.",
+    trucos: "Piensa en <b>'apretar los omóplatos'</b> al tirar. Mantén la mirada al frente para ayudar con la postura. Para mayor intensidad, usa un grip mixto."
+  },
+
+  "Curl de bíceps con barra": {
+    grupo: "Brazos",
+    musculo: "Bíceps",
+    seccion: "Braquial",
+    hacer: "<b>De pie con los pies al ancho de hombros</b>, agarra la barra con un grip supino. Flexiona los codos para subir la barra hacia los hombros, manteniendo los codos pegados al torso.",
+    noHacer: "<b>No uses impulso del torso</b>. Evita extender los codos completamente en la bajada. No gires las muñecas.",
+    trucos: "Mantén los <b>codos fijos</b> al lado del cuerpo. Baja lentamente para mayor tiempo bajo tensión. Imagina que estás <b>'girando' la barra hacia arriba</b>."
+  },
+
+  "Extensiones de tríceps": {
+    grupo: "Brazos",
+    musculo: "Tríceps",
+    seccion: "Completo",
+    hacer: "<b>De pie o sentado</b>, agarra una mancuerna con ambas manos sobre la cabeza. Baja la mancuerna detrás de la cabeza flexionando los codos, luego extiende los brazos hacia arriba.",
+    noHacer: "<b>No dejes que los codos se abran</b>. Evita arquear la espalda. No uses peso excesivo que comprometa la forma.",
+    trucos: "Mantén los <b>codos apuntando hacia adelante</b>. Baja lentamente y aprieta el tríceps al final. Usa una mano si es más cómodo."
+  },
+
+  "Elevaciones de talones": {
+    grupo: "Piernas",
+    musculo: "Gemelos",
+    seccion: "Gastrocnemio",
+    hacer: "<b>De pie con los pies al ancho de hombros</b>, eleva los talones lentamente hasta ponerte de puntillas, luego baja controladamente.",
+    noHacer: "<b>No uses impulso</b>. Evita doblar las rodillas. No bajes completamente los talones al suelo entre repeticiones.",
+    trucos: "Mantén el <b>core activado</b> para estabilidad. Haz el movimiento lentamente para maximizar la contracción. Puedes hacerlo en una máquina para mayor resistencia."
+  },
+
+  // ======= EJERCICIOS ADICIONALES =======
+
+  // Antebrazos
+  "Curl de muñeca": {
+    grupo: "Antebrazos",
+    musculo: "Antebrazo",
+    seccion: "Flexores",
+    hacer: "<b>Siéntate con los antebrazos apoyados en los muslos</b>, palmas hacia arriba. Agarra una mancuerna o barra con un grip supino. Flexiona las muñecas hacia arriba, luego baja controladamente.",
+    noHacer: "<b>No uses los bíceps</b> para ayudar. Evita mover los antebrazos. No rebotes en la bajada.",
+    trucos: "Mantén los <b>antebrazos fijos</b> en los muslos. Baja lentamente para mayor tiempo bajo tensión. Usa peso ligero para enfocarte en la contracción."
+  },
+
+  "Extensiones de muñeca": {
+    grupo: "Antebrazos",
+    musculo: "Antebrazo",
+    seccion: "Extensores",
+    hacer: "<b>Siéntate con los antebrazos apoyados en los muslos</b>, palmas hacia abajo. Agarra una mancuerna o barra con un grip prono. Extiende las muñecas hacia arriba, luego baja controladamente.",
+    noHacer: "<b>No uses los tríceps</b> para ayudar. Evita mover los antebrazos. No rebotes.",
+    trucos: "Enfócate en <b>contraer los extensores</b> al final del movimiento. Mantén los antebrazos inmóviles. Ideal para equilibrar con curls de muñeca."
+  },
+
+  // Isquiotibiales (ya tenemos algunos, agregar más)
+  "Peso muerto rumano": {
+    grupo: "Piernas",
+    musculo: "Femoral",
+    seccion: "Isquiotibiales (Estiramiento)",
+    hacer: "<b>De pie con los pies al ancho de hombros</b>, agarra la barra con un grip prono. Baja la barra deslizándola por las piernas, manteniendo las rodillas ligeramente flexionadas y la espalda recta. Empuja con los talones para subir.",
+    noHacer: "<b>No redondees la espalda</b>. Evita flexionar las rodillas excesivamente. No dejes que la barra se aleje del cuerpo.",
+    trucos: "Mantén la <b>mirada al frente</b> para mantener la espalda neutra. Siente el estiramiento en los isquiotibiales al bajar. Usa peso moderado para técnica perfecta."
+  },
+
+  "Buenos días": {
+    grupo: "Piernas",
+    musculo: "Femoral",
+    seccion: "Isquiotibiales y glúteos",
+    hacer: "<b>Coloca la barra sobre los hombros</b>, pies al ancho de hombros. Inclínate hacia adelante desde las caderas, manteniendo la espalda recta y las rodillas ligeramente flexionadas. Vuelve a la posición vertical.",
+    noHacer: "<b>No arquees la espalda</b> al bajar. Evita doblar las rodillas demasiado. No uses impulso.",
+    trucos: "Piensa en <b>empujar las caderas hacia atrás</b>. Mantén el core activado. Excelente para fortalecer la cadena posterior."
+  },
+
+  // Trapecios
+  "Encogimientos de hombros": {
+    grupo: "Espalda",
+    musculo: "Trapecio",
+    seccion: "Superior",
+    hacer: "<b>De pie con mancuernas a los lados</b>. Eleva los hombros hacia las orejas lo más alto posible, luego baja controladamente.",
+    noHacer: "<b>No uses impulso</b> del torso. Evita encogerte de hombros durante otros ejercicios. No gires los hombros.",
+    trucos: "Mantén los <b>brazos rectos</b> a los lados. Aprieta fuerte arriba por 1-2 segundos. Ideal para el desarrollo del trapecio superior."
+  },
+
+  "Encogimientos con barra": {
+    grupo: "Espalda",
+    musculo: "Trapecio",
+    seccion: "Superior",
+    hacer: "<b>De pie agarrando una barra con un grip prono</b>, brazos extendidos. Eleva los hombros hacia arriba, manteniendo los brazos rectos.",
+    noHacer: "<b>No flexiones los codos</b>. Evita balancear el cuerpo. No rebotes.",
+    trucos: "Usa un <b>peso moderado</b> para evitar lesiones. Enfócate en la contracción máxima. Combínalo con encogimientos de mancuernas para variedad."
+  },
+
+  // Hombros (agregar más variaciones)
+  "Elevaciones frontales": {
+    grupo: "Hombros",
+    musculo: "Deltoides",
+    seccion: "Anterior",
+    hacer: "<b>De pie con mancuernas a los lados</b>. Eleva una mancuerna hacia adelante hasta la altura del hombro, manteniendo el brazo recto, luego baja. Alterna brazos.",
+    noHacer: "<b>No uses impulso</b> del torso. Evita elevar el hombro opuesto. No gires la muñeca.",
+    trucos: "Mantén el <b>codo ligeramente flexionado</b> para reducir tensión en el hombro. Baja lentamente. Excelente para aislar el deltoides anterior."
+  },
+
+  "Elevaciones frontales con barra": {
+    grupo: "Hombros",
+    musculo: "Deltoides",
+    seccion: "Anterior",
+    hacer: "<b>De pie agarrando una barra con un grip prono</b>, brazos extendidos. Eleva la barra hacia adelante hasta la altura del pecho, luego baja.",
+    noHacer: "<b>No arquees la espalda</b>. Evita flexionar los codos. No uses peso excesivo.",
+    trucos: "Mantén los <b>hombros retraídos</b>. Piensa en elevar desde los hombros, no los brazos. Ideal para principiantes."
+  },
+
+  "Press Arnold con mancuernas": {
+    grupo: "Hombros",
+    musculo: "Deltoides",
+    seccion: "Completo",
+    hacer: "<b>Siéntate o de pie con mancuernas a la altura de los hombros</b>, palmas hacia ti. Presiona hacia arriba mientras rotas las palmas hacia adelante, luego baja invirtiendo la rotación.",
+    noHacer: "<b>No bloquees los codos</b> arriba. Evita arquear la espalda. No gires bruscamente.",
+    trucos: "La rotación añade <b>tiempo bajo tensión</b> al deltoides posterior. Mantén el core activado. Variación avanzada del press militar."
+  },
+
+  
+  "Hip Thrust (Empuje de cadera)": {
+    grupo: "Piernas",
+    musculo: "Glúteo",
+    seccion: "Glúteo Mayor (Potencia)",
+    hacer: "Apoya las escápulas en un banco y coloca la barra sobre la pelvis. Con los pies firmes, <b>empuja la cadera hacia el techo</b> hasta que el cuerpo forme una línea recta. Aprieta los glúteos 1 segundo arriba.",
+    noHacer: "<b>No arquees la espalda lumbar</b> arriba; el movimiento debe nacer de la pelvis. Evita que las rodillas se cierren hacia adentro.",
+    trucos: "Mantén la <b>mirada siempre hacia adelante</b> (al frente), no hacia el techo. Esto ayuda a mantener la columna en una posición segura y maximiza la contracción del glúteo."
+  },
+
+  "Remo al mentón (Upright Row)": {
+    grupo: "Hombros",
+    musculo: "Deltoides/Trapecio",
+    seccion: "Lateral y Superior",
+    hacer: "Sujeta una barra o polea con agarre algo más ancho que los hombros. <b>Tira de los codos hacia el techo</b>, manteniendo la barra pegada al cuerpo hasta que llegue a la altura del pecho.",
+    noHacer: "<b>No uses un agarre demasiado estrecho</b> (estresa la muñeca). No subas la barra más arriba de los hombros si sientes molestias articulares.",
+    trucos: "Imagina que tienes <b>dos hilos tirando de tus codos</b> hacia arriba. Las manos deben quedar siempre por debajo de la altura de los codos para asegurar que el hombro trabaje correctamente."
+  },
+
+  "Press Francés (Skullcrushers)": {
+    grupo: "Brazos",
+    musculo: "Tríceps",
+    seccion: "Cabeza Larga",
+    hacer: "Tumbado en un banco, extiende los brazos con una barra EZ. Flexiona solo los codos bajando la barra <b>hacia la frente o ligeramente detrás de la cabeza</b>. Extiende de nuevo sin mover los hombros.",
+    noHacer: "<b>No abras los codos</b> hacia los lados durante la bajada. Evita mover los brazos desde el hombro; el único eje de giro debe ser el codo.",
+    trucos: "Lleva la barra un poco <b>por detrás de la coronilla</b> en lugar de la frente. Esto mantiene una tensión constante en el tríceps incluso cuando los brazos están extendidos arriba."
+  },
+
+  "Fondos en paralelas (Dips)": {
+    grupo: "Brazos",
+    musculo: "Tríceps",
+    seccion: "Cabeza Larga",
+    hacer: "Colócate entre dos barras paralelas con los brazos extendidos. Baja el cuerpo flexionando los codos hasta que los hombros queden por debajo de los codos, luego empuja hacia arriba hasta extender los brazos.",
+    noHacer: "No bajes demasiado para evitar sobrecargar los hombros. Evita balancearte o usar impulso.",
+    trucos: "Mantén el torso ligeramente inclinado hacia adelante para enfatizar el pecho. Si eres principiante, usa asistencia o bandas elásticas."
+  },
+
+  "Remo con mancuerna a una mano": {
+    grupo: "Espalda",
+    musculo: "Dorsales",
+    seccion: "Ancha",
+    hacer: "Apoya una rodilla y una mano en un banco, con la espalda plana. Con la otra mano, sujeta una mancuerna y tira del codo hacia atrás, llevando la mancuerna hacia la cadera.",
+    noHacer: "No gires el torso ni uses impulso. Mantén la espalda recta sin arquearla.",
+    trucos: "Imagina que estás remando, llevando el codo lo más alto posible. Cambia de lado para equilibrar el trabajo."
+  },
+
+  "Plancha abdominal (Plank)": {
+    grupo: "Core",
+    musculo: "Abdominales",
+    seccion: "Transverso",
+    hacer: "Apoya los antebrazos y las puntas de los pies en el suelo, manteniendo el cuerpo en línea recta desde la cabeza hasta los talones. Contrae los abdominales y mantén la posición.",
+    noHacer: "No arquees la espalda ni dejes caer las caderas. Evita contener la respiración.",
+    trucos: "Mantén la mirada hacia el suelo para alinear el cuello. Empieza con tiempos cortos y aumenta gradualmente."
+  },
+
+  "Correr en cinta": {
+    grupo: "Cardio",
+    musculo: "Cardio",
+    seccion: "Aeróbico",
+    hacer: "Sube a una cinta de correr y camina o corre a un ritmo constante, manteniendo una postura erguida.",
+    noHacer: "No te inclines demasiado hacia adelante. Evita pisar con los talones primero para prevenir lesiones.",
+    trucos: "Aumenta la velocidad gradualmente. Usa intervalos para variar la intensidad."
+  },
+
+  "Bicicleta estática": {
+    grupo: "Cardio",
+    musculo: "Cardio",
+    seccion: "Aeróbico",
+    hacer: "Siéntate en la bicicleta estática y pedalea a un ritmo constante, ajustando la resistencia según tu nivel.",
+    noHacer: "No pedalees demasiado rápido sin calentar. Evita una postura encorvada.",
+    trucos: "Mantén los abdominales contraídos. Incluye intervalos de alta intensidad."
+  },
+
+  "Saltar a la comba": {
+    grupo: "Cardio",
+    musculo: "Cardio",
+    seccion: "Aeróbico",
+    hacer: "Sujeta una comba con ambas manos y salta sobre ella alternando los pies, manteniendo un ritmo constante.",
+    noHacer: "No saltes demasiado alto para evitar fatiga. Evita saltar con los dos pies juntos si eres principiante.",
+    trucos: "Empieza despacio y aumenta la velocidad. Usa una superficie acolchada para reducir el impacto."
+  },
+
+  "Crunch abdominal": {
+    grupo: "Core",
+    musculo: "Abdominales",
+    seccion: "Recto",
+    hacer: "Túmbate boca arriba con las rodillas flexionadas. Levanta los hombros del suelo contrayendo los abdominales, luego baja lentamente.",
+    noHacer: "No tires del cuello con las manos. Evita arquear la espalda baja.",
+    trucos: "Exhala al subir y inhala al bajar. Mantén el movimiento controlado."
+  },
+
+  "Elevación de piernas colgado": {
+    grupo: "Core",
+    musculo: "Abdominales",
+    seccion: "Inferior",
+    hacer: "Cuelga de una barra con las manos. Levanta las piernas extendidas hacia arriba hasta formar un ángulo de 90 grados, luego baja lentamente.",
+    noHacer: "No balancees el cuerpo. Evita doblar las rodillas si puedes mantenerlas rectas.",
+    trucos: "Contrae los abdominales fuertemente. Si es difícil, dobla las rodillas."
+  },
+
+  "Russian twists": {
+    grupo: "Core",
+    musculo: "Oblicuos",
+    seccion: "Lateral",
+    hacer: "Siéntate con las rodillas flexionadas y los pies en el suelo. Inclínate ligeramente hacia atrás y gira el torso de lado a lado, tocando el suelo con las manos.",
+    noHacer: "No gires solo la cabeza. Mantén los pies en el suelo para estabilidad.",
+    trucos: "Usa un peso para aumentar la resistencia. Mantén el movimiento lento y controlado."
+  }
+  
 };
 
 

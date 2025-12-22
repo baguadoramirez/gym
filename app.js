@@ -13,9 +13,16 @@ const exportBtn = document.getElementById("export-png-btn");
 
 const exercisesContainer = document.getElementById("exercises-container");
 const predefinedSelect = document.getElementById("predefined-exercise-select");
+const muscleGroupSelect = document.getElementById("muscle-group-select");
 const addPredefinedBtn = document.getElementById("add-predefined-btn");
 const addCustomBtn = document.getElementById("add-custom-btn");
 const statusText = document.getElementById("status-text");
+
+// Event listener para el select de grupo muscular
+muscleGroupSelect.addEventListener("change", () => {
+  const selectedGroup = muscleGroupSelect.value;
+  populateExerciseSelect(selectedGroup);
+});
 
 // CAMPOS DE SENSACIONES
 const senseGeneralInput = document.getElementById("sense-general");
@@ -24,6 +31,28 @@ const sensePainSelect = document.getElementById("sense-pain");
 const painDetailsDiv = document.getElementById("pain-details");
 const painZoneInput = document.getElementById("pain-zone");
 const painExerciseSelect = document.getElementById("pain-exercise");
+
+// MAPA DE GRUPOS MUSCULARES
+const muscleGroupMap = {
+  "Pectoral": "Pecho",
+  "Deltoides": "Hombros",
+  "Bíceps": "Brazos",
+  "Tríceps": "Brazos",
+  "Espalda": "Espalda",
+  "Dorsal": "Espalda",
+  "Cuádriceps": "Piernas",
+  "Femoral": "Piernas",
+  "Gemelos": "Piernas",
+  "Glúteo": "Piernas",
+  "Cardio": "Cardio",
+  "Antebrazo": "Antebrazos",
+  "Trapecio": "Espalda",
+  "Abdominales": "Core",
+  "Oblicuos": "Core",
+  "Transverso": "Core",
+  "Inferior": "Core",
+  "Lateral": "Core"
+};
 
 // Fecha inicial
 dateInput.value = new Date().toISOString().slice(0, 10);
@@ -37,6 +66,97 @@ function getMaxWeight(exerciseName) {
   return Math.max(...historyData[exerciseName]);
 }
 
+function getLastExerciseSession(exerciseName) {
+  const sessions = window.uploadedHistory || [];
+  let lastSession = null;
+  let lastDate = null;
+
+  sessions.forEach(session => {
+    if (!session?.exercises?.length) return;
+    const hasExercise = session.exercises.some(ex => ex.nombre === exerciseName);
+    if (!hasExercise) return;
+
+    const sessionDate = new Date(session.date);
+    if (!isNaN(sessionDate)) {
+      if (!lastDate || sessionDate > lastDate) {
+        lastDate = sessionDate;
+        lastSession = session;
+      }
+    } else {
+      lastSession = session;
+    }
+  });
+
+  return lastSession;
+}
+
+function getLastExerciseSet(exerciseName) {
+  const lastSession = getLastExerciseSession(exerciseName);
+  if (!lastSession) return null;
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  if (!ex?.sets?.length) return null;
+
+  const firstSet = ex.sets[0] || {};
+  const peso = firstSet.peso ?? null;
+  const reps = firstSet.reps ?? null;
+
+  if (peso == null && reps == null) return null;
+  return { peso, reps };
+}
+
+function getLastExerciseMaxWeight(exerciseName) {
+  const lastSession = getLastExerciseSession(exerciseName);
+  if (!lastSession) return null;
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  if (!ex?.sets?.length) return null;
+  const weights = ex.sets
+    .map(s => parseFloat(s.peso))
+    .filter(v => !Number.isNaN(v) && v > 0);
+  if (weights.length === 0) return null;
+  return Math.max(...weights);
+}
+
+function getLastExerciseSummary(exerciseName) {
+  const lastSession = getLastExerciseSession(exerciseName);
+  if (!lastSession) return null;
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  if (!ex?.sets?.length) return null;
+  const firstSet = ex.sets[0] || {};
+  const peso = firstSet.peso ?? "";
+  const reps = firstSet.reps ?? "";
+  const parts = [];
+  if (peso !== "") parts.push(`${peso} kg`);
+  if (reps !== "") parts.push(`${reps} reps`);
+  const firstSetText = parts.length ? `Primera serie: ${parts.join(" x ")}` : "Primera serie sin datos";
+  return `Última sesión: ${lastSession.date} · ${firstSetText}`;
+}
+
+function updateOverloadWarning(card) {
+  const warningEl = card.querySelector(".overload-warning");
+  if (!warningEl) return;
+  const baseline = parseFloat(warningEl.dataset.baseline);
+  if (Number.isNaN(baseline) || baseline <= 0) {
+    warningEl.style.display = "none";
+    return;
+  }
+
+  const rows = card.querySelectorAll("tbody tr");
+  let currentMax = null;
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll("input");
+    const peso = parseFloat(inputs[1]?.value);
+    if (!Number.isNaN(peso)) {
+      if (currentMax === null || peso > currentMax) currentMax = peso;
+    }
+  });
+
+  if (currentMax != null && currentMax > baseline * 1.1) {
+    warningEl.textContent = `Aviso de sobrecarga: último máximo ${baseline} kg, ahora ${currentMax} kg.`;
+    warningEl.style.display = "block";
+  } else {
+    warningEl.style.display = "none";
+  }
+}
 
 // -------------------------
 // FUNCIONES BASE
@@ -88,8 +208,23 @@ function checkSensationsForm() {
 // CREAR FILAS DE SERIES
 // -------------------------
 
-function addSetRow(tbody, setData = {}) {
+function addSetRow(tbody, setData = {}, onInputChange) {
   const tr = document.createElement("tr");
+  const shouldCopyFromPrev = Object.keys(setData).length === 0;
+  let resolvedSetData = setData;
+
+  if (shouldCopyFromPrev) {
+    const prevRow = tbody.lastElementChild;
+    if (prevRow) {
+      const prevInputs = prevRow.querySelectorAll("input");
+      const prevPeso = prevInputs[1]?.value ?? "";
+      const prevReps = prevInputs[2]?.value ?? "";
+      const copied = {};
+      if (prevPeso !== "") copied.peso = prevPeso;
+      if (prevReps !== "") copied.reps = prevReps;
+      resolvedSetData = { ...copied, ...setData };
+    }
+  }
 
   const fields = [
     { key: "serie", type: "number", default: tbody.children.length + 1 },
@@ -111,11 +246,17 @@ function addSetRow(tbody, setData = {}) {
     } else {
       input = document.createElement("input");
       input.type = f.type;
-      input.value = setData[f.key] ?? f.default ?? "";
+      input.value = resolvedSetData[f.key] ?? f.default ?? "";
     }
 
-    input.addEventListener("input", saveSession);
-    input.addEventListener("change", saveSession);
+    input.addEventListener("input", () => {
+      saveSession();
+      if (onInputChange) onInputChange();
+    });
+    input.addEventListener("change", () => {
+      saveSession();
+      if (onInputChange) onInputChange();
+    });
 
     td.appendChild(input);
     tr.appendChild(td);
@@ -184,12 +325,52 @@ function buildExerciseCard(exData) {
   const notes = document.createElement("div");
   notes.className = "exercise-notes";
   notes.innerHTML = `
-    <p><b>Cómo hacerlo:</b> ${hacerDisplay}</p>
-    <p><b>Evitar:</b> ${noHacerDisplay}</p>
-    <p><b>Trucos:</b> ${trucosDisplay}</p>
+    <details>
+      <summary><b>Cómo hacerlo</b></summary>
+      <p>${hacerDisplay}</p>
+    </details>
+    <details>
+      <summary><b>Evitar</b></summary>
+      <p>${noHacerDisplay}</p>
+    </details>
+    <details>
+      <summary><b>Trucos</b></summary>
+      <p>${trucosDisplay}</p>
+    </details>
   `;
 
   card.appendChild(notes);
+
+  // ====== HISTORIAL RAPIDO ======
+  const historyInfo = document.createElement("div");
+  historyInfo.className = "exercise-history";
+  historyInfo.style.fontSize = "0.75rem";
+  historyInfo.style.color = "var(--meta-text)";
+  historyInfo.style.margin = "6px 0 4px";
+  historyInfo.textContent = getLastExerciseSummary(exData.nombre) || "Sin historial para este ejercicio.";
+  card.appendChild(historyInfo);
+
+  // ====== AVISO SOBRECARGA ======
+  const overloadWarning = document.createElement("div");
+  overloadWarning.className = "overload-warning";
+  overloadWarning.style.display = "none";
+  overloadWarning.style.fontSize = "0.75rem";
+  overloadWarning.style.margin = "2px 0 6px";
+  overloadWarning.style.color = "#b91c1c";
+  const lastMax = getLastExerciseMaxWeight(exData.nombre);
+  if (lastMax != null) overloadWarning.dataset.baseline = String(lastMax);
+  card.appendChild(overloadWarning);
+
+  // Hacer que los details se expandan/colapsen con click en cualquier parte
+  const details = notes.querySelectorAll('details');
+  details.forEach(detail => {
+    detail.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'SUMMARY') {
+        e.preventDefault();
+        detail.open = !detail.open;
+      }
+    });
+  });
 
   // ====== TABLA DE SERIES ======
   const table = document.createElement("table");
@@ -208,18 +389,33 @@ function buildExerciseCard(exData) {
 
   // Series
   if (exData.sets && exData.sets.length > 0) {
-    exData.sets.forEach(s => addSetRow(tbody, s));
+    exData.sets.forEach(s => addSetRow(tbody, s, () => updateOverloadWarning(card)));
   } else {
-    const maxWeight = getMaxWeight(exData.nombre);
-    addSetRow(tbody, maxWeight ? {peso: maxWeight} : {});
+    const lastSet = getLastExerciseSet(exData.nombre);
+    const initialSet = {};
+    if (lastSet) {
+      if (lastSet.peso != null && lastSet.peso !== "") initialSet.peso = lastSet.peso;
+      if (lastSet.reps != null && lastSet.reps !== "") initialSet.reps = lastSet.reps;
+    }
+    if (Object.keys(initialSet).length === 0) {
+      const maxWeight = getMaxWeight(exData.nombre);
+      if (maxWeight) initialSet.peso = maxWeight;
+    }
+    addSetRow(tbody, initialSet, () => updateOverloadWarning(card));
   }
 
   const addBtn = document.createElement("button");
   addBtn.textContent = "Añadir serie";
   addBtn.className = "btn-secondary btn-small";
-  addBtn.onclick = () => { addSetRow(tbody); saveSession(); };
+  addBtn.onclick = () => {
+    addSetRow(tbody, {}, () => updateOverloadWarning(card));
+    saveSession();
+    updateOverloadWarning(card);
+  };
 
   card.appendChild(addBtn);
+
+  updateOverloadWarning(card);
 
   // Hacer la tarjeta draggable
   card.draggable = true;
@@ -324,17 +520,27 @@ function saveSession() {
 
 
 // -------------------------
-// FUNCIÓN PARA EL SELECTOR DE AÑADIR EJERCICIO (TODOS)
+// FUNCIÓN PARA EL SELECTOR DE AÑADIR EJERCICIO (POR GRUPO)
 // -------------------------
 
-function populatePredefinedSelect() {
-  predefinedSelect.innerHTML = `<option value="">Añadir ejercicio...</option>`;
+function populateExerciseSelect(selectedGroup) {
+  predefinedSelect.innerHTML = `<option value="">Seleccionar ejercicio...</option>`;
   
-  // Solo usa los ejercicios que tienen definición completa (y elimina duplicados)
-  const allNames = Object.keys(exerciseTemplates);
-  const uniqueAndSortedNames = [...new Set(allNames)].sort();
+  if (!selectedGroup) {
+    predefinedSelect.disabled = true;
+    return;
+  }
   
-  uniqueAndSortedNames.forEach(name => {
+  predefinedSelect.disabled = false;
+  
+  // Filtrar ejercicios por grupo
+  const exercisesInGroup = Object.keys(exerciseTemplates).filter(name => {
+    const tpl = exerciseTemplates[name];
+    const group = muscleGroupMap[tpl.musculo] || "Otros";
+    return group === selectedGroup;
+  }).sort();
+  
+  exercisesInGroup.forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
@@ -396,14 +602,21 @@ function loadSession() {
   // *Si hay datos guardados, cargarlos*
   if (saved && saved.exercises?.length > 0) {
     saved.exercises.forEach(ex => {
+      const tpl = exerciseTemplates[ex.nombre] || {};
+      const pickValue = (primary, fallback) => {
+        if (primary === null || primary === undefined) return fallback;
+        const str = String(primary).trim();
+        if (str === "" || str.toLowerCase() === "n/a") return fallback;
+        return primary;
+      };
       // Usar los datos guardados, ya que los personalizados no están en exerciseTemplates
       exercisesContainer.appendChild(buildExerciseCard({
         nombre: ex.nombre,
-        musculo: ex.musculo ?? "N/A",
-        seccion: ex.seccion ?? "N/A",
-        hacer: ex.hacer ?? "",
-        noHacer: ex.noHacer ?? "",
-        trucos: ex.trucos ?? "",
+        musculo: pickValue(ex.musculo, tpl.musculo ?? "N/A"),
+        seccion: pickValue(ex.seccion, tpl.seccion ?? "N/A"),
+        hacer: pickValue(ex.hacer, tpl.hacer ?? ""),
+        noHacer: pickValue(ex.noHacer, tpl.noHacer ?? ""),
+        trucos: pickValue(ex.trucos, tpl.trucos ?? ""),
         sets: ex.sets ?? []
       }));
     });
@@ -518,6 +731,8 @@ exportBtn.onclick = () => {
     return alert("Por favor, completa todo el cuestionario de Post-Entrenamiento antes de exportar.");
   }
 
+  saveSession();
+
   const key = sessionKey();
   const saved = JSON.parse(localStorage.getItem(key) || "null");
   if (!saved) return alert("No hay datos registrados hoy.");
@@ -532,47 +747,89 @@ exportBtn.onclick = () => {
 
   // Cabecera: Solo la fecha
   const title = document.createElement("h2");
-  title.textContent = `${saved.date}`; 
+  const weekday = new Date(saved.date).toLocaleDateString("es-ES", { weekday: "long" });
+  const weekdayText = weekday && weekday !== "Invalid Date" ? ` (${weekday})` : "";
+  title.textContent = `${saved.date}${weekdayText}`; 
   title.style.color = "#000"; 
   exportDiv.appendChild(title);
 
   // Tabla
   const table = document.createElement("table");
-  table.style.borderCollapse = "collapse";
+  table.style.borderCollapse = "separate";
+  table.style.borderSpacing = "0";
   table.style.fontSize = "12px";
   table.style.color = "#000"; 
 
   // Estilos de la cabecera (Texto blanco, fondo oscuro)
   table.innerHTML = `
-    <tr style="background:#111; font-weight:bold;"> 
-      <th style="border:1px solid #333; padding:4px; color:#fff;">Ejercicio</th>
-      <th style="border:1px solid #333; padding:4px; color:#fff;">Serie</th>
-      <th style="border:1px solid #333; padding:4px; color:#fff;">Peso</th>
-      <th style="border:1px solid #333; padding:4px; color:#fff;">Reps</th>
-      <th style="border:1px solid #333; padding:4px; color:#fff;">Fallo</th>
-      <th style="border:1px solid #333; padding:4px; color:#fff;">Reps fallo</th>
-      <th style="border:1px solid #333; padding:4px; color:#fff;">Notas</th>
+    <tr style="background:#000; font-weight:bold;"> 
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Ejercicio</th>
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Serie</th>
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Peso</th>
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Reps</th>
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Fallo</th>
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Reps fallo</th>
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Notas</th>
     </tr>
   `;
 
   // Rellenar tabla con todos los sets (texto negro)
-  saved.exercises.forEach(ex => {
-    ex.sets.forEach(set => {
+  let totalExercises = 0;
+  let totalSets = 0;
+
+  saved.exercises.forEach((ex, exIndex) => {
+    const groupBg = exIndex % 2 === 0 ? "#e2e8f0" : "#f8fafc";
+    totalExercises += 1;
+
+    ex.sets.forEach((set, setIndex) => {
+      totalSets += 1;
+
       const tr = document.createElement("tr");
+      tr.style.background = groupBg;
+      if (setIndex === 0) {
+        tr.style.borderTop = "2px solid #000";
+      }
       tr.innerHTML = `
-        <td style="border:1px solid #333; padding:4px; color:#000;">${ex.nombre}</td>
-        <td style="border:1px solid #333; padding:4px; color:#000;">${set.serie ?? ""}</td>
-        <td style="border:1px solid #333; padding:4px; color:#000;">${set.peso ?? ""}</td>
-        <td style="border:1px solid #333; padding:4px; color:#000;">${set.reps ?? ""}</td>
-        <td style="border:1px solid #333; padding:4px; color:#000;">${set.fallo ? "Sí" : "No"}</td>
-        <td style="border:1px solid #333; padding:4px; color:#000;">${set.repsFallo ?? ""}</td>
-        <td style="border:1px solid #333; padding:4px; color:#000;">${set.obs ?? ""}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-weight: bold;">${ex.nombre}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.serie ?? ""}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${set.peso ?? ""}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${set.reps ?? ""}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.fallo ? "Sí" : "No"}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.repsFallo ?? ""}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.obs ?? ""}</td>
       `;
       table.appendChild(tr);
     });
+
+    if (exIndex < saved.exercises.length - 1) {
+      const separator = document.createElement("tr");
+      separator.innerHTML = `
+        <td colspan="7" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #777; padding:0; height:6px; background:#fff;"></td>
+      `;
+      table.appendChild(separator);
+    }
+  });
+
+  table.querySelectorAll("th, td").forEach(cell => {
+    cell.style.borderColor = "#000";
+  });
+  table.querySelectorAll("td").forEach(cell => {
+    cell.style.color = "#000";
   });
 
   exportDiv.appendChild(table);
+
+  // RESUMEN
+  const summary = document.createElement("div");
+  summary.style.marginTop = "8px";
+  summary.style.fontSize = "12px";
+  summary.style.color = "#000";
+  summary.innerHTML = `
+    <p style="margin: 3px 0; font-weight:bold; color:#000;">Resumen:</p>
+    <p style="margin: 3px 0; color:#000;">- Total ejercicios: ${totalExercises}</p>
+    <p style="margin: 3px 0; color:#000;">- Total series: ${totalSets}</p>
+  `;
+  exportDiv.appendChild(summary);
 
   // AÑADIR SENSACIONES AL EXPORT (Texto negro)
   const sensations = saved.sensations || {};
@@ -609,6 +866,9 @@ exportBtn.onclick = () => {
   
   // Añadir al DOM para que html2canvas pueda capturarlo
   document.body.appendChild(exportDiv);
+
+  // Descargar el historico actualizado junto con el PNG
+  downloadHistory();
 
   // Exportar a PNG
   html2canvas(exportDiv, { scale: 2 }).then(canvas => {
@@ -794,7 +1054,6 @@ exercisesContainer.addEventListener('drop', (e) => {
 // -------------------------
 
 const uploadHistoryInput = document.getElementById('upload-history');
-const downloadHistoryBtn = document.getElementById('download-history-btn');
 const uploadHistoryBtn = document.getElementById('upload-history-btn');
 
 uploadHistoryBtn.addEventListener('click', () => uploadHistoryInput.click());
@@ -832,7 +1091,7 @@ uploadHistoryInput.addEventListener('change', (e) => {
   }
 });
 
-downloadHistoryBtn.addEventListener('click', () => {
+function downloadHistory() {
   const keys = Object.keys(localStorage).filter(k => k.startsWith('gym_'));
   const data = keys.map(k => JSON.parse(localStorage.getItem(k)));
   // Añadir la sesión actual si no está guardada
@@ -887,4 +1146,4 @@ downloadHistoryBtn.addEventListener('click', () => {
   a.click();
   URL.revokeObjectURL(url);
   setStatus('Histórico descargado.');
-});
+}

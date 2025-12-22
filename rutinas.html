@@ -14,6 +14,7 @@
     :root {
       --bg: #f3f4f6;
       --text: #111;
+      --text-color: #f1f1f1;
       --card-bg: #ffffff;
       --card-border: #ccc;
       --table-header: #eee;
@@ -26,6 +27,7 @@
     :root.dark {
       --bg: #0f1116;
       --text: #f1f1f1;
+      --text-color: #f1f1f1;
       --card-bg: #1a1c22;
       --card-border: #444;
       --table-header: #222;
@@ -192,6 +194,28 @@
       color: black;
     }
 
+    .dropdown-content {
+      position: absolute;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 5px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      padding: 0.5rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .dropdown-content label {
+      display: block;
+      padding: 0.2rem 0;
+      cursor: pointer;
+    }
+
+    .dropdown-content input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
     #exercises-container {
       background: var(--card-bg);
       border-radius: 10px;
@@ -252,6 +276,26 @@
     .exercise-notes p {
       margin: 3px 0;
       font-size: 0.82rem;
+    }
+
+    .exercise-notes details {
+      margin-bottom: 0.5rem;
+    }
+
+    .exercise-notes summary {
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
+    .exercise-notes summary:hover {
+      color: var(--meta-text);
+    }
+
+    .exercise-notes p {
+      margin: 5px 0 0 0;
+      font-size: 0.8rem;
     }
 
     .exercise-title {
@@ -459,7 +503,6 @@
 
     <input type="file" id="upload-history" accept=".json" style="display: none;">
     <button id="upload-history-btn" class="btn-secondary">Subir Histórico</button>
-    <button id="download-history-btn" class="btn-secondary">Descargar Histórico</button>
 
     <span id="status-text"></span>
   </div>
@@ -467,7 +510,20 @@
 
   <div class="controls">
     <label>Añadir ejercicio</label>
-    <select id="predefined-exercise-select"></select>
+    <select id="muscle-group-select">
+      <option value="">Seleccionar grupo...</option>
+      <option value="Pecho">Pecho</option>
+      <option value="Espalda">Espalda</option>
+      <option value="Hombros">Hombros</option>
+      <option value="Brazos">Brazos</option>
+      <option value="Piernas">Piernas</option>
+      <option value="Antebrazos">Antebrazos</option>
+      <option value="Cardio">Cardio</option>
+      <option value="Core">Core</option>
+    </select>
+    <select id="predefined-exercise-select" disabled>
+      <option value="">Seleccionar ejercicio...</option>
+    </select>
     <button id="add-predefined-btn" class="btn-secondary btn-small">Añadir</button>
     <button id="add-custom-btn" class="btn-secondary btn-small">Ejercicio personalizado</button>
   </div>
@@ -505,7 +561,7 @@
       </div>
     </div>
     
-    <button id="export-png-btn" class="btn-primary" style="width:100%; margin-top: 1rem;" disabled>Generar y Exportar PNG</button>
+    <button id="export-png-btn" class="btn-primary" style="width:100%; margin-top: 1rem;" disabled>Exportar rutina de hoy (imagen) e histórico</button>
   </div>
 
   </div> <!-- end rutinas-content -->
@@ -515,8 +571,11 @@
     <p id="no-data-msg" style="display: none; color: var(--meta-text);">No hay datos históricos disponibles. Carga un JSON de histórico o guarda sesiones para ver gráficos.</p>
     <div class="controls" id="chart-controls">
       <div>
-        <label>Ejercicio(s) (mantén Ctrl para seleccionar múltiples)</label><br>
-        <select id="chart-exercise-select" multiple style="height: 100px;"></select>
+        <label>Ejercicios</label><br>
+        <button id="exercise-dropdown-btn" class="btn-secondary">Seleccionar ejercicios</button>
+        <div id="exercise-dropdown" class="dropdown-content" style="display: none;">
+          <!-- Checkboxes will be added here -->
+        </div>
       </div>
 
       <div>
@@ -524,6 +583,9 @@
         <select id="chart-variable-select">
           <option value="peso">Peso Máximo</option>
           <option value="carga">Carga Total (Peso x Reps)</option>
+          <option value="sens_general">Sensaciones generales (0-10)</option>
+          <option value="sens_tiredness">Cansancio percibido (0-10)</option>
+          <option value="sens_pain">Dolor en algún músculo (Sí/No)</option>
         </select>
       </div>
 
@@ -552,11 +614,7 @@
 
 
 <footer>
-  Visita mi página web personal haciendo 
-  <a
-    href="https://baguadoramirez.github.io/borjas_web/index.html"
-    target="_blank"
-    rel="noopener noreferrer"
+  Esta obra está bajo una <a href="LICENSE" target="_blank">Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional</a>.
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -591,7 +649,8 @@
   const tabGraficos = document.getElementById('tab-graficos');
   const rutinasContent = document.getElementById('rutinas-content');
   const graficosContent = document.getElementById('graficos-content');
-  const chartExerciseSelect = document.getElementById('chart-exercise-select');
+  const exerciseDropdownBtn = document.getElementById('exercise-dropdown-btn');
+  const exerciseDropdown = document.getElementById('exercise-dropdown');
   const chartVariableSelect = document.getElementById('chart-variable-select');
   const generateChartBtn = document.getElementById('generate-chart-btn');
   const chartCanvas = document.getElementById('progress-chart');
@@ -599,6 +658,18 @@
   let chart;
 
   const chartControls = document.getElementById('chart-controls');
+
+  // Toggle dropdown
+  exerciseDropdownBtn.addEventListener('click', () => {
+    exerciseDropdown.style.display = exerciseDropdown.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!exerciseDropdownBtn.contains(e.target) && !exerciseDropdown.contains(e.target)) {
+      exerciseDropdown.style.display = 'none';
+    }
+  });
 
   tabRutinas.addEventListener('click', () => {
     tabRutinas.classList.add('active');
@@ -623,27 +694,34 @@
         session.exercises.forEach(ex => exercises.add(ex.nombre));
       }
     });
+    const hasSensations = sessions.some(session => session.sensations && (
+      session.sensations.general || session.sensations.tiredness || session.sensations.pain
+    ));
     const noDataMsg = document.getElementById('no-data-msg');
-    if (exercises.size === 0) {
+    if (exercises.size === 0 && !hasSensations) {
       noDataMsg.style.display = 'block';
       chartControls.style.display = 'none';
     } else {
       noDataMsg.style.display = 'none';
       chartControls.style.display = 'flex';
-      chartExerciseSelect.innerHTML = '';
+      exerciseDropdown.innerHTML = '';
       exercises.forEach(ex => {
-        const option = document.createElement('option');
-        option.value = ex;
-        option.textContent = ex;
-        chartExerciseSelect.appendChild(option);
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = ex;
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(ex));
+        exerciseDropdown.appendChild(label);
       });
     }
   }
 
   generateChartBtn.addEventListener('click', () => {
-    const selectedExercises = Array.from(chartExerciseSelect.selectedOptions).map(o => o.value);
+    const selectedExercises = Array.from(exerciseDropdown.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
     const variable = chartVariableSelect.value;
-    if (selectedExercises.length === 0) {
+    const isSensation = variable.startsWith('sens_');
+    if (!isSensation && selectedExercises.length === 0) {
       alert('Selecciona al menos un ejercicio.');
       return;
     }
@@ -652,92 +730,88 @@
     const datasets = [];
     const colors = ['#2563eb', '#dc2626', '#16a34a', '#ca8a04', '#7c3aed', '#c2410c'];
 
-    selectedExercises.forEach((exerciseName, index) => {
-      const dataPoints = [];
-
-      sessions.forEach(session => {
-        if (session.exercises) {
-          const ex = session.exercises.find(e => e.nombre === exerciseName);
-          if (ex && ex.sets && ex.sets.length > 0) {
-            let value;
-            if (variable === 'peso') {
-              value = Math.max(...ex.sets.map(s => parseFloat(s.peso) || 0));
-            } else if (variable === 'carga') {
-              value = ex.sets.reduce((sum, s) => {
-                const p = parseFloat(s.peso) || 0;
-                const r = parseInt(s.reps) || 0;
-                return sum + (p * r);
-              }, 0);
-            }
-            if (value > 0) {
-              dataPoints.push({ date: new Date(session.date), value });
-            }
-          }
-        }
-      });
-
-      dataPoints.sort((a, b) => a.date - b.date);
-
-      const values = dataPoints.map(p => p.value);
-
-      datasets.push({
-        label: exerciseName + (variable === 'peso' ? ' - Peso Máximo' : ' - Carga Total'),
-        data: values,
-        borderColor: colors[index % colors.length],
-        backgroundColor: colors[index % colors.length] + '20', // Añadir transparencia
-        fill: false,
-      });
-    });
-
-    // Reestructurar para tener labels comunes
-    const allDates = new Set();
-    datasets.forEach(ds => {
-      // ds.data tiene values, pero necesito mapear a labels
-      // Es complicado. Mejor cambiar a usar un objeto con fechas como keys.
-    });
-
     // Reestructurar para tener labels comunes
     const dateMap = {};
-    selectedExercises.forEach(exerciseName => {
+    if (isSensation) {
       sessions.forEach(session => {
-        if (session.exercises) {
-          const ex = session.exercises.find(e => e.nombre === exerciseName);
-          if (ex && ex.sets && ex.sets.length > 0) {
-            let value;
-            if (variable === 'peso') {
-              value = Math.max(...ex.sets.map(s => parseFloat(s.peso) || 0));
-            } else if (variable === 'carga') {
-              value = ex.sets.reduce((sum, s) => {
-                const p = parseFloat(s.peso) || 0;
-                const r = parseInt(s.reps) || 0;
-                return sum + (p * r);
-              }, 0);
-            }
-            if (value > 0) {
-              const dateStr = session.date;
-              if (!dateMap[dateStr]) dateMap[dateStr] = {};
-              dateMap[dateStr][exerciseName] = value;
+        const dateStr = session.date;
+        if (!dateStr) return;
+        const sensations = session.sensations || {};
+        let value = null;
+        if (variable === 'sens_general') {
+          value = parseInt(sensations.general, 10);
+        } else if (variable === 'sens_tiredness') {
+          value = parseInt(sensations.tiredness, 10);
+        } else if (variable === 'sens_pain') {
+          if (sensations.pain === 'si') value = 1;
+          if (sensations.pain === 'no') value = 0;
+        }
+        if (value === null || Number.isNaN(value)) return;
+        if (!dateMap[dateStr]) dateMap[dateStr] = {};
+        dateMap[dateStr].value = value;
+      });
+    } else {
+      selectedExercises.forEach(exerciseName => {
+        sessions.forEach(session => {
+          if (session.exercises) {
+            const ex = session.exercises.find(e => e.nombre === exerciseName);
+            if (ex && ex.sets && ex.sets.length > 0) {
+              let value;
+              let hasFailure = ex.sets.some(s => s.fallo === true);
+              if (variable === 'peso') {
+                value = Math.max(...ex.sets.map(s => parseFloat(s.peso) || 0));
+              } else if (variable === 'carga') {
+                value = ex.sets.reduce((sum, s) => {
+                  const p = parseFloat(s.peso) || 0;
+                  const r = parseInt(s.reps) || 0;
+                  return sum + (p * r);
+                }, 0);
+              }
+              if (value > 0) {
+                const dateStr = session.date;
+                if (!dateMap[dateStr]) dateMap[dateStr] = {};
+                dateMap[dateStr][exerciseName] = { value, hasFailure };
+              }
             }
           }
-        }
+        });
       });
-    });
+    }
 
     const sortedDates = Object.keys(dateMap).sort((a, b) => new Date(a) - new Date(b));
     const labels = sortedDates.map(d => new Date(d).toLocaleDateString('es-ES'));
 
     datasets.length = 0; // Limpiar
-    selectedExercises.forEach((exerciseName, index) => {
-      const values = sortedDates.map(d => dateMap[d][exerciseName] || null);
+    if (isSensation) {
+      const values = sortedDates.map(d => dateMap[d]?.value ?? null);
       datasets.push({
-        label: exerciseName + (variable === 'peso' ? ' - Peso Máximo' : ' - Carga Total'),
+        label: variable === 'sens_general'
+          ? 'Sensaciones generales (0-10)'
+          : variable === 'sens_tiredness'
+            ? 'Cansancio percibido (0-10)'
+            : 'Dolor en algún músculo (Sí/No)',
         data: values,
-        borderColor: colors[index % colors.length],
-        backgroundColor: colors[index % colors.length] + '20',
+        pointStyle: values.map(() => 'circle'),
+        borderColor: colors[0],
+        backgroundColor: colors[0] + '20',
         fill: false,
-        spanGaps: true, // Conectar puntos aunque haya null
+        spanGaps: true
       });
-    });
+    } else {
+      selectedExercises.forEach((exerciseName, index) => {
+        const values = sortedDates.map(d => dateMap[d][exerciseName]?.value || null);
+        const pointStyles = sortedDates.map(d => dateMap[d][exerciseName]?.hasFailure ? 'star' : 'circle');
+        datasets.push({
+          label: exerciseName + (variable === 'peso' ? ' - Peso Máximo' : ' - Carga Total'),
+          data: values,
+          pointStyle: pointStyles,
+          borderColor: colors[index % colors.length],
+          backgroundColor: colors[index % colors.length] + '20',
+          fill: false,
+          spanGaps: true, // Conectar puntos aunque haya null
+        });
+      });
+    }
 
     if (chart) chart.destroy();
 
@@ -759,7 +833,13 @@
           y: {
             title: {
               display: true,
-              text: variable === 'peso' ? 'Peso (kg)' : 'Carga (kg*reps)'
+              text: variable === 'peso'
+                ? 'Peso (kg)'
+                : variable === 'carga'
+                  ? 'Carga (kg*reps)'
+                  : variable === 'sens_pain'
+                    ? 'Dolor (0=No, 1=Sí)'
+                    : 'Puntuación (0-10)'
             },
             beginAtZero: true
           }
