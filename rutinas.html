@@ -19,6 +19,7 @@
       --table-header: #eee;
       --control-bg: #ffffff;
       --meta-text: #666;
+      --header-bg: #111827;
     }
 
     /* MODO OSCURO (por defecto) */
@@ -30,6 +31,7 @@
       --table-header: #222;
       --control-bg: #1a1c22;
       --meta-text: #bbb;
+      --header-bg: #1f2937;
     }
 
     /* Transiciones suaves */
@@ -51,20 +53,51 @@
 
     header {
       position: relative;
-      background: #111827;
-      color: white;
+      background: var(--header-bg);
+      color: var(--text-color);
       padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .header-logo {
-      position: absolute;
-      top: 12px;
-      right: 16px;
+      position: static;
     }
 
     .header-logo img {
       height: 48px;
       width: auto;
       cursor: pointer;
+    }
+
+    .theme-toggle-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-color);
+      padding: 0.5rem;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--control-bg);
+    }
+
+    .sun-icon, .moon-icon {
+      display: none;
+    }
+
+    .theme-toggle-btn .sun-icon {
+      display: block;
+    }
+
+    .dark .theme-toggle-btn .sun-icon {
+      display: none;
+    }
+
+    .dark .theme-toggle-btn .moon-icon {
+      display: block;
     }
 
     .header-web-link {
@@ -172,6 +205,7 @@
       padding: 0.7rem;
       margin-bottom: 1rem;
       background: var(--card-bg);
+      cursor: move;
     }
 
     #status-text {
@@ -233,67 +267,6 @@
     /* ===========================
        ESTILOS DEL SWITCH (Modo Oscuro)
        =========================== */
-    .theme-switch-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 8px; /* Espacio entre la etiqueta y el switch */
-    }
-
-    .theme-switch {
-        position: relative;
-        display: inline-block;
-        width: 48px; /* Ancho del switch */
-        height: 28px; /* Alto del switch */
-    }
-
-    /* Ocultar el input checkbox por defecto */
-    .theme-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-    
-    /* El control deslizante (slider) */
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: var(--meta-text); /* Color apagado */
-        transition: .4s;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 20px;
-        width: 20px;
-        left: 4px;
-        bottom: 4px;
-        background-color: var(--control-bg); /* El círculo interno */
-        transition: .4s;
-    }
-
-    /* Cuando está chequeado (Modo Oscuro ON) */
-    input:checked + .slider {
-        background-color: #2563eb; /* Color azul cuando está ON */
-    }
-
-    input:checked + .slider:before {
-        transform: translateX(20px); /* Mover el círculo */
-    }
-
-    /* Forma redonda (round) */
-    .slider.round {
-        border-radius: 28px;
-    }
-
-    .slider.round:before {
-        border-radius: 50%;
-    }
-
     footer {
       margin-top: 2rem;
       padding: 1rem;
@@ -311,7 +284,102 @@
       text-decoration: underline;
     }
 
+    /* Estilos para el cronómetro popup */
+    #stopwatch-popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 250px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+      display: none; /* Inicialmente oculto */
+    }
+    #stopwatch-popup.collapsed {
+      width: auto;
+      padding: 5px;
+    }
+    #stopwatch-display {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    #stopwatch-input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    #stopwatch-buttons {
+      display: flex;
+      justify-content: space-around;
+      position: relative;
+    }
+    #stopwatch-buttons button {
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+    #minimize-stopwatch {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #666;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #toggle-stopwatch {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    #stopwatch-popup:not(.collapsed) ~ #toggle-stopwatch {
+      display: none;
+    }
+    #stopwatch-popup.collapsed ~ #toggle-stopwatch {
+      display: flex;
+    }
 
+    .tabs {
+      display: flex;
+      margin-bottom: 1rem;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      background: var(--control-bg);
+      color: var(--text);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      border-bottom: 2px solid #2563eb;
+      background: var(--bg);
+    }
 
   </style>
 </head>
@@ -331,10 +399,34 @@
       <img src="bar_logo.png" alt="Logo Borja Aguado">
     </a>
   
+    <button id="theme-toggle" class="theme-toggle-btn">
+      <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  
   </header>
 
 
 <main>
+
+  <nav class="tabs">
+    <button id="tab-rutinas" class="tab-btn active">Rutinas</button>
+    <button id="tab-graficos" class="tab-btn">Gráficos</button>
+  </nav>
+
+  <div id="rutinas-content">
 
   <div class="controls">
     
@@ -365,13 +457,10 @@
 
     <button id="load-routine-btn" class="btn-secondary">Cargar Rutina</button>
 
-    <div class="theme-switch-wrapper">
-      <label for="dark-mode-switch">Modo oscuro</label>
-      <label class="theme-switch">
-          <input type="checkbox" id="dark-mode-switch">
-          <span class="slider round"></span>
-      </label>
-    </div>
+    <input type="file" id="upload-history" accept=".json" style="display: none;">
+    <button id="upload-history-btn" class="btn-secondary">Subir Histórico</button>
+    <button id="download-history-btn" class="btn-secondary">Descargar Histórico</button>
+
     <span id="status-text"></span>
   </div>
 
@@ -419,6 +508,46 @@
     <button id="export-png-btn" class="btn-primary" style="width:100%; margin-top: 1rem;" disabled>Generar y Exportar PNG</button>
   </div>
 
+  </div> <!-- end rutinas-content -->
+
+  <div id="graficos-content" style="display: none;">
+    <h2>Gráficos de Histórico</h2>
+    <p id="no-data-msg" style="display: none; color: var(--meta-text);">No hay datos históricos disponibles. Carga un JSON de histórico o guarda sesiones para ver gráficos.</p>
+    <div class="controls" id="chart-controls">
+      <div>
+        <label>Ejercicio(s) (mantén Ctrl para seleccionar múltiples)</label><br>
+        <select id="chart-exercise-select" multiple style="height: 100px;"></select>
+      </div>
+
+      <div>
+        <label>Variable</label><br>
+        <select id="chart-variable-select">
+          <option value="peso">Peso Máximo</option>
+          <option value="carga">Carga Total (Peso x Reps)</option>
+        </select>
+      </div>
+
+      <button id="generate-chart-btn" class="btn-primary">Generar Gráfico</button>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="progress-chart"></canvas>
+    </div>
+  </div>
+
+  <button id="show-charts-btn" class="btn-secondary" style="width: 100%; margin-top: 1rem; display: none;">Mostrar Gráficos de Histórico</button>
+
+  <div id="stopwatch-popup" class="collapsed">
+    <button id="minimize-stopwatch">−</button>
+    <div id="stopwatch-display">00:00</div>
+    <input type="number" id="stopwatch-input" placeholder="Tiempo en segundos (ej: 60)" min="1">
+    <div id="stopwatch-buttons">
+      <button id="start-stopwatch" class="btn-primary">Iniciar</button>
+      <button id="stop-stopwatch" class="btn-secondary">Detener</button>
+      <button id="reset-stopwatch" class="btn-secondary">Reset</button>
+    </div>
+  </div>
+  <button id="toggle-stopwatch">⏱️</button>
 </main>
 
 
@@ -428,19 +557,16 @@
     href="https://baguadoramirez.github.io/borjas_web/index.html"
     target="_blank"
     rel="noopener noreferrer"
-  >
-    <b>click aquí</b>
-  </a>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="ejercicios.js"></script>
 <script src="app.js"></script>
 
 <script>
-  // Script Modificado para el nuevo switch
-  const themeSwitch = document.getElementById("dark-mode-switch");
+  // Script Modificado para el nuevo toggle
+  const themeToggle = document.getElementById("theme-toggle");
   const htmlElement = document.documentElement;
   const savedTheme = localStorage.getItem("gym-theme");
   
@@ -448,19 +574,201 @@
   if (!savedTheme || savedTheme === "dark") {
     htmlElement.classList.add("dark");
     localStorage.setItem("gym-theme", "dark");
-    themeSwitch.checked = true; // Marca el switch si es modo oscuro
   } else {
     htmlElement.classList.remove("dark");
     localStorage.setItem("gym-theme", "light");
-    themeSwitch.checked = false; 
   }
 
-  // Listener para el evento 'change' del switch
-  themeSwitch.addEventListener("change", () => {
-    const isDark = themeSwitch.checked;
-    htmlElement.classList.toggle("dark", isDark);
-    localStorage.setItem("gym-theme", isDark ? "dark" : "light");
+  // Listener para el evento 'click' del botón
+  themeToggle.addEventListener("click", () => {
+    const isDark = htmlElement.classList.contains("dark");
+    htmlElement.classList.toggle("dark", !isDark);
+    localStorage.setItem("gym-theme", !isDark ? "dark" : "light");
   });
+
+  // Gráficos
+  const tabRutinas = document.getElementById('tab-rutinas');
+  const tabGraficos = document.getElementById('tab-graficos');
+  const rutinasContent = document.getElementById('rutinas-content');
+  const graficosContent = document.getElementById('graficos-content');
+  const chartExerciseSelect = document.getElementById('chart-exercise-select');
+  const chartVariableSelect = document.getElementById('chart-variable-select');
+  const generateChartBtn = document.getElementById('generate-chart-btn');
+  const chartCanvas = document.getElementById('progress-chart');
+
+  let chart;
+
+  const chartControls = document.getElementById('chart-controls');
+
+  tabRutinas.addEventListener('click', () => {
+    tabRutinas.classList.add('active');
+    tabGraficos.classList.remove('active');
+    rutinasContent.style.display = 'block';
+    graficosContent.style.display = 'none';
+  });
+
+  tabGraficos.addEventListener('click', () => {
+    tabRutinas.classList.remove('active');
+    tabGraficos.classList.add('active');
+    rutinasContent.style.display = 'none';
+    graficosContent.style.display = 'block';
+    loadChartExercises();
+  });
+
+  function loadChartExercises() {
+    const sessions = window.uploadedHistory || [];
+    const exercises = new Set();
+    sessions.forEach(session => {
+      if (session.exercises) {
+        session.exercises.forEach(ex => exercises.add(ex.nombre));
+      }
+    });
+    const noDataMsg = document.getElementById('no-data-msg');
+    if (exercises.size === 0) {
+      noDataMsg.style.display = 'block';
+      chartControls.style.display = 'none';
+    } else {
+      noDataMsg.style.display = 'none';
+      chartControls.style.display = 'flex';
+      chartExerciseSelect.innerHTML = '';
+      exercises.forEach(ex => {
+        const option = document.createElement('option');
+        option.value = ex;
+        option.textContent = ex;
+        chartExerciseSelect.appendChild(option);
+      });
+    }
+  }
+
+  generateChartBtn.addEventListener('click', () => {
+    const selectedExercises = Array.from(chartExerciseSelect.selectedOptions).map(o => o.value);
+    const variable = chartVariableSelect.value;
+    if (selectedExercises.length === 0) {
+      alert('Selecciona al menos un ejercicio.');
+      return;
+    }
+
+    const sessions = window.uploadedHistory || [];
+    const datasets = [];
+    const colors = ['#2563eb', '#dc2626', '#16a34a', '#ca8a04', '#7c3aed', '#c2410c'];
+
+    selectedExercises.forEach((exerciseName, index) => {
+      const dataPoints = [];
+
+      sessions.forEach(session => {
+        if (session.exercises) {
+          const ex = session.exercises.find(e => e.nombre === exerciseName);
+          if (ex && ex.sets && ex.sets.length > 0) {
+            let value;
+            if (variable === 'peso') {
+              value = Math.max(...ex.sets.map(s => parseFloat(s.peso) || 0));
+            } else if (variable === 'carga') {
+              value = ex.sets.reduce((sum, s) => {
+                const p = parseFloat(s.peso) || 0;
+                const r = parseInt(s.reps) || 0;
+                return sum + (p * r);
+              }, 0);
+            }
+            if (value > 0) {
+              dataPoints.push({ date: new Date(session.date), value });
+            }
+          }
+        }
+      });
+
+      dataPoints.sort((a, b) => a.date - b.date);
+
+      const values = dataPoints.map(p => p.value);
+
+      datasets.push({
+        label: exerciseName + (variable === 'peso' ? ' - Peso Máximo' : ' - Carga Total'),
+        data: values,
+        borderColor: colors[index % colors.length],
+        backgroundColor: colors[index % colors.length] + '20', // Añadir transparencia
+        fill: false,
+      });
+    });
+
+    // Reestructurar para tener labels comunes
+    const allDates = new Set();
+    datasets.forEach(ds => {
+      // ds.data tiene values, pero necesito mapear a labels
+      // Es complicado. Mejor cambiar a usar un objeto con fechas como keys.
+    });
+
+    // Reestructurar para tener labels comunes
+    const dateMap = {};
+    selectedExercises.forEach(exerciseName => {
+      sessions.forEach(session => {
+        if (session.exercises) {
+          const ex = session.exercises.find(e => e.nombre === exerciseName);
+          if (ex && ex.sets && ex.sets.length > 0) {
+            let value;
+            if (variable === 'peso') {
+              value = Math.max(...ex.sets.map(s => parseFloat(s.peso) || 0));
+            } else if (variable === 'carga') {
+              value = ex.sets.reduce((sum, s) => {
+                const p = parseFloat(s.peso) || 0;
+                const r = parseInt(s.reps) || 0;
+                return sum + (p * r);
+              }, 0);
+            }
+            if (value > 0) {
+              const dateStr = session.date;
+              if (!dateMap[dateStr]) dateMap[dateStr] = {};
+              dateMap[dateStr][exerciseName] = value;
+            }
+          }
+        }
+      });
+    });
+
+    const sortedDates = Object.keys(dateMap).sort((a, b) => new Date(a) - new Date(b));
+    const labels = sortedDates.map(d => new Date(d).toLocaleDateString('es-ES'));
+
+    datasets.length = 0; // Limpiar
+    selectedExercises.forEach((exerciseName, index) => {
+      const values = sortedDates.map(d => dateMap[d][exerciseName] || null);
+      datasets.push({
+        label: exerciseName + (variable === 'peso' ? ' - Peso Máximo' : ' - Carga Total'),
+        data: values,
+        borderColor: colors[index % colors.length],
+        backgroundColor: colors[index % colors.length] + '20',
+        fill: false,
+        spanGaps: true, // Conectar puntos aunque haya null
+      });
+    });
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(chartCanvas, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Fecha'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: variable === 'peso' ? 'Peso (kg)' : 'Carga (kg*reps)'
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  });
+
+
 </script>
 
 </body>

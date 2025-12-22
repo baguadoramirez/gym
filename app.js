@@ -28,6 +28,15 @@ const painExerciseSelect = document.getElementById("pain-exercise");
 // Fecha inicial
 dateInput.value = new Date().toISOString().slice(0, 10);
 
+// Histórico
+let historyData = {}; // {exerciseName: [weights]}
+window.uploadedHistory = []; // Array of sessions
+
+function getMaxWeight(exerciseName) {
+  if (!historyData[exerciseName] || historyData[exerciseName].length === 0) return null;
+  return Math.max(...historyData[exerciseName]);
+}
+
 
 // -------------------------
 // FUNCIONES BASE
@@ -201,7 +210,8 @@ function buildExerciseCard(exData) {
   if (exData.sets && exData.sets.length > 0) {
     exData.sets.forEach(s => addSetRow(tbody, s));
   } else {
-    addSetRow(tbody);
+    const maxWeight = getMaxWeight(exData.nombre);
+    addSetRow(tbody, maxWeight ? {peso: maxWeight} : {});
   }
 
   const addBtn = document.createElement("button");
@@ -210,6 +220,17 @@ function buildExerciseCard(exData) {
   addBtn.onclick = () => { addSetRow(tbody); saveSession(); };
 
   card.appendChild(addBtn);
+
+  // Hacer la tarjeta draggable
+  card.draggable = true;
+  card.addEventListener('dragstart', (e) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.target.style.opacity = '0.5';
+  });
+  card.addEventListener('dragend', (e) => {
+    e.target.style.opacity = '';
+  });
+
   return card;
 }
 
@@ -651,3 +672,219 @@ document.addEventListener('DOMContentLoaded', () => {
 dateInput.addEventListener("change", loadSession);
 weekSelect.addEventListener("change", loadSession);
 daySelect.addEventListener("change", loadSession);
+
+// -------------------------
+// CRONÓMETRO (TEMPORIZADOR DE CUENTA ATRÁS)
+// -------------------------
+let stopwatchInterval;
+let stopwatchTime = 0; // en segundos
+let isRunning = false;
+
+const stopwatchDisplay = document.getElementById('stopwatch-display');
+const stopwatchInput = document.getElementById('stopwatch-input');
+const startBtn = document.getElementById('start-stopwatch');
+const stopBtn = document.getElementById('stop-stopwatch');
+const resetBtn = document.getElementById('reset-stopwatch');
+const toggleBtn = document.getElementById('toggle-stopwatch');
+const minimizeBtn = document.getElementById('minimize-stopwatch');
+const popup = document.getElementById('stopwatch-popup');
+
+function updateDisplay() {
+  const minutes = Math.floor(stopwatchTime / 60);
+  const seconds = stopwatchTime % 60;
+  stopwatchDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+startBtn.addEventListener('click', () => {
+  if (!isRunning && stopwatchTime > 0) {
+    isRunning = true;
+    startBtn.style.display = 'none'; // Ocultar botón iniciar
+    stopwatchInterval = setInterval(() => {
+      if (stopwatchTime > 0) {
+        stopwatchTime--;
+        updateDisplay();
+      } else {
+        clearInterval(stopwatchInterval);
+        isRunning = false;
+        startBtn.style.display = 'inline-block'; // Mostrar botón iniciar
+        alert('¡Tiempo terminado!');
+      }
+    }, 1000);
+  }
+});
+
+stopBtn.addEventListener('click', () => {
+  if (isRunning) {
+    isRunning = false;
+    clearInterval(stopwatchInterval);
+    startBtn.style.display = 'inline-block'; // Mostrar botón iniciar
+  }
+});
+
+resetBtn.addEventListener('click', () => {
+  isRunning = false;
+  clearInterval(stopwatchInterval);
+  stopwatchTime = parseInt(stopwatchInput.value) || 0;
+  updateDisplay();
+  startBtn.style.display = 'inline-block'; // Mostrar botón iniciar
+});
+
+stopwatchInput.addEventListener('input', () => {
+  if (!isRunning) {
+    stopwatchTime = parseInt(stopwatchInput.value) || 0;
+    updateDisplay();
+  }
+});
+
+toggleBtn.addEventListener('click', () => {
+  popup.classList.toggle('collapsed');
+  if (popup.classList.contains('collapsed')) {
+    popup.style.display = 'none';
+  } else {
+    popup.style.display = 'block';
+  }
+});
+
+minimizeBtn.addEventListener('click', () => {
+  popup.classList.add('collapsed');
+  popup.style.display = 'none';
+});
+
+// Inicializar display
+updateDisplay();
+
+// -------------------------
+// DRAG AND DROP PARA REORDENAR EJERCICIOS
+// -------------------------
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.exercise-card:not([style*="opacity: 0.5"])')];
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+exercisesContainer.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+});
+
+exercisesContainer.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const draggedElement = document.querySelector('.exercise-card[style*="opacity: 0.5"]');
+  if (draggedElement) {
+    const afterElement = getDragAfterElement(exercisesContainer, e.clientY);
+    if (afterElement == null) {
+      exercisesContainer.appendChild(draggedElement);
+    } else {
+      exercisesContainer.insertBefore(draggedElement, afterElement);
+    }
+    saveSession();
+  }
+});
+
+// -------------------------
+// HISTÓRICO
+// -------------------------
+
+const uploadHistoryInput = document.getElementById('upload-history');
+const downloadHistoryBtn = document.getElementById('download-history-btn');
+const uploadHistoryBtn = document.getElementById('upload-history-btn');
+
+uploadHistoryBtn.addEventListener('click', () => uploadHistoryInput.click());
+
+uploadHistoryInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        window.uploadedHistory = data;
+        // Procesar data para historyData
+        historyData = {};
+        data.forEach(session => {
+          if (session.exercises) {
+            session.exercises.forEach(ex => {
+              if (!historyData[ex.nombre]) historyData[ex.nombre] = [];
+              if (ex.sets) {
+                ex.sets.forEach(set => {
+                  if (set.peso && !isNaN(parseFloat(set.peso))) {
+                    historyData[ex.nombre].push(parseFloat(set.peso));
+                  }
+                });
+              }
+            });
+          }
+        });
+        setStatus('Histórico cargado correctamente.');
+      } catch (err) {
+        setStatus('Error al cargar el histórico: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+});
+
+downloadHistoryBtn.addEventListener('click', () => {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('gym_'));
+  const data = keys.map(k => JSON.parse(localStorage.getItem(k)));
+  // Añadir la sesión actual si no está guardada
+  const currentKey = sessionKey();
+  if (!keys.includes(currentKey)) {
+    const currentData = {
+      date: dateInput.value,
+      week: weekSelect.value,
+      day: daySelect.value,
+      exercises: [],
+      sensations: {
+        general: senseGeneralInput.value,
+        tiredness: senseTirednessInput.value,
+        pain: sensePainSelect.value,
+        painZone: painZoneInput.value,
+        painExercise: painExerciseSelect.value
+      }
+    };
+    const cards = document.querySelectorAll('.exercise-card');
+    cards.forEach(card => {
+      const name = card.querySelector('.exercise-title')?.textContent.trim() || '';
+      const meta = card.querySelector('.exercise-meta');
+      const musculo = meta?.getAttribute('data-musculo') || '';
+      const seccion = meta?.getAttribute('data-seccion') || '';
+      const sets = [];
+      const rows = card.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        sets.push({
+          serie: inputs[0]?.value || '',
+          peso: inputs[1]?.value || '',
+          reps: inputs[2]?.value || '',
+          fallo: inputs[3]?.checked || false,
+          repsFallo: inputs[4]?.value || '',
+          obs: inputs[5]?.value || ''
+        });
+      });
+      currentData.exercises.push({
+        nombre: name,
+        musculo: musculo,
+        seccion: seccion,
+        sets: sets
+      });
+    });
+    data.push(currentData);
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'historico_rutinas.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  setStatus('Histórico descargado.');
+});
