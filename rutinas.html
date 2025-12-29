@@ -492,21 +492,25 @@
       position: fixed;
       bottom: 20px;
       left: 20px;
-      width: 250px;
+      right: 20px;
+      width: auto;
+      max-width: 900px;
+      margin: 0 auto;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 8px;
-      padding: 10px;
+      padding: 18px;
       box-shadow: 0 18px 36px rgba(0,0,0,0.28);
       z-index: 1000;
       display: none; /* Inicialmente oculto */
+      font-size: 1.02rem;
     }
     #stopwatch-popup.collapsed {
       width: auto;
       padding: 5px;
     }
     #stopwatch-display {
-      font-size: 1.5rem;
+      font-size: 1.9rem;
       text-align: center;
       margin-bottom: 10px;
       color: var(--text);
@@ -516,10 +520,12 @@
       margin-bottom: 10px;
       padding: 5px;
       box-sizing: border-box;
+      font-size: 1.02rem;
     }
     #stopwatch-buttons {
       display: flex;
-      justify-content: space-around;
+      justify-content: center;
+      gap: 0.8rem;
       position: relative;
     }
     #stopwatch-buttons button {
@@ -534,21 +540,22 @@
       color: white;
       border: none;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 26px;
+      height: 26px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      line-height: 1;
     }
     #toggle-stopwatch {
       background: #ffffff;
       color: #111;
       border: 2px solid var(--card-border);
       border-radius: 100%;
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
       cursor: pointer;
       position: fixed;
       bottom: 20px;
@@ -557,22 +564,26 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.4rem;
+      font-size: 1.8rem;
     }
 
     /* Estilos para el popup de añadir ejercicios */
     #quick-add-popup {
       position: fixed;
       bottom: 20px;
+      left: 20px;
       right: 20px;
-      width: 260px;
+      width: auto;
+      max-width: 900px;
+      margin: 0 auto;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 8px;
-      padding: 10px;
+      padding: 18px;
       box-shadow: 0 18px 36px rgba(0,0,0,0.28);
       z-index: 1000;
       display: none;
+      font-size: 1.02rem;
     }
     #quick-add-popup.collapsed {
       width: auto;
@@ -585,6 +596,7 @@
     #quick-add-popup select {
       width: 100%;
       margin-bottom: 8px;
+      font-size: 1.02rem;
     }
     #quick-add-buttons {
       display: flex;
@@ -602,13 +614,14 @@
       color: white;
       border: none;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 26px;
+      height: 26px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      line-height: 1;
     }
     #toggle-quick-add {
       background: var(--accent-strong);
@@ -616,8 +629,8 @@
       border: none;
       border: 2px solid var(--card-border);
       border-radius: 100%;
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
       cursor: pointer;
       position: fixed;
       bottom: 20px;
@@ -626,7 +639,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.2rem;
+      font-size: 1.8rem;
     }
     #quick-add-popup:not(.collapsed) ~ #toggle-quick-add {
       display: none;
@@ -665,8 +678,8 @@
 <body>
 
   <header>
-    <h1>Registro de Rutinas</h1>
-    <p>Registra tus series y consulta el histórico con gráficos</p>
+    <h1>Registro de sesiones</h1>
+    <p>Registra tus sesiones y consulta tus datos con gráficos</p>
   
     <a
       href="https://baguadoramirez.github.io/borjas_web/index.html"
@@ -701,45 +714,45 @@
 
   <div class="controls">
     <span class="hint-text">
-      <b>Aviso de privacidad:</b> esta web no guarda nada en la nube. Todo el histórico se guarda únicamente en tu dispositivo.
-      Si usas GitHub Pages, el sitio solo sirve archivos estáticos y no hay base de datos ni servidor donde subir datos.
+      <b>Privacidad:</b> no se guardan datos en la nube. Todo se almacena localmente en tu dispositivo.
     </span>
     <span class="hint-text">
-      <b>Importante:</b> si borras los datos del navegador o desinstalas la app, el histórico se perderá. Exporta periódicamente
-      para conservar copias.
+      <b>Sin sincronización:</b> los datos no se comparten entre dispositivos salvo que exportes e importes manualmente.
     </span>
     <span class="hint-text">
-      <b>Acceso directo:</b>
-      <br>
-      - <b>iOS</b> abre Compartir → “Añadir a pantalla de inicio”.
-      <br>
-      - <b>Android</b> abre el menú del navegador →
-      “Instalar app” o “Añadir a pantalla de inicio”.
+      <b>Importante:</b> si borras el los datos del navegador o la app, los datos se perderán. Exporta copias si quieres conservarlas.
+    </span>
+    <span class="hint-text">
+      <b>Acceso directo:</b> iOS → Compartir → “Añadir a pantalla de inicio”. Android → Menú → “Instalar app”.
+    </span>
+    <span class="hint-text">
+      <b>Avisos:</b> <a href="#legal-notes">Ver avisos legales y médicos</a>
     </span>
   </div>
 
-  <details id="step-1" class="step-section" open>
+
+  <details id="step-1" class="step-section">
     <summary>
-      <span>Paso 1: Selección de históricos</span>
+      <span>Paso 1: Selección de usuarios</span>
       <span id="step-1-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
       <div class="controls" id="user-history-controls">
         <div class="controls-row">
-        <span id="user-history-status" class="hint-text">Empieza seleccionando un usuario para cargar su histórico.</span>
+        <span id="user-history-status" class="hint-text">Empieza seleccionando un usuario para cargar sus datos.</span>
         </div>
         <div class="controls-row">
           <div>
             <label>Histórico</label><br>
             <select id="user-history-select" disabled></select>
           </div>
-          <button id="new-user-history-btn" class="btn-secondary">Crear nuevo histórico</button>
-          <button id="rename-user-history-btn" class="btn-secondary">Renombrar histórico</button>
+          <button id="new-user-history-btn" class="btn-secondary">Crear nuevo usuario</button>
+          <button id="rename-user-history-btn" class="btn-secondary">Renombrar usuario</button>
         </div>
         <div class="controls-row">
-          <button id="delete-user-history-btn" class="btn-danger">Eliminar histórico</button>
-          <button id="export-user-history-btn" class="btn-accent-alt">Exportar histórico de usuario</button>
-          <button id="import-merge-history-btn" class="btn-secondary">Importar histórico (fusionar)</button>
+          <button id="delete-user-history-btn" class="btn-danger">Eliminar usuario</button>
+          <button id="export-user-history-btn" class="btn-accent-alt">Exportar datos del usuario</button>
+          <button id="import-merge-history-btn" class="btn-secondary">Importar datos (fusionar)</button>
         </div>
         <input type="file" id="upload-user-history" accept=".json" style="display: none;">
         <input type="file" id="import-merge-history-input" accept=".json" style="display: none;">
@@ -748,9 +761,9 @@
   </details>
 
   <div id="app-content" style="display: none;">
-  <details id="step-2" class="step-section" open>
+  <details id="step-2" class="step-section">
     <summary>
-      <span>Paso 2: Selección de rutinas pre-definidas (opcional)</span>
+      <span>Paso 2: Sesiones predefinidas (Opcional)</span>
       <span id="step-2-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
@@ -783,9 +796,9 @@
     </div>
   </details>
 
-  <details id="step-3" class="step-section" open>
+  <details id="step-3" class="step-section">
     <summary>
-      <span>Paso 3: Ejercicios de la rutina</span>
+      <span>Paso 3: Ejercicios de la sesión</span>
       <span id="step-3-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
@@ -840,7 +853,7 @@
     </div>
     
     <div class="final-action-row" style="margin-top: 1rem;">
-      <button id="save-session-btn" class="btn-primary" style="flex:1;" disabled>Guardar sesión en el histórico</button>
+      <button id="save-session-btn" class="btn-primary" style="flex:1;" disabled>Guardar sesión del usuario</button>
       <button id="export-png-btn" class="btn-secondary" disabled>Imagen sesión (📷)</button>
     </div>
   </div>
@@ -875,15 +888,15 @@
     </div>
   </details>
 
-  <details id="step-4" class="step-section" open>
+  <details id="step-4" class="step-section">
     <summary>
-      <span>Paso 4: Gráficos de histórico</span>
+      <span>Paso 4: Gráficos del usuario</span>
       <span id="step-4-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
       <div id="graficos-content">
-        <h2>Gráficos del histórico</h2>
-        <p id="no-data-msg" style="display: none; color: var(--meta-text);">Todavía no hay datos en este histórico. Guarda sesiones o importa un histórico para ver los gráficos.</p>
+        <h2>Gráficos del usuario</h2>
+        <p id="no-data-msg" style="display: none; color: var(--meta-text);">Todavía no hay datos de este usuario. Guarda sesiones o importa datos para ver los gráficos.</p>
         <div class="controls" id="chart-controls">
           <div>
             <label>Ejercicios</label><br>
@@ -915,6 +928,36 @@
     </div>
   </details>
   </div>
+
+  <details class="step-section" id="legal-notes" open>
+  <summary>
+    <span>Avisos legales y médicos</span>
+  </summary>
+  <div class="step-body">
+    <span class="hint-text">
+      <b>Aviso legal:</b> GitHub Pages solo sirve archivos estáticos, sin base de datos ni servidor donde subir datos.
+    </span>
+    <br>
+    <span class="hint-text">
+      <b>Disclaimer médico:</b> esta aplicación no ofrece asesoramiento médico ni deportivo. Consulta a un profesional antes de realizar cambios
+      en tu entrenamiento, especialmente si tienes lesiones o condiciones previas.
+    </span>
+    <br>
+    <span class="hint-text">
+      <b>Uso y responsabilidad:</b> utilizas la web bajo tu cuenta y riesgo. No se garantiza la disponibilidad ni la
+      conservación de los datos si cambias de dispositivo, navegador o modo privado.
+    </span>
+    <br>
+    <span class="hint-text">
+      <b>Sin garantías:</b> la aplicación se ofrece “tal cual”, sin garantías de disponibilidad, continuidad o ausencia de errores.
+    </span>
+    <br>
+    <span class="hint-text">
+      <b>Limitación de responsabilidad:</b> el creador no se hace responsable de daños indirectos, pérdidas de beneficios o
+      decisiones tomadas a partir de la información registrada.
+    </span>
+  </div>
+  </details>
 </main>
 
 <div id="import-overlay" class="overlay" aria-hidden="true">
@@ -964,6 +1007,17 @@
     const isDark = htmlElement.classList.contains("dark");
     applyTheme(isDark ? "light" : "dark");
   });
+
+  const legalLink = document.querySelector('a[href="#legal-notes"]');
+  const legalNotes = document.getElementById("legal-notes");
+  if (legalLink && legalNotes) {
+    legalLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      legalNotes.open = true;
+      legalNotes.scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", "#legal-notes");
+    });
+  }
 
   // Gráficos
   const exerciseDropdownBtn = document.getElementById('exercise-dropdown-btn');

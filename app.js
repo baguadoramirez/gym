@@ -122,7 +122,7 @@ function saveUserList(list) {
 }
 
 function promptForNewUserName(defaultValue) {
-  const input = prompt("Nombre para el nuevo histórico:", defaultValue || "");
+  const input = prompt("Nombre del nuevo usuario:", defaultValue || "");
   if (input == null) return "";
   return input.trim();
 }
@@ -143,14 +143,14 @@ function renameUserHistory(userKey, newName) {
   const userList = loadUserList();
   const entry = userList.find(u => u.key === userKey);
   if (!entry) {
-    alert("Selecciona un histórico válido.");
+    alert("Selecciona un usuario válido.");
     return;
   }
   const trimmed = newName.trim();
   if (!trimmed) return;
   const newKey = normalizeUserName(trimmed);
   if (newKey !== userKey && userList.some(u => u.key === newKey)) {
-    alert("Ya existe un histórico con ese nombre.");
+    alert("Ya existe un usuario con ese nombre.");
     return;
   }
 
@@ -195,10 +195,10 @@ function deleteUserHistory(userKey) {
   const entry = resolveUserEntry(userKey);
   const entryIndex = entry ? userList.findIndex(u => u.key === entry.key) : -1;
   if (entryIndex === -1) {
-    alert("Selecciona un histórico válido.");
+    alert("Selecciona un usuario válido.");
     return;
   }
-  const ok = confirm(`Eliminar el histórico de "${entry.name}"? Esta acción no se puede deshacer.`);
+  const ok = confirm(`Eliminar el usuario "${entry.name}"? Esta acción no se puede deshacer.`);
   if (!ok) return;
 
   localStorage.removeItem(getHistoryStorageKeyForUser(entry.key));
@@ -275,7 +275,7 @@ function refreshUserSelect() {
   if (!userList.length) {
     userHistorySelect.disabled = true;
     confirmUserHistoryBtn.disabled = true;
-    setUserHistoryStatus("No hay históricos. Crea uno nuevo para empezar.");
+    setUserHistoryStatus("No hay usuarios. Crea uno nuevo para empezar.");
     return userList;
   }
 
@@ -287,7 +287,7 @@ function refreshUserSelect() {
   });
   userHistorySelect.disabled = false;
   confirmUserHistoryBtn.disabled = false;
-  setUserHistoryStatus("Paso 1: selecciona un usuario y pulsa \"Usar histórico\".");
+  setUserHistoryStatus("Paso 1: selecciona un usuario para cargar sus datos.");
   return userList;
 }
 
@@ -317,7 +317,7 @@ function activateSelectedUser(userKey) {
   const userList = loadUserList();
   const selected = userList.find(u => u.key === userKey);
   if (!selected) {
-    alert("Selecciona un histórico válido.");
+    alert("Selecciona un usuario válido.");
     return;
   }
   setCurrentUser(selected.name, selected.key);
@@ -325,17 +325,13 @@ function activateSelectedUser(userKey) {
   hydrateHistoryFromSessionKeys();
   setAppEnabled(true);
   setAppVisible(true);
-  setUserHistoryStatus(`Usando histórico: ${selected.name}`);
+  setUserHistoryStatus(`Usuario activo: ${selected.name}`);
   updateStepStatus();
 }
 
 function updateStepStatus() {
   const hasUser = Boolean(currentUserKey);
   const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
-
-  if (step1) step1.open = !hasUser;
-  if (step3) step3.open = hasUser;
-  if (step4) step4.open = hasUser;
 
   if (step1Status) step1Status.textContent = hasUser ? "Completado" : "Pendiente";
   if (step2Status) step2Status.textContent = hasExercises ? "Completado" : "Opcional";
@@ -751,7 +747,7 @@ function addSetRow(tbody, setData = {}, onInputChange) {
   }
 
   const fields = [
-    { key: "serie", type: "number", default: tbody.children.length + 1 },
+    { key: "serie", type: "static", default: tbody.children.length + 1 },
     { key: "peso", type: "number" },
     { key: "reps", type: "number" },
     { key: "fallo", type: "checkbox" },
@@ -763,6 +759,13 @@ function addSetRow(tbody, setData = {}, onInputChange) {
     const td = document.createElement("td");
     let input;
 
+    if (f.type === "static") {
+      const text = document.createElement("span");
+      text.textContent = resolvedSetData[f.key] ?? f.default ?? "";
+      td.appendChild(text);
+      tr.appendChild(td);
+      return;
+    }
     if (f.type === "checkbox") {
       input = document.createElement("input");
       input.type = "checkbox";
@@ -1014,16 +1017,17 @@ function saveSession() {
     
     const tbody = card.querySelector("tbody");
     const rows = tbody ? Array.from(tbody.querySelectorAll("tr")) : [];
-    
+
     const sets = rows.map(row => {
       const inputs = Array.from(row.querySelectorAll("input"));
+      const serieText = row.querySelector("td:first-child")?.textContent || "";
       return {
-        serie: parseInt(inputs[0]?.value) || null,
-        peso: parseFloat(inputs[1]?.value) || null,
-        reps: parseInt(inputs[2]?.value) || null,
-        fallo: inputs[3]?.checked || false,
-        repsFallo: parseInt(inputs[4]?.value) || null,
-        obs: inputs[5]?.value || ""
+        serie: parseInt(serieText, 10) || null,
+        peso: parseFloat(inputs[0]?.value) || null,
+        reps: parseInt(inputs[1]?.value) || null,
+        fallo: inputs[2]?.checked || false,
+        repsFallo: parseInt(inputs[3]?.value) || null,
+        obs: inputs[4]?.value || ""
       };
     });
 
@@ -1761,7 +1765,7 @@ if (newUserHistoryBtn) {
     }
     refreshUserSelect();
     if (userHistorySelect) userHistorySelect.value = key;
-    setUserHistoryStatus("Histórico creado. Confirma la selección para usarlo.");
+    setUserHistoryStatus("Usuario creado. Selecciónalo para cargar sus datos.");
   });
 }
 
@@ -1769,7 +1773,7 @@ if (renameUserHistoryBtn) {
   renameUserHistoryBtn.addEventListener("click", () => {
     const selectedKey = userHistorySelect?.value || "";
     if (!selectedKey) {
-      alert("Selecciona un histórico para renombrar.");
+      alert("Selecciona un usuario para renombrar.");
       return;
     }
     const userList = loadUserList();
@@ -1785,7 +1789,7 @@ if (deleteUserHistoryBtn) {
   deleteUserHistoryBtn.addEventListener("click", () => {
     const selectedKey = userHistorySelect?.value || "";
     if (!selectedKey) {
-      alert("Selecciona un histórico para eliminar.");
+      alert("Selecciona un usuario para eliminar.");
       return;
     }
     deleteUserHistory(selectedKey);
@@ -1796,14 +1800,14 @@ if (exportUserHistoryBtn) {
   exportUserHistoryBtn.addEventListener("click", () => {
     const selectedKey = userHistorySelect?.value || "";
     if (!selectedKey) {
-      alert("Selecciona un histórico para exportar.");
+      alert("Selecciona un usuario para exportar.");
       return;
     }
     const userList = loadUserList();
     const entry = userList.find(u => u.key === selectedKey);
     const data = getExportHistoryForUser(selectedKey);
     if (!data.length) {
-      setUserHistoryStatus("No hay datos para exportar.");
+      setUserHistoryStatus("No hay datos de este usuario para exportar.");
       return;
     }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -1814,7 +1818,7 @@ if (exportUserHistoryBtn) {
     a.download = `historico_${safeName}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setUserHistoryStatus("Histórico exportado.");
+    setUserHistoryStatus("Datos del usuario exportados.");
   });
 }
 
@@ -1886,9 +1890,9 @@ if (importMergeHistoryInput) {
         const name = entry?.name || selectedKey;
         mergeImportedHistoryForUser(data, name, selectedKey);
         refreshUserSelect();
-        setUserHistoryStatus("Histórico fusionado correctamente.");
+        setUserHistoryStatus("Datos fusionados correctamente.");
       } catch (err) {
-        setUserHistoryStatus("Error al fusionar el histórico: " + err.message);
+        setUserHistoryStatus("Error al fusionar los datos: " + err.message);
       }
     };
     reader.readAsText(file);
@@ -1921,9 +1925,9 @@ if (uploadUserHistoryInput) {
           saveUserList(userList);
         }
         refreshUserSelect();
-        setUserHistoryStatus(`Histórico importado para ${name}.`);
+        setUserHistoryStatus(`Datos importados para ${name}.`);
       } catch (err) {
-        setUserHistoryStatus("Error al importar el histórico: " + err.message);
+        setUserHistoryStatus("Error al importar los datos: " + err.message);
       }
     };
     reader.readAsText(file);
