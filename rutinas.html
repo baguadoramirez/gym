@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <title>Registro de Rutinas de Gimnasio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#121212" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 
   <style>
 
@@ -13,32 +20,40 @@
 
     :root {
       --bg: #f3f4f6;
-      --text: #111;
-      --text-color: #f1f1f1;
+      --text: #111827;
+      --text-color: #f9fafb;
       --card-bg: #ffffff;
-      --card-border: #ccc;
-      --table-header: #eee;
-      --control-bg: #ffffff;
-      --meta-text: #666;
+      --card-border: #e5e7eb;
+      --table-header: #e5e7eb;
+      --control-bg: #f9fafb;
+      --meta-text: #6b7280;
       --header-bg: #111827;
+      --accent: #f97316;
+      --accent-strong: #f97316;
+      --accent-soft: #fff7ed;
+      --accent-text: #111827;
     }
 
     /* MODO OSCURO (por defecto) */
     :root.dark {
-      --bg: #0f1116;
-      --text: #f1f1f1;
-      --text-color: #f1f1f1;
-      --card-bg: #1a1c22;
-      --card-border: #444;
-      --table-header: #222;
-      --control-bg: #1a1c22;
-      --meta-text: #bbb;
-      --header-bg: #1f2937;
+      --bg: #0b0b0b;
+      --text: #f8fafc;
+      --text-color: #f8fafc;
+      --card-bg: #111111;
+      --card-border: #262626;
+      --table-header: #171717;
+      --control-bg: #111111;
+      --meta-text: #9ca3af;
+      --header-bg: #121212;
+      --accent: #f97316;
+      --accent-strong: #f97316;
+      --accent-soft: #1a1a1a;
+      --accent-text: #f8fafc;
     }
 
     /* Transiciones suaves */
     * {
-      transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+      transition: background 0.5s ease, color 0.08s ease, border-color 0.5s ease;
     }
 
     /* ===========================
@@ -83,7 +98,7 @@
     }
 
     .theme-toggle-btn:hover {
-      background: var(--control-bg);
+      background: var(--accent-soft);
     }
 
     .sun-icon, .moon-icon {
@@ -136,6 +151,140 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       align-items: center;
     }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      width: 100%;
+      align-items: center;
+    }
+
+    #user-history-controls {
+      border: 2px dashed var(--card-border);
+    }
+
+    #user-history-controls .btn-secondary {
+      background: var(--accent-strong);
+      color: white;
+    }
+
+    #step-2 .btn-secondary,
+    #step-2 .btn-primary,
+    #step-3 .btn-secondary,
+    #step-3 .btn-primary,
+    #step-4 .btn-secondary,
+    #step-4 .btn-primary {
+      background: #c2410c;
+      color: white;
+    }
+
+    #step-3 .add-set-btn {
+      background: #ff7a00 !important;
+      color: white;
+    }
+
+    #load-routine-btn {
+      background: #ff7a00 !important;
+      color: white;
+    }
+
+    #step-4 #exercise-dropdown-btn,
+    #step-4 #generate-chart-btn {
+      background: #ff7a00 !important;
+      color: white;
+    }
+
+    #save-session-btn {
+      background: #f97316 !important;
+      color: white;
+    }
+
+    #export-png-btn {
+      background: #2563eb !important;
+      color: white;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.75rem;
+      width: auto !important;
+    }
+
+    .final-action-row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .step-section {
+      margin-bottom: 1rem;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      background: var(--control-bg);
+    }
+
+    .step-section summary {
+      cursor: pointer;
+      padding: 0.6rem 0.8rem;
+      font-weight: bold;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .step-section summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .step-section .step-body {
+      padding: 0.8rem;
+    }
+
+    .step-status {
+      font-size: 0.8rem;
+      color: var(--meta-text);
+      font-weight: normal;
+    }
+
+    .hint-text {
+      font-size: 0.8rem;
+      color: var(--meta-text);
+    }
+
+    .btn-accent-alt {
+      background: #2563eb;
+      color: white;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .overlay-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1rem;
+      width: min(420px, 90vw);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.28);
+    }
+
+    .overlay-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+    }
+
+    .overlay-actions {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: flex-end;
+      margin-top: 0.8rem;
+    }
     
     /* ESTILO PARA EL FORMULARIO DE SENSACIONES */
     .sensations-form {
@@ -179,19 +328,29 @@
     }
 
     .btn-primary {
-      background: #2563eb;
+      background: var(--accent-strong);
       color: white;
     }
     
     /* Estilo para el botón deshabilitado */
     .btn-primary:disabled {
-        background: #9ca3af;
+        background: #94a3b8;
         cursor: not-allowed;
     }
 
     .btn-secondary {
-      background: #ddd;
-      color: black;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+
+    .btn-danger {
+      background: #b91c1c;
+      color: white;
+    }
+
+    .exercise-card .btn-secondary {
+      background: #b91c1c;
+      color: white;
     }
 
     .dropdown-content {
@@ -332,13 +491,13 @@
     #stopwatch-popup {
       position: fixed;
       bottom: 20px;
-      right: 20px;
+      left: 20px;
       width: 250px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 8px;
       padding: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.28);
       z-index: 1000;
       display: none; /* Inicialmente oculto */
     }
@@ -384,7 +543,75 @@
       justify-content: center;
     }
     #toggle-stopwatch {
-      background: #2563eb;
+      background: #ffffff;
+      color: #111;
+      border: 1px solid var(--card-border);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    /* Estilos para el popup de añadir ejercicios */
+    #quick-add-popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 260px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 18px 36px rgba(0,0,0,0.28);
+      z-index: 1000;
+      display: none;
+    }
+    #quick-add-popup.collapsed {
+      width: auto;
+      padding: 5px;
+    }
+    #quick-add-popup label {
+      font-size: 0.8rem;
+      color: var(--meta-text);
+    }
+    #quick-add-popup select {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    #quick-add-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    #quick-add-buttons button {
+      flex: 1;
+      font-size: 0.8rem;
+    }
+    #minimize-quick-add {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #666;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #toggle-quick-add {
+      background: var(--accent-strong);
       color: white;
       border: none;
       border-radius: 50%;
@@ -398,7 +625,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
+    }
+    #quick-add-popup:not(.collapsed) ~ #toggle-quick-add {
+      display: none;
+    }
+    #quick-add-popup.collapsed ~ #toggle-quick-add {
+      display: flex;
     }
     #stopwatch-popup:not(.collapsed) ~ #toggle-stopwatch {
       display: none;
@@ -432,7 +665,7 @@
 
   <header>
     <h1>Registro de Rutina de Gimnasio</h1>
-    <p>Selecciona la rutina, registra tus series y exporta la sesión.</p>
+    <p>Sigue los pasos, registra tus series y consulta el histórico.</p>
   
     <a
       href="https://baguadoramirez.github.io/borjas_web/index.html"
@@ -465,20 +698,44 @@
 
 <main>
 
-  <nav class="tabs">
-    <button id="tab-rutinas" class="tab-btn active">Rutinas</button>
-    <button id="tab-graficos" class="tab-btn">Gráficos</button>
-  </nav>
+  <details id="step-1" class="step-section" open>
+    <summary>
+      <span>Paso 1: Selección de históricos</span>
+      <span id="step-1-status" class="step-status">Pendiente</span>
+    </summary>
+    <div class="step-body">
+      <div class="controls" id="user-history-controls">
+        <div class="controls-row">
+        <span id="user-history-status" class="hint-text">Empieza seleccionando un usuario para cargar su histórico.</span>
+        </div>
+        <div class="controls-row">
+          <div>
+            <label>Histórico</label><br>
+            <select id="user-history-select" disabled></select>
+          </div>
+          <button id="new-user-history-btn" class="btn-secondary">Crear nuevo histórico</button>
+          <button id="rename-user-history-btn" class="btn-secondary">Renombrar histórico</button>
+        </div>
+        <div class="controls-row">
+          <button id="delete-user-history-btn" class="btn-danger">Eliminar histórico</button>
+          <button id="export-user-history-btn" class="btn-accent-alt">Exportar histórico de usuario</button>
+          <button id="import-merge-history-btn" class="btn-secondary">Importar histórico (fusionar)</button>
+        </div>
+        <input type="file" id="upload-user-history" accept=".json" style="display: none;">
+        <input type="file" id="import-merge-history-input" accept=".json" style="display: none;">
+      </div>
+    </div>
+  </details>
 
-  <div id="rutinas-content">
+  <div id="app-content" style="display: none;">
+  <details id="step-2" class="step-section" open>
+    <summary>
+      <span>Paso 2: Selección de rutinas pre-definidas (opcional)</span>
+      <span id="step-2-status" class="step-status">Opcional</span>
+    </summary>
+    <div class="step-body">
 
   <div class="controls">
-    
-    <div>
-      <label>Fecha</label><br>
-      <input type="date" id="date-input">
-    </div>
-
     <div>
       <label>Semana</label><br>
       <select id="week-select">
@@ -501,31 +758,27 @@
 
     <button id="load-routine-btn" class="btn-secondary">Cargar Rutina</button>
 
-    <input type="file" id="upload-history" accept=".json" style="display: none;">
-    <button id="upload-history-btn" class="btn-secondary">Subir Histórico</button>
-
     <span id="status-text"></span>
   </div>
+    </div>
+  </details>
 
+  <details id="step-3" class="step-section" open>
+    <summary>
+      <span>Paso 3: Ejercicios de la rutina</span>
+      <span id="step-3-status" class="step-status">Pendiente</span>
+    </summary>
+    <div class="step-body">
 
   <div class="controls">
-    <label>Añadir ejercicio</label>
-    <select id="muscle-group-select">
-      <option value="">Seleccionar grupo...</option>
-      <option value="Pecho">Pecho</option>
-      <option value="Espalda">Espalda</option>
-      <option value="Hombros">Hombros</option>
-      <option value="Brazos">Brazos</option>
-      <option value="Piernas">Piernas</option>
-      <option value="Antebrazos">Antebrazos</option>
-      <option value="Cardio">Cardio</option>
-      <option value="Core">Core</option>
-    </select>
-    <select id="predefined-exercise-select" disabled>
-      <option value="">Seleccionar ejercicio...</option>
-    </select>
-    <button id="add-predefined-btn" class="btn-secondary btn-small">Añadir</button>
-    <button id="add-custom-btn" class="btn-secondary btn-small">Ejercicio personalizado</button>
+    <div>
+      <label>Fecha</label><br>
+      <input type="date" id="date-input">
+    </div>
+  </div>
+
+  <div class="controls">
+    <label class="hint-text">Añadir ejercicios desde el botón flotante “＋”. Para reordenarlos, mantén pulsado sobre una tarjeta y arrástrala arriba o abajo.</label>
   </div>
   
   <div id="exercises-container"></div>
@@ -539,15 +792,20 @@
         <input type="number" id="sense-general" min="0" max="10" placeholder="Ej: 8">
       </div>
 
-      <div class="control-row">
-        <label for="sense-tiredness">Cansancio percibido 0-10</label>
-        <input type="number" id="sense-tiredness" min="0" max="10" placeholder="Ej: 6">
-      </div>
+    <div class="control-row">
+      <label for="sense-tiredness">Cansancio percibido 0-10</label>
+      <input type="number" id="sense-tiredness" min="0" max="10" placeholder="Ej: 6">
+    </div>
 
       <div class="control-row">
-        <label for="sense-pain">Dolor en algún músculo (sí/no)</label>
-        <select id="sense-pain">
-          <option value="no">No</option>
+        <label for="sense-weight">Peso corporal (kg)</label>
+        <input type="number" id="sense-weight" min="0" step="0.1" placeholder="Ej: 78.5">
+      </div>
+
+    <div class="control-row">
+      <label for="sense-pain">Dolor en algún músculo (sí/no)</label>
+      <select id="sense-pain">
+        <option value="no">No</option>
           <option value="si">Sí</option>
         </select>
       </div>
@@ -561,43 +819,11 @@
       </div>
     </div>
     
-    <button id="export-png-btn" class="btn-primary" style="width:100%; margin-top: 1rem;" disabled>Exportar rutina de hoy (imagen) e histórico</button>
-  </div>
-
-  </div> <!-- end rutinas-content -->
-
-  <div id="graficos-content" style="display: none;">
-    <h2>Gráficos de Histórico</h2>
-    <p id="no-data-msg" style="display: none; color: var(--meta-text);">No hay datos históricos disponibles. Carga un JSON de histórico o guarda sesiones para ver gráficos.</p>
-    <div class="controls" id="chart-controls">
-      <div>
-        <label>Ejercicios</label><br>
-        <button id="exercise-dropdown-btn" class="btn-secondary">Seleccionar ejercicios</button>
-        <div id="exercise-dropdown" class="dropdown-content" style="display: none;">
-          <!-- Checkboxes will be added here -->
-        </div>
-      </div>
-
-      <div>
-        <label>Variable</label><br>
-        <select id="chart-variable-select">
-          <option value="peso">Peso Máximo</option>
-          <option value="carga">Carga Total (Peso x Reps)</option>
-          <option value="sens_general">Sensaciones generales (0-10)</option>
-          <option value="sens_tiredness">Cansancio percibido (0-10)</option>
-          <option value="sens_pain">Dolor en algún músculo (Sí/No)</option>
-        </select>
-      </div>
-
-      <button id="generate-chart-btn" class="btn-primary">Generar Gráfico</button>
-    </div>
-
-    <div class="chart-container">
-      <canvas id="progress-chart"></canvas>
+    <div class="final-action-row" style="margin-top: 1rem;">
+      <button id="save-session-btn" class="btn-primary" style="flex:1;" disabled>Guardar sesión en el histórico</button>
+      <button id="export-png-btn" class="btn-secondary" disabled>Imagen sesión (📷)</button>
     </div>
   </div>
-
-  <button id="show-charts-btn" class="btn-secondary" style="width: 100%; margin-top: 1rem; display: none;">Mostrar Gráficos de Histórico</button>
 
   <div id="stopwatch-popup" class="collapsed">
     <button id="minimize-stopwatch">−</button>
@@ -610,7 +836,78 @@
     </div>
   </div>
   <button id="toggle-stopwatch">⏱️</button>
+  <div id="quick-add-popup" class="collapsed">
+    <button id="minimize-quick-add">−</button>
+    <label for="quick-add-group">Grupo muscular</label>
+    <select id="quick-add-group">
+      <option value="">Seleccionar grupo...</option>
+    </select>
+    <label for="quick-add-exercise">Ejercicio</label>
+    <select id="quick-add-exercise" disabled>
+      <option value="">Seleccionar ejercicio...</option>
+    </select>
+    <div id="quick-add-buttons">
+      <button id="quick-add-predefined" class="btn-secondary">Añadir</button>
+      <button id="quick-add-custom" class="btn-secondary">Personalizado</button>
+    </div>
+  </div>
+  <button id="toggle-quick-add">＋</button>
+    </div>
+  </details>
+
+  <details id="step-4" class="step-section" open>
+    <summary>
+      <span>Paso 4: Gráficos de histórico</span>
+      <span id="step-4-status" class="step-status">Opcional</span>
+    </summary>
+    <div class="step-body">
+      <div id="graficos-content">
+        <h2>Gráficos del histórico</h2>
+        <p id="no-data-msg" style="display: none; color: var(--meta-text);">Todavía no hay datos en este histórico. Guarda sesiones o importa un histórico para ver los gráficos.</p>
+        <div class="controls" id="chart-controls">
+          <div>
+            <label>Ejercicios</label><br>
+            <button id="exercise-dropdown-btn" class="btn-secondary">Seleccionar ejercicios</button>
+            <div id="exercise-dropdown" class="dropdown-content" style="display: none;">
+              <!-- Checkboxes will be added here -->
+            </div>
+          </div>
+
+          <div>
+            <label>Variable</label><br>
+            <select id="chart-variable-select">
+              <option value="peso">Peso Máximo</option>
+              <option value="carga">Carga Total (Peso x Reps)</option>
+              <option value="sens_general">Sensaciones generales (0-10)</option>
+              <option value="sens_tiredness">Cansancio percibido (0-10)</option>
+              <option value="sens_weight">Peso corporal (kg)</option>
+              <option value="sens_pain">Dolor en algún músculo (Sí/No)</option>
+            </select>
+          </div>
+
+          <button id="generate-chart-btn" class="btn-primary">Generar Gráfico</button>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="progress-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </details>
+  </div>
 </main>
+
+<div id="import-overlay" class="overlay" aria-hidden="true">
+  <div class="overlay-card">
+    <h3>Selecciona el usuario para fusionar</h3>
+    <label for="import-user-select" class="hint-text">Usuario</label><br>
+    <select id="import-user-select"></select>
+    <div class="overlay-actions">
+      <button id="import-overlay-cancel" class="btn-secondary">Cancelar</button>
+      <button id="import-overlay-confirm" class="btn-primary">Fusionar</button>
+    </div>
+  </div>
+</div>
 
 
 <footer>
@@ -626,29 +923,29 @@
   // Script Modificado para el nuevo toggle
   const themeToggle = document.getElementById("theme-toggle");
   const htmlElement = document.documentElement;
-  const savedTheme = localStorage.getItem("gym-theme");
-  
-  // Inicialización: aplica el tema guardado o el oscuro por defecto.
-  if (!savedTheme || savedTheme === "dark") {
-    htmlElement.classList.add("dark");
-    localStorage.setItem("gym-theme", "dark");
-  } else {
-    htmlElement.classList.remove("dark");
-    localStorage.setItem("gym-theme", "light");
+
+  function applyTheme(theme) {
+    const isDark = theme === "dark";
+    htmlElement.classList.toggle("dark", isDark);
+    htmlElement.setAttribute("data-theme", theme);
+    localStorage.setItem("gym-theme", theme);
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) {
+      themeMeta.setAttribute("content", isDark ? "#121212" : "#111827");
+    }
   }
+
+  const savedTheme = localStorage.getItem("gym-theme");
+  const initialTheme = savedTheme === "light" ? "light" : "dark";
+  applyTheme(initialTheme);
 
   // Listener para el evento 'click' del botón
   themeToggle.addEventListener("click", () => {
     const isDark = htmlElement.classList.contains("dark");
-    htmlElement.classList.toggle("dark", !isDark);
-    localStorage.setItem("gym-theme", !isDark ? "dark" : "light");
+    applyTheme(isDark ? "light" : "dark");
   });
 
   // Gráficos
-  const tabRutinas = document.getElementById('tab-rutinas');
-  const tabGraficos = document.getElementById('tab-graficos');
-  const rutinasContent = document.getElementById('rutinas-content');
-  const graficosContent = document.getElementById('graficos-content');
   const exerciseDropdownBtn = document.getElementById('exercise-dropdown-btn');
   const exerciseDropdown = document.getElementById('exercise-dropdown');
   const chartVariableSelect = document.getElementById('chart-variable-select');
@@ -669,21 +966,6 @@
     if (!exerciseDropdownBtn.contains(e.target) && !exerciseDropdown.contains(e.target)) {
       exerciseDropdown.style.display = 'none';
     }
-  });
-
-  tabRutinas.addEventListener('click', () => {
-    tabRutinas.classList.add('active');
-    tabGraficos.classList.remove('active');
-    rutinasContent.style.display = 'block';
-    graficosContent.style.display = 'none';
-  });
-
-  tabGraficos.addEventListener('click', () => {
-    tabRutinas.classList.remove('active');
-    tabGraficos.classList.add('active');
-    rutinasContent.style.display = 'none';
-    graficosContent.style.display = 'block';
-    loadChartExercises();
   });
 
   function loadChartExercises() {
@@ -717,6 +999,114 @@
     }
   }
 
+  const chartMuscleGroupMap = {
+    "Pectoral": "Pecho",
+    "Deltoides": "Hombros",
+    "Bíceps": "Brazos",
+    "Tríceps": "Brazos",
+    "Espalda": "Espalda",
+    "Dorsal": "Espalda",
+    "Cuádriceps": "Piernas",
+    "Femoral": "Piernas",
+    "Gemelos": "Piernas",
+    "Glúteo": "Piernas",
+    "Cardio": "Cardio",
+    "Antebrazo": "Antebrazos",
+    "Trapecio": "Espalda",
+    "Abdominales": "Core",
+    "Oblicuos": "Core",
+    "Transverso": "Core",
+    "Inferior": "Core",
+    "Lateral": "Core"
+  };
+
+  function getExerciseGroup(exerciseName, sessions) {
+    for (const session of sessions) {
+      const ex = session.exercises?.find(e => e.nombre === exerciseName);
+      if (ex?.musculo) return chartMuscleGroupMap[ex.musculo] || ex.musculo;
+    }
+    return "Otros";
+  }
+
+  function getGroupColor(groupName) {
+    const palette = {
+      "Pecho": "#f97316",
+      "Espalda": "#2563eb",
+      "Hombros": "#f59e0b",
+      "Brazos": "#ef4444",
+      "Piernas": "#22c55e",
+      "Antebrazos": "#8b5cf6",
+      "Cardio": "#14b8a6",
+      "Core": "#f97316",
+      "Otros": "#6b7280"
+    };
+    return palette[groupName] || palette.Otros;
+  }
+
+  function hexToHsl(hex) {
+    const cleaned = hex.replace("#", "");
+    const bigint = parseInt(cleaned, 16);
+    const r = ((bigint >> 16) & 255) / 255;
+    const g = ((bigint >> 8) & 255) / 255;
+    const b = (bigint & 255) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        default:
+          h = (r - g) / d + 4;
+      }
+      h /= 6;
+    }
+    return { h, s, l };
+  }
+
+  function hslToHex(h, s, l) {
+    const hue2rgb = (p, q, t) => {
+      let tt = t;
+      if (tt < 0) tt += 1;
+      if (tt > 1) tt -= 1;
+      if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+      if (tt < 1 / 2) return q;
+      if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+      return p;
+    };
+    let r;
+    let g;
+    let b;
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+    const toHex = value => Math.round(value * 255).toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  function getExerciseColor(groupName, index, total) {
+    const base = getGroupColor(groupName);
+    const { h, s, l } = hexToHsl(base);
+    const steps = Math.max(total - 1, 1);
+    const offset = (index / steps - 0.5) * 0.18;
+    const newL = Math.min(0.75, Math.max(0.28, l + offset));
+    return hslToHex(h, s, newL);
+  }
+
   generateChartBtn.addEventListener('click', () => {
     const selectedExercises = Array.from(exerciseDropdown.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
     const variable = chartVariableSelect.value;
@@ -728,7 +1118,7 @@
 
     const sessions = window.uploadedHistory || [];
     const datasets = [];
-    const colors = ['#2563eb', '#dc2626', '#16a34a', '#ca8a04', '#7c3aed', '#c2410c'];
+    const colors = ['#0f766e', '#1d4ed8', '#16a34a', '#ca8a04', '#7c3aed', '#c2410c'];
 
     // Reestructurar para tener labels comunes
     const dateMap = {};
@@ -742,6 +1132,8 @@
           value = parseInt(sensations.general, 10);
         } else if (variable === 'sens_tiredness') {
           value = parseInt(sensations.tiredness, 10);
+        } else if (variable === 'sens_weight') {
+          value = parseFloat(sensations.weight);
         } else if (variable === 'sens_pain') {
           if (sensations.pain === 'si') value = 1;
           if (sensations.pain === 'no') value = 0;
@@ -789,6 +1181,8 @@
           ? 'Sensaciones generales (0-10)'
           : variable === 'sens_tiredness'
             ? 'Cansancio percibido (0-10)'
+            : variable === 'sens_weight'
+              ? 'Peso corporal (kg)'
             : 'Dolor en algún músculo (Sí/No)',
         data: values,
         pointStyle: values.map(() => 'circle'),
@@ -798,15 +1192,26 @@
         spanGaps: true
       });
     } else {
+      const groupCounts = {};
+      selectedExercises.forEach(name => {
+        const group = getExerciseGroup(name, sessions);
+        groupCounts[group] = (groupCounts[group] || 0) + 1;
+      });
+      const groupIndices = {};
       selectedExercises.forEach((exerciseName, index) => {
         const values = sortedDates.map(d => dateMap[d][exerciseName]?.value || null);
         const pointStyles = sortedDates.map(d => dateMap[d][exerciseName]?.hasFailure ? 'star' : 'circle');
+        const group = getExerciseGroup(exerciseName, sessions);
+        const groupIndex = groupIndices[group] || 0;
+        const groupTotal = groupCounts[group] || 1;
+        const color = getExerciseColor(group, groupIndex, groupTotal);
+        groupIndices[group] = groupIndex + 1;
         datasets.push({
-          label: exerciseName + (variable === 'peso' ? ' - Peso Máximo' : ' - Carga Total'),
+          label: exerciseName + ` (${group})` + (variable === 'peso' ? ' - Peso Máximo' : ' - Carga Total'),
           data: values,
           pointStyle: pointStyles,
-          borderColor: colors[index % colors.length],
-          backgroundColor: colors[index % colors.length] + '20',
+          borderColor: color,
+          backgroundColor: color + '20',
           fill: false,
           spanGaps: true, // Conectar puntos aunque haya null
         });
@@ -823,6 +1228,11 @@
       },
       options: {
         responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        },
         scales: {
           x: {
             title: {
@@ -837,9 +1247,11 @@
                 ? 'Peso (kg)'
                 : variable === 'carga'
                   ? 'Carga (kg*reps)'
-                  : variable === 'sens_pain'
+                : variable === 'sens_pain'
                     ? 'Dolor (0=No, 1=Sí)'
-                    : 'Puntuación (0-10)'
+                    : variable === 'sens_weight'
+                      ? 'Peso (kg)'
+                      : 'Puntuación (0-10)'
             },
             beginAtZero: true
           }
@@ -847,6 +1259,9 @@
       }
     });
   });
+
+  loadChartExercises();
+  window.loadChartExercises = loadChartExercises;
 
 
 </script>
