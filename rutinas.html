@@ -545,10 +545,10 @@
     #toggle-stopwatch {
       background: #ffffff;
       color: #111;
-      border: 1px solid var(--card-border);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      border: 2px solid var(--card-border);
+      border-radius: 100%;
+      width: 80px;
+      height: 80px;
       cursor: pointer;
       position: fixed;
       bottom: 20px;
@@ -557,7 +557,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: 2.4rem;
     }
 
     /* Estilos para el popup de añadir ejercicios */
@@ -614,9 +614,10 @@
       background: var(--accent-strong);
       color: white;
       border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      border: 2px solid var(--card-border);
+      border-radius: 100%;
+      width: 80px;
+      height: 80px;
       cursor: pointer;
       position: fixed;
       bottom: 20px;
@@ -625,7 +626,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 2.2rem;
     }
     #quick-add-popup:not(.collapsed) ~ #toggle-quick-add {
       display: none;
@@ -664,8 +665,8 @@
 <body>
 
   <header>
-    <h1>Registro de Rutina de Gimnasio</h1>
-    <p>Sigue los pasos, registra tus series y consulta el histórico.</p>
+    <h1>Registro de Rutinas</h1>
+    <p>Registra tus series y consulta el histórico con gráficos</p>
   
     <a
       href="https://baguadoramirez.github.io/borjas_web/index.html"
@@ -697,6 +698,25 @@
 
 
 <main>
+
+  <div class="controls">
+    <span class="hint-text">
+      <b>Aviso de privacidad:</b> esta web no guarda nada en la nube. Todo el histórico se guarda únicamente en tu dispositivo.
+      Si usas GitHub Pages, el sitio solo sirve archivos estáticos y no hay base de datos ni servidor donde subir datos.
+    </span>
+    <span class="hint-text">
+      <b>Importante:</b> si borras los datos del navegador o desinstalas la app, el histórico se perderá. Exporta periódicamente
+      para conservar copias.
+    </span>
+    <span class="hint-text">
+      <b>Acceso directo:</b>
+      <br>
+      - <b>iOS</b> abre Compartir → “Añadir a pantalla de inicio”.
+      <br>
+      - <b>Android</b> abre el menú del navegador →
+      “Instalar app” o “Añadir a pantalla de inicio”.
+    </span>
+  </div>
 
   <details id="step-1" class="step-section" open>
     <summary>
@@ -798,7 +818,7 @@
     </div>
 
       <div class="control-row">
-        <label for="sense-weight">Peso corporal (kg)</label>
+        <label for="sense-weight">Peso corporal (kg) - Opcional</label>
         <input type="number" id="sense-weight" min="0" step="0.1" placeholder="Ej: 78.5">
       </div>
 
