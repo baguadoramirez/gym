@@ -204,8 +204,8 @@
     #step-2 .btn-primary,
     #step-3 .btn-secondary,
     #step-3 .btn-primary,
-    #step-4 .btn-secondary,
-    #step-4 .btn-primary {
+    #step-5 .btn-secondary,
+    #step-5 .btn-primary {
       background: #c2410c;
       color: white;
     }
@@ -220,8 +220,8 @@
       color: white;
     }
 
-    #step-4 #exercise-dropdown-btn,
-    #step-4 #generate-chart-btn {
+    #step-5 #exercise-dropdown-btn,
+    #step-5 #generate-chart-btn {
       background: #ff7a00 !important;
       color: white;
     }
@@ -357,6 +357,10 @@
       border: none;
       cursor: pointer;
     }
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
 
     .btn-primary {
       background: var(--accent-strong);
@@ -372,6 +376,11 @@
     .btn-secondary {
       background: var(--accent-soft);
       color: var(--accent-text);
+    }
+
+    .btn-secondary:disabled {
+      background: #cbd5e1;
+      color: #64748b;
     }
 
     .btn-danger {
@@ -507,6 +516,24 @@
       text-align: center;
       font-size: 0.8rem;
       color: var(--meta-text);
+    }
+
+    .save-session-message {
+      margin-top: 6px;
+      color: #22c55e;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .save-session-error {
+      margin-top: 6px;
+      color: #ef4444;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    #post-workout-section.post-workout-locked {
+      opacity: 0.6;
+      pointer-events: none;
     }
 
     footer a {
@@ -872,44 +899,10 @@
   <div id="exercises-container"></div>
   
   <div id="final-controls-container" style="margin-top: 1rem;">
-    <div class="controls sensations-form" id="sensations-controls">
-      <h3>Cuestionario de Post-Entrenamiento</h3>
-      
-      <div class="control-row">
-        <label for="sense-general">Sensaciones generales del entreno 0-10 (muy mal - excelente)</label>
-        <input type="number" id="sense-general" min="0" max="10" placeholder="Ej: 8">
-      </div>
-
-    <div class="control-row">
-      <label for="sense-tiredness">Cansancio percibido 0-10</label>
-      <input type="number" id="sense-tiredness" min="0" max="10" placeholder="Ej: 6">
-    </div>
-
-      <div class="control-row">
-        <label for="sense-weight">Peso corporal (kg) - Opcional</label>
-        <input type="number" id="sense-weight" min="0" step="0.1" placeholder="Ej: 78.5">
-      </div>
-
-    <div class="control-row">
-      <label for="sense-pain">Dolor en algún músculo (sí/no)</label>
-      <select id="sense-pain">
-        <option value="no">No</option>
-          <option value="si">Sí</option>
-        </select>
-      </div>
-
-      <div class="control-row pain-details" id="pain-details" style="display:none;">
-        <label for="pain-zone">Zona del dolor</label>
-        <input type="text" id="pain-zone" placeholder="Ej: Hombro derecho">
-        
-        <label for="pain-exercise">Identificar si algún ejercicio puede haber sido el responsable</label>
-        <select id="pain-exercise"></select>
-      </div>
-    </div>
-    
-    <div class="final-action-row" style="margin-top: 1rem;">
-      <button id="save-session-btn" class="btn-primary" style="flex:1;" disabled>Guardar sesión del usuario</button>
-      <button id="export-png-btn" class="btn-secondary" disabled>Imagen sesión (📷)</button>
+    <div class="controls" id="validate-session-controls">
+      <button id="validate-session-btn" class="btn-primary">Acabar sesión</button>
+      <div id="validate-session-message" class="save-session-message" aria-live="polite"></div>
+      <div id="validate-session-error" class="save-session-error" aria-live="polite"></div>
     </div>
   </div>
 
@@ -945,8 +938,60 @@
 
   <details id="step-4" class="step-section">
     <summary>
-      <span>Paso 4: Gráficos del usuario</span>
-      <span id="step-4-status" class="step-status">Opcional</span>
+      <span>Paso 4: Cuestionario post-entreno</span>
+      <span id="step-4-status" class="step-status">Pendiente</span>
+    </summary>
+    <div class="step-body">
+      <div id="post-workout-section" class="post-workout-locked">
+        <div class="controls sensations-form" id="sensations-controls">
+          <h3>Cuestionario de Post-Entrenamiento</h3>
+          
+          <div class="control-row">
+            <label for="sense-general">Sensaciones generales del entreno 0-10 (muy mal - excelente)</label>
+            <input type="number" id="sense-general" min="0" max="10" placeholder="Ej: 8">
+          </div>
+
+          <div class="control-row">
+            <label for="sense-tiredness">Cansancio percibido 0-10</label>
+            <input type="number" id="sense-tiredness" min="0" max="10" placeholder="Ej: 6">
+          </div>
+
+          <div class="control-row">
+            <label for="sense-weight">Peso corporal (kg) - Opcional</label>
+            <input type="number" id="sense-weight" min="0" step="0.1" placeholder="Ej: 78.5">
+          </div>
+
+          <div class="control-row">
+            <label for="sense-pain">Dolor en algún músculo (sí/no)</label>
+            <select id="sense-pain">
+              <option value="no">No</option>
+              <option value="si">Sí</option>
+            </select>
+          </div>
+
+          <div class="control-row pain-details" id="pain-details" style="display:none;">
+            <label for="pain-zone">Zona del dolor</label>
+            <input type="text" id="pain-zone" placeholder="Ej: Hombro derecho">
+            
+            <label for="pain-exercise">Identificar si algún ejercicio puede haber sido el responsable</label>
+            <select id="pain-exercise"></select>
+          </div>
+        </div>
+        
+        <div class="final-action-row" style="margin-top: 1rem;">
+          <button id="save-session-btn" class="btn-primary" style="flex:1;" disabled>Guardar sesión del usuario</button>
+          <button id="export-png-btn" class="btn-secondary" disabled>Imagen sesión (📷)</button>
+        </div>
+        <div id="save-session-message" class="save-session-message" aria-live="polite"></div>
+        <div id="save-session-error" class="save-session-error" aria-live="polite"></div>
+      </div>
+    </div>
+  </details>
+
+  <details id="step-5" class="step-section">
+    <summary>
+      <span>Paso 5: Gráficos del usuario</span>
+      <span id="step-5-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
       <div id="graficos-content">
@@ -966,6 +1011,8 @@
             <select id="chart-variable-select">
               <option value="peso">Peso Máximo</option>
               <option value="carga">Carga Total (Peso x Reps)</option>
+              <option value="cardio_intensity">Cardio - Intensidad Máxima</option>
+              <option value="cardio_time">Cardio - Tiempo Total (min)</option>
               <option value="sens_general">Sensaciones generales (0-10)</option>
               <option value="sens_tiredness">Cansancio percibido (0-10)</option>
               <option value="sens_weight">Peso corporal (kg)</option>
@@ -1029,7 +1076,13 @@
 
 
 <footer>
-  Esta obra está bajo una <a href="LICENSE" target="_blank">Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional</a>.
+  Web creada por <a href="https://baguadoramirez.github.io/borjas_web/index.html" target="_blank">Borja Aguado</a> ·
+  Código bajo <a href="LICENSE" target="_blank">Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional</a>.
+  <div style="margin-top: 0.5rem;">
+    <a href="https://baguadoramirez.github.io/borjas_web/index.html" target="_blank">
+      <img src="icons/bar_logo.png" alt="Borja Aguado" style="height: 28px; width: auto;">
+    </a>
+  </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -1253,6 +1306,7 @@
     const selectedExercises = Array.from(exerciseDropdown.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
     const variable = chartVariableSelect.value;
     const isSensation = variable.startsWith('sens_');
+    const isCardioVariable = variable === 'cardio_intensity' || variable === 'cardio_time';
     if (!isSensation && selectedExercises.length === 0) {
       alert('Selecciona al menos un ejercicio.');
       return;
@@ -1290,15 +1344,28 @@
           if (session.exercises) {
             const ex = session.exercises.find(e => e.nombre === exerciseName);
             if (ex && ex.sets && ex.sets.length > 0) {
+              const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
+              if (isCardioVariable && !isCardio) return;
+              if (!isCardioVariable && isCardio) return;
+
               let value;
-              let hasFailure = ex.sets.some(s => s.fallo === true);
+              let hasFailure = false;
               if (variable === 'peso') {
+                hasFailure = ex.sets.some(s => s.fallo === true);
                 value = Math.max(...ex.sets.map(s => parseFloat(s.peso) || 0));
               } else if (variable === 'carga') {
+                hasFailure = ex.sets.some(s => s.fallo === true);
                 value = ex.sets.reduce((sum, s) => {
                   const p = parseFloat(s.peso) || 0;
                   const r = parseInt(s.reps) || 0;
                   return sum + (p * r);
+                }, 0);
+              } else if (variable === 'cardio_intensity') {
+                value = Math.max(...ex.sets.map(s => parseFloat(s.intensidad ?? s.peso) || 0));
+              } else if (variable === 'cardio_time') {
+                value = ex.sets.reduce((sum, s) => {
+                  const t = parseFloat(s.tiempo ?? s.reps) || 0;
+                  return sum + t;
                 }, 0);
               }
               if (value > 0) {
@@ -1340,6 +1407,13 @@
         groupCounts[group] = (groupCounts[group] || 0) + 1;
       });
       const groupIndices = {};
+      const getVariableLabel = (val) => {
+        if (val === 'peso') return 'Peso Máximo';
+        if (val === 'carga') return 'Carga Total';
+        if (val === 'cardio_intensity') return 'Intensidad Máxima';
+        if (val === 'cardio_time') return 'Tiempo Total';
+        return '';
+      };
       selectedExercises.forEach((exerciseName, index) => {
         const values = sortedDates.map(d => dateMap[d][exerciseName]?.value || null);
         const pointStyles = sortedDates.map(d => dateMap[d][exerciseName]?.hasFailure ? 'star' : 'circle');
@@ -1349,7 +1423,7 @@
         const color = getExerciseColor(group, groupIndex, groupTotal);
         groupIndices[group] = groupIndex + 1;
         datasets.push({
-          label: exerciseName + ` (${group})` + (variable === 'peso' ? ' - Peso Máximo' : ' - Carga Total'),
+          label: exerciseName + ` (${group})` + ` - ${getVariableLabel(variable)}`,
           data: values,
           pointStyle: pointStyles,
           borderColor: color,
@@ -1389,11 +1463,15 @@
                 ? 'Peso (kg)'
                 : variable === 'carga'
                   ? 'Carga (kg*reps)'
-                : variable === 'sens_pain'
-                    ? 'Dolor (0=No, 1=Sí)'
-                    : variable === 'sens_weight'
-                      ? 'Peso (kg)'
-                      : 'Puntuación (0-10)'
+                : variable === 'cardio_intensity'
+                  ? 'Intensidad (1-10)'
+                  : variable === 'cardio_time'
+                    ? 'Tiempo (min)'
+                    : variable === 'sens_pain'
+                      ? 'Dolor (0=No, 1=Sí)'
+                      : variable === 'sens_weight'
+                        ? 'Peso (kg)'
+                        : 'Puntuación (0-10)'
             },
             beginAtZero: true
           }

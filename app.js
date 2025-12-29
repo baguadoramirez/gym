@@ -11,6 +11,15 @@ const daySelect = document.getElementById("day-select");
 const loadBtn = document.getElementById("load-routine-btn");
 const exportBtn = document.getElementById("export-png-btn"); 
 const saveSessionBtn = document.getElementById("save-session-btn");
+const saveSessionMessage = document.getElementById("save-session-message");
+const saveSessionError = document.getElementById("save-session-error");
+const validateSessionBtn = document.getElementById("validate-session-btn");
+const validateSessionMessage = document.getElementById("validate-session-message");
+const validateSessionError = document.getElementById("validate-session-error");
+const postWorkoutSection = document.getElementById("post-workout-section");
+const saveRoutineBtn = document.getElementById("save-routine-btn");
+const saveRoutineMessage = document.getElementById("save-routine-message");
+const saveRoutineError = document.getElementById("save-routine-error");
 
 const exercisesContainer = document.getElementById("exercises-container");
 const predefinedSelect = document.getElementById("predefined-exercise-select");
@@ -40,16 +49,20 @@ const step1 = document.getElementById("step-1");
 const step2 = document.getElementById("step-2");
 const step3 = document.getElementById("step-3");
 const step4 = document.getElementById("step-4");
+const step5 = document.getElementById("step-5");
 const step1Status = document.getElementById("step-1-status");
 const step2Status = document.getElementById("step-2-status");
 const step3Status = document.getElementById("step-3-status");
 const step4Status = document.getElementById("step-4-status");
+const step5Status = document.getElementById("step-5-status");
 
 const LOCAL_HISTORY_KEY = "gym_history_v1";
 const USER_LIST_KEY = "gym_user_list";
+const CUSTOM_ROUTINES_KEY = "gym_custom_routines_v1";
 
 let currentUserName = "";
 let currentUserKey = "";
+let isSessionValidated = false;
 
 function normalizeUserName(name) {
   return name.trim().replace(/\s+/g, "_");
@@ -325,6 +338,9 @@ function activateSelectedUser(userKey) {
   hydrateHistoryFromSessionKeys();
   setAppEnabled(true);
   setAppVisible(true);
+  setSessionValidated(false);
+  populateRoutineSelectors();
+  checkSensationsForm();
   setUserHistoryStatus(`Usuario activo: ${selected.name}`);
   updateStepStatus();
 }
@@ -332,20 +348,29 @@ function activateSelectedUser(userKey) {
 function updateStepStatus() {
   const hasUser = Boolean(currentUserKey);
   const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
+  const postWorkoutComplete = isPostWorkoutComplete();
 
   if (step1Status) step1Status.textContent = hasUser ? "Completado" : "Pendiente";
   if (step2Status) step2Status.textContent = hasExercises ? "Completado" : "Opcional";
   if (step3Status) step3Status.textContent = hasExercises ? "En progreso" : "Pendiente";
-  if (step4Status) step4Status.textContent = hasUser ? "Opcional" : "Pendiente";
+  if (step4Status) {
+    step4Status.textContent = postWorkoutComplete
+      ? "Completado"
+      : isSessionValidated
+        ? "En progreso"
+        : "Bloqueado";
+  }
+  if (step5Status) step5Status.textContent = hasUser ? "Opcional" : "Pendiente";
 }
 
 // Event listener para el select de grupo muscular
-if (muscleGroupSelect) {
-  muscleGroupSelect.addEventListener("change", () => {
-    const selectedGroup = muscleGroupSelect.value;
-    populateExerciseSelect(selectedGroup);
-  });
-}
+  if (muscleGroupSelect) {
+    populateGroupSelect(muscleGroupSelect);
+    muscleGroupSelect.addEventListener("change", () => {
+      const selectedGroup = muscleGroupSelect.value;
+      populateExerciseSelect(selectedGroup);
+    });
+  }
 
 // CAMPOS DE SENSACIONES
 const senseGeneralInput = document.getElementById("sense-general");
@@ -622,6 +647,20 @@ function getLastExerciseSet(exerciseName) {
   return { peso, reps };
 }
 
+function getLastCardioSet(exerciseName) {
+  const lastSession = getLastExerciseSession(exerciseName);
+  if (!lastSession) return null;
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  if (!ex?.sets?.length) return null;
+
+  const firstSet = ex.sets[0] || {};
+  const tiempo = firstSet.tiempo ?? firstSet.reps ?? null;
+  const intensidad = firstSet.intensidad ?? firstSet.peso ?? null;
+
+  if (tiempo == null && intensidad == null) return null;
+  return { tiempo, intensidad };
+}
+
 function getLastExerciseMaxWeight(exerciseName) {
   const lastSession = getLastExerciseSession(exerciseName);
   if (!lastSession) return null;
@@ -640,6 +679,16 @@ function getLastExerciseSummary(exerciseName) {
   const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
   if (!ex?.sets?.length) return null;
   const firstSet = ex.sets[0] || {};
+  const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
+  if (isCardio) {
+    const tiempo = firstSet.tiempo ?? firstSet.reps ?? "";
+    const intensidad = firstSet.intensidad ?? firstSet.peso ?? "";
+    const parts = [];
+    if (intensidad !== "") parts.push(`Intensidad ${intensidad}`);
+    if (tiempo !== "") parts.push(`${tiempo} min`);
+    const cardioText = parts.length ? `Cardio: ${parts.join(" · ")}` : "Cardio sin datos";
+    return `Última sesión: ${lastSession.date} · ${cardioText}`;
+  }
   const peso = firstSet.peso ?? "";
   const reps = firstSet.reps ?? "";
   const parts = [];
@@ -652,6 +701,10 @@ function getLastExerciseSummary(exerciseName) {
 function updateOverloadWarning(card) {
   const warningEl = card.querySelector(".overload-warning");
   if (!warningEl) return;
+  if (card.dataset.exerciseType === "cardio") {
+    warningEl.style.display = "none";
+    return;
+  }
   const baseline = parseFloat(warningEl.dataset.baseline);
   if (Number.isNaN(baseline) || baseline <= 0) {
     warningEl.style.display = "none";
@@ -661,8 +714,8 @@ function updateOverloadWarning(card) {
   const rows = card.querySelectorAll("tbody tr");
   let currentMax = null;
   rows.forEach(row => {
-    const inputs = row.querySelectorAll("input");
-    const peso = parseFloat(inputs[1]?.value);
+    const weightInput = row.querySelector('input[data-key="peso"]');
+    const peso = parseFloat(weightInput?.value);
     if (!Number.isNaN(peso)) {
       if (currentMax === null || peso > currentMax) currentMax = peso;
     }
@@ -692,34 +745,248 @@ function setStatus(msg) {
   }, 1500);
 }
 
+function loadCustomRoutines() {
+  try {
+    const key = currentUserKey ? `${CUSTOM_ROUTINES_KEY}_${currentUserKey}` : CUSTOM_ROUTINES_KEY;
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (err) {
+    return {};
+  }
+}
+
+function saveCustomRoutines(data) {
+  const key = currentUserKey ? `${CUSTOM_ROUTINES_KEY}_${currentUserKey}` : CUSTOM_ROUTINES_KEY;
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+function getAllRoutines() {
+  const base = window.routines || {};
+  const custom = loadCustomRoutines();
+  return { ...base, ...custom };
+}
+
+function getEncouragementMessage() {
+  const messages = [
+    "Bien hecho! :)",
+    "Eres un maquina! 💪",
+    "Gran trabajo, sigue asi! 😎",
+    "Buen ritmo, a por la siguiente! 🚀",
+    "Ritmo solido, sigue sumando! 🔥",
+    "Hoy se entrena, manana se presume! 😄",
+    "Vas fino, muy buen curro! ✅",
+    "Cada dia mas fuerte! 🦾",
+    "Objetivo cumplido, a descansar! 🧘",
+    "Suma y sigue, campeon! 🏆",
+    "On fire! 🔥",
+    "Progreso real, sigue asi! 📈",
+    "Modo bestia activado! 🐺",
+    "Dejando huella, crack! 👊",
+    "Nivel Llados, a tope! 💥",
+    "Cruasán 🥐 con faking cafe?! Tú no!",
+    "Panza? Es como foak, ni de coña! 🔥",
+    "Entreno limpio, mente fuerte! 🧠"
+  ];
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
+function showSaveSessionMessage() {
+  if (!saveSessionMessage) return;
+  saveSessionMessage.innerHTML = "<strong>Sesión guardada.</strong>";
+  saveSessionMessage.style.display = "block";
+  clearSaveSessionError();
+}
+
+function showValidateSessionMessage() {
+  if (!validateSessionMessage) return;
+  const messages = [
+    "Bien hecho! :)",
+    "Eres un maquina! 💪",
+    "Gran trabajo, sigue asi! 😎",
+    "Buen ritmo, a por la siguiente! 🚀",
+    "Ritmo solido, sigue sumando! 🔥",
+    "Hoy se entrena, manana se presume! 😄",
+    "Vas fino, muy buen curro! ✅",
+    "Cada dia mas fuerte! 🦾",
+    "Objetivo cumplido, a descansar! 🧘",
+    "Suma y sigue, campeon! 🏆",
+    "On fire! 🔥",
+    "Progreso real, sigue asi! 📈",
+    "Modo bestia activado! 🐺",
+    "Dejando huella, crack! 👊",
+    "Nivel Llados, a tope! 💥",
+    "Cruasán 🥐 con faking cafe?! Tú no!",
+    "Panza? Es como foak, ni de coña! 🔥",
+    "Entreno limpio, mente fuerte! 🧠"
+  ];
+  const message = messages[Math.floor(Math.random() * messages.length)];
+  validateSessionMessage.innerHTML = `<strong>Sesión acabada.</strong> ${message} No te olvides de realizar el cuestionario post entreno para poder guardar la sesión.`;
+  validateSessionMessage.style.display = "block";
+  clearValidateSessionError();
+}
+
+function showSaveSessionError(message) {
+  if (!saveSessionError) return;
+  saveSessionError.innerHTML = `<strong>Error.</strong> ${message}`;
+  saveSessionError.style.display = "block";
+}
+
+function clearSaveSessionError() {
+  if (!saveSessionError) return;
+  saveSessionError.textContent = "";
+  saveSessionError.style.display = "none";
+}
+
+function showValidateSessionError(message) {
+  if (!validateSessionError) return;
+  validateSessionError.innerHTML = `<strong>Error.</strong> ${message}`;
+  validateSessionError.style.display = "block";
+}
+
+function clearValidateSessionError() {
+  if (!validateSessionError) return;
+  validateSessionError.textContent = "";
+  validateSessionError.style.display = "none";
+}
+
+function clearValidateSessionMessage() {
+  if (!validateSessionMessage) return;
+  validateSessionMessage.textContent = "";
+  validateSessionMessage.style.display = "none";
+}
+
+function showSaveRoutineMessage(message) {
+  if (!saveRoutineMessage) return;
+  saveRoutineMessage.innerHTML = `<strong>Rutina guardada.</strong> ${message || ""}`.trim();
+  saveRoutineMessage.style.display = "block";
+  if (saveRoutineError) {
+    saveRoutineError.textContent = "";
+    saveRoutineError.style.display = "none";
+  }
+}
+
+function showSaveRoutineError(message) {
+  if (!saveRoutineError) return;
+  saveRoutineError.innerHTML = `<strong>Error.</strong> ${message}`;
+  saveRoutineError.style.display = "block";
+  if (saveRoutineMessage) {
+    saveRoutineMessage.textContent = "";
+    saveRoutineMessage.style.display = "none";
+  }
+}
+
+function setSessionValidated(validated) {
+  isSessionValidated = validated;
+  if (postWorkoutSection) {
+    postWorkoutSection.classList.toggle("post-workout-locked", !validated);
+  }
+  if (!validated) {
+    clearValidateSessionMessage();
+  }
+  updateStepStatus();
+}
+
+function setFieldError(fieldId, message) {
+  const field = document.getElementById(fieldId);
+  const errorEl = document.getElementById(`error-${fieldId}`);
+  if (!field || !errorEl) return;
+  if (message) {
+    errorEl.textContent = message;
+    errorEl.style.display = "block";
+    field.setAttribute("aria-invalid", "true");
+  } else {
+    errorEl.textContent = "";
+    errorEl.style.display = "none";
+    field.removeAttribute("aria-invalid");
+  }
+}
+
+function clearFieldErrors() {
+  [
+    "sense-general",
+    "sense-tiredness",
+    "sense-pain",
+    "pain-zone",
+    "pain-exercise"
+  ].forEach(id => setFieldError(id, ""));
+}
+
+function isPostWorkoutComplete() {
+  if (!isSessionValidated) return false;
+  if (!senseGeneralInput?.value || senseGeneralInput.value.trim() === "") return false;
+  if (!senseTirednessInput?.value || senseTirednessInput.value.trim() === "") return false;
+  if (sensePainSelect?.value === "si") {
+    if (!painZoneInput?.value || painZoneInput.value.trim() === "") return false;
+    if (!painExerciseSelect?.value || painExerciseSelect.value.trim() === "") return false;
+  }
+  return true;
+}
+
 
 // -------------------------
 // FUNCIÓN DE VALIDACIÓN 
 // -------------------------
-function checkSensationsForm() {
+function checkSensationsForm(shouldFocus = false) {
     let isValid = true;
+    let errorMessage = "";
+    let firstInvalid = null;
+
+    clearFieldErrors();
+
+    if (!isSessionValidated) {
+        isValid = false;
+        errorMessage = "Acaba la sesión para acceder al cuestionario post entreno y activar los botones.";
+    }
     
     // 1. Sensaciones generales y cansancio
-    if (!senseGeneralInput.value || senseGeneralInput.value.trim() === '') {
-        isValid = false;
-    }
-    if (!senseTirednessInput.value || senseTirednessInput.value.trim() === '') {
-        isValid = false;
+    if (isSessionValidated) {
+        if (!senseGeneralInput.value || senseGeneralInput.value.trim() === '') {
+            isValid = false;
+            errorMessage = "Completa el cuestionario post entreno para activar los botones.";
+            setFieldError("sense-general", "Campo obligatorio.");
+            if (!firstInvalid) firstInvalid = senseGeneralInput;
+        }
+        if (!senseTirednessInput.value || senseTirednessInput.value.trim() === '') {
+            isValid = false;
+            errorMessage = "Completa el cuestionario post entreno para activar los botones.";
+            setFieldError("sense-tiredness", "Campo obligatorio.");
+            if (!firstInvalid) firstInvalid = senseTirednessInput;
+        }
     }
 
     // 2. Dolor específico (si 'si' está seleccionado)
-    if (sensePainSelect.value === 'si') {
+    if (isSessionValidated && sensePainSelect.value === 'si') {
         if (!painZoneInput.value || painZoneInput.value.trim() === '') {
             isValid = false;
+            errorMessage = "Completa el cuestionario post entreno para activar los botones.";
+            setFieldError("pain-zone", "Indica la zona del dolor.");
+            if (!firstInvalid) firstInvalid = painZoneInput;
         }
-        // Validar que se haya seleccionado un ejercicio O "No identificado"
         if (!painExerciseSelect.value || painExerciseSelect.value.trim() === '') {
             isValid = false;
+            errorMessage = "Completa el cuestionario post entreno para activar los botones.";
+            setFieldError("pain-exercise", "Selecciona un ejercicio.");
+            if (!firstInvalid) firstInvalid = painExerciseSelect;
         }
     }
-    
+
     exportBtn.disabled = !isValid;
     if (saveSessionBtn) saveSessionBtn.disabled = !isValid;
+    if (!isValid && saveSessionMessage) {
+        saveSessionMessage.style.display = "none";
+        saveSessionMessage.textContent = "";
+    }
+    if (isValid) {
+        clearSaveSessionError();
+    } else {
+        showSaveSessionError(errorMessage || "Completa el cuestionario para activar los botones.");
+    }
+
+    if (shouldFocus && firstInvalid) {
+        firstInvalid.focus();
+    }
+
     return isValid;
 }
 
@@ -728,7 +995,23 @@ function checkSensationsForm() {
 // CREAR FILAS DE SERIES
 // -------------------------
 
-function addSetRow(tbody, setData = {}, onInputChange) {
+const strengthSetFields = [
+  { key: "serie", type: "static" },
+  { key: "peso", type: "number" },
+  { key: "reps", type: "number" },
+  { key: "fallo", type: "checkbox" },
+  { key: "repsFallo", type: "number" },
+  { key: "obs", type: "text" }
+];
+
+const cardioSetFields = [
+  { key: "serie", type: "static" },
+  { key: "intensidad", type: "number", placeholder: "1-10" },
+  { key: "tiempo", type: "number", placeholder: "min" },
+  { key: "obs", type: "text" }
+];
+
+function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetFields) {
   const tr = document.createElement("tr");
   const shouldCopyFromPrev = Object.keys(setData).length === 0;
   let resolvedSetData = setData;
@@ -737,23 +1020,23 @@ function addSetRow(tbody, setData = {}, onInputChange) {
     const prevRow = tbody.lastElementChild;
     if (prevRow) {
       const prevInputs = prevRow.querySelectorAll("input");
-      const prevPeso = prevInputs[1]?.value ?? "";
-      const prevReps = prevInputs[2]?.value ?? "";
       const copied = {};
-      if (prevPeso !== "") copied.peso = prevPeso;
-      if (prevReps !== "") copied.reps = prevReps;
+      let inputIndex = 0;
+      fields.forEach(f => {
+        if (f.type === "static") return;
+        const prevInput = prevInputs[inputIndex];
+        inputIndex += 1;
+        if (!prevInput) return;
+        if (f.type === "checkbox") {
+          if (prevInput.checked) copied[f.key] = true;
+          return;
+        }
+        const prevValue = prevInput.value ?? "";
+        if (prevValue !== "") copied[f.key] = prevValue;
+      });
       resolvedSetData = { ...copied, ...setData };
     }
   }
-
-  const fields = [
-    { key: "serie", type: "static", default: tbody.children.length + 1 },
-    { key: "peso", type: "number" },
-    { key: "reps", type: "number" },
-    { key: "fallo", type: "checkbox" },
-    { key: "repsFallo", type: "number" },
-    { key: "obs", type: "text" }
-  ];
 
   fields.forEach(f => {
     const td = document.createElement("td");
@@ -761,7 +1044,8 @@ function addSetRow(tbody, setData = {}, onInputChange) {
 
     if (f.type === "static") {
       const text = document.createElement("span");
-      text.textContent = resolvedSetData[f.key] ?? f.default ?? "";
+      const defaultValue = tbody.children.length + 1;
+      text.textContent = resolvedSetData[f.key] ?? defaultValue ?? "";
       td.appendChild(text);
       tr.appendChild(td);
       return;
@@ -773,8 +1057,10 @@ function addSetRow(tbody, setData = {}, onInputChange) {
     } else {
       input = document.createElement("input");
       input.type = f.type;
-      input.value = resolvedSetData[f.key] ?? f.default ?? "";
+      input.value = resolvedSetData[f.key] ?? "";
     }
+    input.dataset.key = f.key;
+    if (f.placeholder) input.placeholder = f.placeholder;
 
     input.addEventListener("input", () => {
       saveSession();
@@ -800,6 +1086,8 @@ function addSetRow(tbody, setData = {}, onInputChange) {
 function buildExerciseCard(exData) {
   const card = document.createElement("div");
   card.className = "exercise-card";
+  const isCardio = String(exData.musculo || exData.grupo || "").toLowerCase() === "cardio";
+  card.dataset.exerciseType = isCardio ? "cardio" : "strength";
 
   // ====== CABECERA ======
   const header = document.createElement("div");
@@ -884,14 +1172,21 @@ function buildExerciseCard(exData) {
   overloadWarning.style.fontSize = "0.75rem";
   overloadWarning.style.margin = "2px 0 6px";
   overloadWarning.style.color = "#b91c1c";
-  const lastMax = getLastExerciseMaxWeight(exData.nombre);
+  const lastMax = isCardio ? null : getLastExerciseMaxWeight(exData.nombre);
   if (lastMax != null) overloadWarning.dataset.baseline = String(lastMax);
   card.appendChild(overloadWarning);
 
   // ====== TABLA DE SERIES ======
   const table = document.createElement("table");
   table.className = "exercise-table";
-  table.innerHTML = `
+  table.innerHTML = isCardio ? `
+    <thead>
+      <tr>
+        <th>Serie</th><th>Intensidad</th><th>Tiempo (min)</th><th>Notas</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  ` : `
     <thead>
       <tr>
         <th>Serie</th><th>Peso</th><th>Reps</th><th>Fallo</th><th>Reps fallo</th><th>Notas</th>
@@ -905,26 +1200,44 @@ function buildExerciseCard(exData) {
 
   // Series
   if (exData.sets && exData.sets.length > 0) {
-    exData.sets.forEach(s => addSetRow(tbody, s, () => updateOverloadWarning(card)));
+    exData.sets.forEach(s => {
+      const normalized = isCardio
+        ? {
+            intensidad: s.intensidad ?? s.peso ?? "",
+            tiempo: s.tiempo ?? s.reps ?? "",
+            obs: s.obs ?? ""
+          }
+        : s;
+      addSetRow(tbody, normalized, () => updateOverloadWarning(card), isCardio ? cardioSetFields : strengthSetFields);
+    });
   } else {
-    const lastSet = getLastExerciseSet(exData.nombre);
     const initialSet = {};
-    if (lastSet) {
-      if (lastSet.peso != null && lastSet.peso !== "") initialSet.peso = lastSet.peso;
-      if (lastSet.reps != null && lastSet.reps !== "") initialSet.reps = lastSet.reps;
+    if (isCardio) {
+      const lastSet = getLastCardioSet(exData.nombre);
+      if (lastSet) {
+        if (lastSet.intensidad != null && lastSet.intensidad !== "") initialSet.intensidad = lastSet.intensidad;
+        if (lastSet.tiempo != null && lastSet.tiempo !== "") initialSet.tiempo = lastSet.tiempo;
+      }
+      addSetRow(tbody, initialSet, () => updateOverloadWarning(card), cardioSetFields);
+    } else {
+      const lastSet = getLastExerciseSet(exData.nombre);
+      if (lastSet) {
+        if (lastSet.peso != null && lastSet.peso !== "") initialSet.peso = lastSet.peso;
+        if (lastSet.reps != null && lastSet.reps !== "") initialSet.reps = lastSet.reps;
+      }
+      if (Object.keys(initialSet).length === 0) {
+        const maxWeight = getMaxWeight(exData.nombre);
+        if (maxWeight) initialSet.peso = maxWeight;
+      }
+      addSetRow(tbody, initialSet, () => updateOverloadWarning(card), strengthSetFields);
     }
-    if (Object.keys(initialSet).length === 0) {
-      const maxWeight = getMaxWeight(exData.nombre);
-      if (maxWeight) initialSet.peso = maxWeight;
-    }
-    addSetRow(tbody, initialSet, () => updateOverloadWarning(card));
   }
 
   const addBtn = document.createElement("button");
   addBtn.textContent = "Añadir serie";
   addBtn.className = "btn-primary btn-small add-set-btn";
   addBtn.onclick = () => {
-    addSetRow(tbody, {}, () => updateOverloadWarning(card));
+    addSetRow(tbody, {}, () => updateOverloadWarning(card), isCardio ? cardioSetFields : strengthSetFields);
     saveSession();
     updateOverloadWarning(card);
   };
@@ -1021,14 +1334,35 @@ function saveSession() {
     const sets = rows.map(row => {
       const inputs = Array.from(row.querySelectorAll("input"));
       const serieText = row.querySelector("td:first-child")?.textContent || "";
-      return {
-        serie: parseInt(serieText, 10) || null,
-        peso: parseFloat(inputs[0]?.value) || null,
-        reps: parseInt(inputs[1]?.value) || null,
-        fallo: inputs[2]?.checked || false,
-        repsFallo: parseInt(inputs[3]?.value) || null,
-        obs: inputs[4]?.value || ""
-      };
+      const setData = { serie: parseInt(serieText, 10) || null };
+      inputs.forEach(input => {
+        const key = input.dataset.key;
+        if (!key) return;
+        if (input.type === "checkbox") {
+          setData[key] = input.checked;
+          return;
+        }
+        if (key === "obs") {
+          setData[key] = input.value || "";
+          return;
+        }
+        const raw = input.value;
+        if (raw === "") {
+          setData[key] = null;
+          return;
+        }
+        if (key === "reps" || key === "repsFallo") {
+          setData[key] = parseInt(raw, 10) || null;
+          return;
+        }
+        if (key === "peso" || key === "tiempo" || key === "intensidad") {
+          const parsed = parseFloat(raw);
+          setData[key] = Number.isNaN(parsed) ? null : parsed;
+          return;
+        }
+        setData[key] = raw;
+      });
+      return setData;
     });
 
     data.exercises.push({
@@ -1075,8 +1409,7 @@ function populateExerciseSelect(selectedGroup) {
   // Filtrar ejercicios por grupo
   const exercisesInGroup = Object.keys(exerciseTemplates).filter(name => {
     const tpl = exerciseTemplates[name];
-    const group = muscleGroupMap[tpl.musculo] || "Otros";
-    return group === selectedGroup;
+    return resolveExerciseGroup(tpl) === selectedGroup;
   }).sort();
   
   exercisesInGroup.forEach(name => {
@@ -1085,6 +1418,92 @@ function populateExerciseSelect(selectedGroup) {
     opt.textContent = name;
     predefinedSelect.appendChild(opt);
   });
+}
+
+function resolveExerciseGroup(tpl) {
+  if (!tpl) return "Otros";
+  return muscleGroupMap[tpl.musculo] || tpl.grupo || "Otros";
+}
+
+function getExerciseGroups() {
+  const groups = new Set();
+  Object.values(exerciseTemplates).forEach(tpl => {
+    groups.add(resolveExerciseGroup(tpl));
+  });
+  const preferredOrder = [
+    "Pecho",
+    "Espalda",
+    "Hombros",
+    "Brazos",
+    "Piernas",
+    "Antebrazos",
+    "Cardio",
+    "Core",
+    "Otros"
+  ];
+  const ordered = preferredOrder.filter(group => groups.has(group));
+  const rest = [...groups].filter(group => !preferredOrder.includes(group)).sort();
+  return ordered.concat(rest);
+}
+
+function populateGroupSelect(selectEl) {
+  if (!selectEl) return;
+  selectEl.innerHTML = '<option value="">Seleccionar grupo...</option>';
+  getExerciseGroups().forEach(group => {
+    const opt = document.createElement("option");
+    opt.value = group;
+    opt.textContent = group;
+    selectEl.appendChild(opt);
+  });
+}
+
+function extractRoutineNumber(label) {
+  const match = String(label).match(/\d+/);
+  return match ? parseInt(match[0], 10) : NaN;
+}
+
+function sortRoutineLabels(a, b) {
+  const numA = extractRoutineNumber(a);
+  const numB = extractRoutineNumber(b);
+  if (!Number.isNaN(numA) && !Number.isNaN(numB) && numA !== numB) {
+    return numA - numB;
+  }
+  if (!Number.isNaN(numA) && Number.isNaN(numB)) return -1;
+  if (Number.isNaN(numA) && !Number.isNaN(numB)) return 1;
+  return String(a).localeCompare(String(b), "es");
+}
+
+function populateDaySelect(week) {
+  if (!daySelect) return;
+  daySelect.innerHTML = "";
+  const allRoutines = getAllRoutines();
+  const days = Object.keys(allRoutines?.[week] || {}).sort(sortRoutineLabels);
+  days.forEach(day => {
+    const opt = document.createElement("option");
+    opt.value = day;
+    opt.textContent = day;
+    daySelect.appendChild(opt);
+  });
+  if (days.length > 0) daySelect.value = days[0];
+}
+
+function populateRoutineSelectors() {
+  if (!weekSelect || !daySelect) return;
+  weekSelect.innerHTML = "";
+  const allRoutines = getAllRoutines();
+  const weeks = Object.keys(allRoutines || {}).sort(sortRoutineLabels);
+  weeks.forEach(week => {
+    const opt = document.createElement("option");
+    opt.value = week;
+    opt.textContent = week;
+    weekSelect.appendChild(opt);
+  });
+  if (weeks.length > 0) {
+    weekSelect.value = weeks[0];
+    populateDaySelect(weeks[0]);
+  } else {
+    daySelect.innerHTML = "";
+  }
 }
 
 
@@ -1119,12 +1538,13 @@ function populatePainExerciseSelect(exerciseNames) {
 // -------------------------
 
 function loadSession() {
+  setSessionValidated(false);
   const key = sessionKey();
   const saved = JSON.parse(localStorage.getItem(key) || "null");
 
   const week = weekSelect.value;
   const day = daySelect.value;
-  const routine = routines[week]?.[day];
+  const routine = getAllRoutines()[week]?.[day];
   
   exercisesContainer.innerHTML = "";
   
@@ -1222,6 +1642,7 @@ if (addPredefinedBtn) {
     const name = predefinedSelect.value;
     if (!name) return;
     addExerciseFromTemplate(name);
+    checkSensationsForm();
   };
 }
 
@@ -1248,6 +1669,67 @@ if (addCustomBtn) {
     );
 
     saveSession();
+    checkSensationsForm();
+  };
+}
+
+if (validateSessionBtn) {
+  validateSessionBtn.onclick = () => {
+    const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
+    if (!hasExercises) {
+      showValidateSessionError("Añade al menos un ejercicio antes de acabar la sesión.");
+      return;
+    }
+    setSessionValidated(true);
+    showValidateSessionMessage();
+    checkSensationsForm();
+  };
+}
+
+if (saveRoutineBtn) {
+  saveRoutineBtn.onclick = () => {
+    if (!currentUserKey) {
+      showSaveRoutineError("Selecciona un usuario antes de guardar rutinas personalizadas.");
+      return;
+    }
+    const cards = Array.from(document.querySelectorAll(".exercise-card"));
+    if (cards.length === 0) {
+      showSaveRoutineError("Añade al menos un ejercicio antes de guardar la rutina.");
+      return;
+    }
+    const routineName = prompt("Nombre de la rutina:");
+    if (!routineName) return;
+
+    const trimmed = routineName.trim();
+    if (!trimmed) {
+      showSaveRoutineError("El nombre de la rutina no puede estar vacío.");
+      return;
+    }
+
+    const exercises = cards
+      .map(card => card.querySelector(".exercise-title")?.textContent.trim())
+      .filter(Boolean);
+    if (exercises.length === 0) {
+      showSaveRoutineError("No se encontraron ejercicios válidos.");
+      return;
+    }
+
+    const allCustom = loadCustomRoutines();
+    const exists = Boolean(allCustom[trimmed]);
+    if (exists && !confirm(`La rutina "${trimmed}" ya existe. ¿Quieres sobrescribirla?`)) {
+      return;
+    }
+
+    allCustom[trimmed] = {
+      "Día 1 - Sesión guardada": exercises
+    };
+    saveCustomRoutines(allCustom);
+    populateRoutineSelectors();
+    if (weekSelect) {
+      weekSelect.value = trimmed;
+      populateDaySelect(trimmed);
+    }
+    showSaveRoutineMessage("Ya aparece en rutinas predefinidas.");
   };
 }
 
@@ -1257,8 +1739,9 @@ if (addCustomBtn) {
 // -------------------------
 exportBtn.onclick = () => {
   // Doble verificación de validación
-  if (!checkSensationsForm()) {
-    return alert("Por favor, completa todo el cuestionario de Post-Entrenamiento antes de exportar.");
+  if (!checkSensationsForm(true)) {
+    showSaveSessionError("Completa todo el cuestionario de Post-Entrenamiento antes de exportar.");
+    return;
   }
 
   saveSession();
@@ -1295,8 +1778,8 @@ exportBtn.onclick = () => {
     <tr style="background:#000; font-weight:bold;"> 
       <th style="border:1px solid #000; padding:4px; color:#fff;">Ejercicio</th>
       <th style="border:1px solid #000; padding:4px; color:#fff;">Serie</th>
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Peso</th>
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Reps</th>
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Peso/<br>Intensidad</th>
+      <th style="border:1px solid #000; padding:4px; color:#fff;">Reps/<br>Tiempo</th>
       <th style="border:1px solid #000; padding:4px; color:#fff;">Fallo</th>
       <th style="border:1px solid #000; padding:4px; color:#fff;">Reps fallo</th>
       <th style="border:1px solid #000; padding:4px; color:#fff;">Notas</th>
@@ -1311,8 +1794,13 @@ exportBtn.onclick = () => {
     const groupBg = exIndex % 2 === 0 ? "#e2e8f0" : "#f8fafc";
     totalExercises += 1;
 
+    const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
     ex.sets.forEach((set, setIndex) => {
       totalSets += 1;
+      const displayPeso = isCardio ? (set.intensidad ?? set.peso ?? "") : (set.peso ?? "");
+      const displayReps = isCardio ? (set.tiempo ?? set.reps ?? "") : (set.reps ?? "");
+      const displayFallo = isCardio ? "" : (set.fallo ? "Sí" : "No");
+      const displayRepsFallo = isCardio ? "" : (set.repsFallo ?? "");
 
       const tr = document.createElement("tr");
       tr.style.background = groupBg;
@@ -1322,10 +1810,10 @@ exportBtn.onclick = () => {
       tr.innerHTML = `
         <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-weight: bold;">${ex.nombre}</td>
         <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.serie ?? ""}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${set.peso ?? ""}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${set.reps ?? ""}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.fallo ? "Sí" : "No"}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.repsFallo ?? ""}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${displayPeso}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${displayReps}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${displayFallo}</td>
+        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${displayRepsFallo}</td>
         <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.obs ?? ""}</td>
       `;
       table.appendChild(tr);
@@ -1409,8 +1897,9 @@ exportBtn.onclick = () => {
 
 if (saveSessionBtn) {
   saveSessionBtn.onclick = () => {
-    if (!checkSensationsForm()) {
-      return alert("Por favor, completa todo el cuestionario de Post-Entrenamiento antes de guardar.");
+    if (!checkSensationsForm(true)) {
+      showSaveSessionError("Completa todo el cuestionario de Post-Entrenamiento antes de guardar.");
+      return;
     }
     saveSession();
     const key = sessionKey();
@@ -1418,6 +1907,7 @@ if (saveSessionBtn) {
     if (!saved) return alert("No hay datos registrados hoy.");
     upsertLocalHistory(saved);
     setStatus("Sesion guardada en historico local.");
+    showSaveSessionMessage();
   };
 }
 
@@ -1443,6 +1933,11 @@ senseTirednessInput.addEventListener("input", saveSession);
 senseWeightInput.addEventListener("input", saveSession);
 painZoneInput.addEventListener("input", saveSession);
 painExerciseSelect.addEventListener("change", saveSession); // El change es necesario para capturar la selección
+if (senseGeneralInput) senseGeneralInput.addEventListener("input", () => checkSensationsForm());
+if (senseTirednessInput) senseTirednessInput.addEventListener("input", () => checkSensationsForm());
+if (sensePainSelect) sensePainSelect.addEventListener("change", () => checkSensationsForm());
+if (painZoneInput) painZoneInput.addEventListener("input", () => checkSensationsForm());
+if (painExerciseSelect) painExerciseSelect.addEventListener("change", () => checkSensationsForm());
 
 
 // -------------------------
@@ -1462,11 +1957,17 @@ function onReady(callback) {
 
 onReady(() => {
   // Restablecer selectores y cargar
-  weekSelect.value = 'Semana 1';
-  daySelect.value = 'Día 1';
+  populateRoutineSelectors();
+  if (weekSelect) {
+    weekSelect.addEventListener("change", () => populateDaySelect(weekSelect.value));
+  }
 
   initializeForUserSelection();
   refreshUserSelect();
+  if (exportBtn) exportBtn.disabled = true;
+  if (saveSessionBtn) saveSessionBtn.disabled = true;
+  setSessionValidated(false);
+  checkSensationsForm();
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   }
@@ -1604,24 +2105,7 @@ minimizeBtn.addEventListener('click', () => {
 });
 
 function populateQuickAddGroups() {
-  if (!quickAddGroupSelect) return;
-  quickAddGroupSelect.innerHTML = '<option value="">Seleccionar grupo...</option>';
-  const groups = [
-    "Pecho",
-    "Espalda",
-    "Hombros",
-    "Brazos",
-    "Piernas",
-    "Antebrazos",
-    "Cardio",
-    "Core"
-  ];
-  groups.forEach(group => {
-    const opt = document.createElement("option");
-    opt.value = group;
-    opt.textContent = group;
-    quickAddGroupSelect.appendChild(opt);
-  });
+  populateGroupSelect(quickAddGroupSelect);
 }
 
 function populateQuickAddExercises(selectedGroup) {
@@ -1633,8 +2117,7 @@ function populateQuickAddExercises(selectedGroup) {
   }
   const exercisesInGroup = Object.keys(exerciseTemplates).filter(name => {
     const tpl = exerciseTemplates[name];
-    const group = muscleGroupMap[tpl.musculo] || "Otros";
-    return group === selectedGroup;
+    return resolveExerciseGroup(tpl) === selectedGroup;
   }).sort();
   exercisesInGroup.forEach(name => {
     const opt = document.createElement("option");

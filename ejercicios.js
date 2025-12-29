@@ -57,6 +57,7 @@ const exerciseTemplates = {
 
   "Press máquina vertical": {
     musculo: "Pectoral",
+    grupo: "Pecho",
     seccion: "Media (Esternal)",
     hacer: "<b>Ajusta el asiento de forma crítica</b> para que las asas o el agarre queden exactamente a la altura del medio pecho. Realiza un <b>empuje limpio y recto</b> hacia adelante. Mantén los hombros deprimidos y el pecho elevado.",
     noHacer: "<b>No bloquees los codos</b> al final del recorrido. No permitas que el pecho se hunda durante el movimiento.",
@@ -66,6 +67,7 @@ const exerciseTemplates = {
   // --- EJERCICIOS FALTANTES DE PECHO ---
   "Aperturas inclinadas": {
     musculo: "Pectoral",
+    grupo: "Pecho",
     seccion: "Superior (Estiramiento)",
     hacer: "Banco ajustado a 30-45°. <b>Brazos semiflexionados</b>, desciende las mancuernas a los lados lentamente, sintiendo el estiramiento en la parte alta del pecho. Junta las mancuernas en un arco amplio por encima del pecho.",
     noHacer: "No dejes caer los codos por debajo del nivel del banco. <b>No arquees la lumbar</b> al descender el peso.",
@@ -74,6 +76,7 @@ const exerciseTemplates = {
 
   "Press neutral grip mancuernas": {
     musculo: "Pectoral",
+    grupo: "Pecho",
     seccion: "Media/Esternal (Seguridad)",
     hacer: "Agarre neutro (palmas enfrentadas). Esto pone los hombros en una posición más segura. <b>Empuja en un plano vertical</b> y mantén los codos ligeramente más pegados al torso (30°-45°).",
     noHacer: "No separes los codos en exceso. <b>No bloquees la articulación</b> completamente arriba.",
@@ -84,6 +87,7 @@ const exerciseTemplates = {
   // ======= HOMBRO 🎯 =======
   "Press militar mancuernas": {
     musculo: "Deltoides",
+    grupo: "Hombros",
     seccion: "Anterior",
     hacer: "Siéntate con la espalda recta o con un ligero apoyo que permita un <b>patrón vertical de empuje</b>. <b>Activa el abdomen (core)</b> para mantener la columna neutra. Sube las mancuernas verticalmente, ligeramente por delante de la cabeza.",
     noHacer: "<b>No arquees la espalda</b> (hiperextensión lumbar) en exceso para terminar la repetición. Evita el *valgus* de codo (que el codo se abra mucho hacia los lados) al bajar.",
@@ -92,6 +96,7 @@ const exerciseTemplates = {
 
   "Press Arnold": {
     musculo: "Deltoides",
+    grupo: "Hombros",
     seccion: "Completo (Anterior y Lateral)",
     hacer: "<b>Inicia con las palmas mirando hacia ti</b> (agarre supino). A medida que empujas, <b>rota las mancuernas 180°</b> hasta que las palmas miren hacia adelante (agarre prono) en la parte superior. Controla la rotación y el recorrido completo.",
     noHacer: "<b>No gires rápido ni de forma brusca</b>; el movimiento debe ser fluido y controlado. No cargues demasiado peso; este ejercicio se beneficia de un control estricto.",
@@ -100,6 +105,7 @@ const exerciseTemplates = {
 
   "Elevaciones laterales": {
     musculo: "Deltoides",
+    grupo: "Hombros",
     seccion: "Lateral (Medial)",
     hacer: "Mantén una ligera flexión de codo constante. <b>Eleva con el codo</b>, detente cuando el brazo esté paralelo al suelo (a la altura del hombro). La <b>muñeca debe estar relajada</b>. Baja de forma controlada (fase excéntrica lenta).",
     noHacer: "<b>No uses impulso o balanceo del torso</b>. Evita elevar el trapecio (encogimiento de hombros) para iniciar o completar el movimiento. No superes la altura del hombro.",
@@ -108,6 +114,7 @@ const exerciseTemplates = {
 
   "Elevaciones frontales": {
     musculo: "Deltoides",
+    grupo: "Hombros",
     seccion: "Anterior",
     hacer: "Realiza el movimiento con agarre prono (palmas hacia abajo), subiendo la mancuerna o barra <b>controladamente hasta la altura del hombro</b> (90° de flexión). Mantén el resto del cuerpo estable.",
     noHacer: "No permitas el <b>balanceo del torso</b> o *kipping* para ayudarte a subir el peso. No superes la altura del hombro, ya que pierde efectividad y puede irritar la articulación.",
@@ -116,6 +123,7 @@ const exerciseTemplates = {
 
   "Elevaciones laterales polea": {
     musculo: "Deltoides",
+    grupo: "Hombros",
     seccion: "Lateral (Medial)",
     hacer: "<b>Colócate frente a la polea</b> (si el cable cruza por detrás) o lateralmente. Inicia con <b>tensión continua desde el punto más bajo</b>. Eleva el peso <b>liderando con el codo</b> y detente a la altura del hombro.",
     noHacer: "<b>No permitas que el trapecio se active</b> al encoger los hombros. Evita inclinar el torso excesivamente.",
@@ -126,6 +134,7 @@ const exerciseTemplates = {
   // ======= ESPALDA ⛰️ =======
   "Jalón al pecho": {
     musculo: "Dorsal",
+    grupo: "Espalda",
     seccion: "General (Ancho)",
     hacer: "<b>Saca el pecho</b> y mantén una ligera inclinación hacia atrás (10°-15°). Tira de la barra llevando los <b>codos hacia abajo y hacia atrás</b>, concentrándote en la contracción de la espalda. La barra debe llegar a la clavícula o parte alta del pecho.",
     noHacer: "<b>No tires excesivamente con los bíceps</b>; concéntrate en la retracción escapular y la acción del dorsal. Evita el balanceo excesivo o el impulso.",
@@ -134,6 +143,7 @@ const exerciseTemplates = {
 
   "Jalón supino": {
     musculo: "Dorsal",
+    grupo: "Espalda",
     seccion: "Inferior (Grosor)",
     hacer: "Utiliza un <b>agarre supinado (palmas hacia ti)</b>, idealmente un poco más cerrado que el ancho de hombros. Mantén el <b>pecho arriba</b> y tira la barra hacia la parte baja del esternón. <b>Enfatiza la retracción escapular</b>.",
     noHacer: "<b>No permitas que los hombros se encierren</b> o roten hacia adelante. Evita arquear la espalda excesivamente al final del recorrido.",
@@ -142,6 +152,7 @@ const exerciseTemplates = {
 
   "Jalón estrecho triángulo": {
     musculo: "Dorsal",
+    grupo: "Espalda",
     seccion: "Profundo (Central)",
     hacer: "Utiliza el agarre V (triángulo). <b>Pecho arriba</b>, realiza un tirón vertical limpio hacia el esternón bajo o el abdomen superior. <b>Retrae y deprime las escápulas</b> al final del movimiento.",
     noHacer: "<b>No te eches demasiado hacia atrás</b> ni te balancees; el torso debe moverse ligeramente, pero no debe ser el motor. Evita mirar hacia arriba, lo que podría desalinear el cuello.",
@@ -150,6 +161,7 @@ const exerciseTemplates = {
 
   "Remo polea sentado": {
     musculo: "Dorsal",
+    grupo: "Espalda",
     seccion: "Media (Grosor)",
     hacer: "<b>Inicia el movimiento con la retracción escapular</b> (juntar las paletas de la espalda), y luego continúa el tirón con los brazos. Tira del agarre hacia el abdomen o el esternón. <b>Extiende el torso al inicio</b> (permitiendo el estiramiento) y vuelve a la vertical al tirar.",
     noHacer: "<b>No redondees la espalda</b> (cifosis torácica) al soltar el peso. Evita tirar solo con los brazos, descuidando la espalda.",
@@ -158,6 +170,7 @@ const exerciseTemplates = {
 
   "Remo máquina pecho apoyado": {
     musculo: "Dorsal",
+    grupo: "Espalda",
     seccion: "Media (Aislamiento)",
     hacer: "<b>Configura la altura del asiento</b> para que el agarre quede alineado con el torso. Al estar el pecho apoyado, se <b>aísla mejor el dorsal</b> al eliminar la inestabilidad del tronco. <b>Tirón limpio y estricto</b>.",
     noHacer: "No acortes el recorrido. Evita levantar el cuerpo del soporte con el impulso.",
@@ -166,6 +179,7 @@ const exerciseTemplates = {
 
   "Remo polea alta ancho": {
     musculo: "Espalda media",
+    grupo: "Espalda",
     seccion: "Romboides y Trapecio Medio",
     hacer: "Utiliza un agarre más ancho y un cable en posición alta. Realiza el tirón con los <b>codos abiertos</b> y dirigiéndolos hacia la parte alta del torso o la cara (como un *Face Pull* horizontal). <b>Enfatiza la retracción escapular</b>.",
     noHacer: "<b>No conviertas el ejercicio en un jalón vertical</b> bajando el agarre hacia el pecho. El codo debe permanecer más abierto.",
@@ -174,6 +188,7 @@ const exerciseTemplates = {
 
   "Remo inclinado a dos manos": {
     musculo: "Dorsal",
+    grupo: "Espalda",
     seccion: "Media-Baja (Grosor)",
     hacer: "<b>Mantén el torso inclinado (casi paralelo al suelo)</b>, con la espalda recta y las rodillas ligeramente flexionadas. Tira la barra o mancuernas <b>hacia la cadera</b> (si quieres más dorsal) o hacia el abdomen (si quieres más espalda media).",
     noHacer: "<b>No encorvar la espalda baja (zona lumbar)</b>; mantén la posición inicial. Evita el balanceo excesivo.",
@@ -182,6 +197,7 @@ const exerciseTemplates = {
 
   "Pullover polea": {
     musculo: "Dorsal",
+    grupo: "Espalda",
     seccion: "Estiramiento y Contracción",
     hacer: "Agarre prono, <b>brazos casi rectos</b> (ligera flexión de codo). El movimiento debe ser generado <b>únicamente desde el hombro</b> (extensión del hombro), llevando la barra desde arriba hasta la cadera. Vuelve lentamente permitiendo un estiramiento profundo.",
     noHacer: "<b>No flexiones demasiado el codo</b>; el codo debe permanecer prácticamente fijo. No permitas que el abdomen se extienda (arquearse) al bajar.",
@@ -190,6 +206,7 @@ const exerciseTemplates = {
 
   "Reverse fly máquina": {
     musculo: "Deltoides posterior",
+    grupo: "Hombros",
     seccion: "Posterior",
     hacer: "Siéntate mirando hacia el respaldo, <b>pecho pegado</b> al soporte. <b>Agarre neutro o prono</b>. Abre los brazos en un arco amplio, concentrándote en <b>separar los codos</b> hasta que estén paralelos al torso.",
     noHacer: "<b>No utilices el trapecio</b> para encoger los hombros. Evita separar el pecho del soporte para usar impulso.",
@@ -199,6 +216,7 @@ const exerciseTemplates = {
   // --- EJERCICIOS FALTANTES DE ESPALDA/HOMBRO ---
   "Face pull": {
     musculo: "Deltoides posterior / Trapecio medio",
+    grupo: "Hombros",
     seccion: "Hombro sano (Manguito rotador)",
     hacer: "Utiliza cuerda y polea alta, agarre a dos manos. <b>Tira de la cuerda hacia la cara</b>, enfocándote en **rotar externamente los hombros** al finalizar el tirón. Los codos deben apuntar hacia afuera.",
     noHacer: "No tires únicamente con los brazos. <b>No permitas que los codos caigan</b> por debajo del nivel de los hombros.",
@@ -207,6 +225,7 @@ const exerciseTemplates = {
 
   "Pájaros mancuernas": {
     musculo: "Deltoides posterior",
+    grupo: "Hombros",
     seccion: "Posterior",
     hacer: "Siéntate en el borde del banco, inclina el torso hasta que esté **casi paralelo al suelo** (o apoya el pecho en un banco inclinado). <b>Eleva las mancuernas lateralmente</b>, liderando con los codos, hasta la altura de los hombros.",
     noHacer: "<b>No balancees el cuerpo</b>. Evita convertirlo en un encogimiento de trapecio, manteniendo los hombros lejos de las orejas.",
@@ -217,6 +236,7 @@ const exerciseTemplates = {
   // ======= BRAZO 💪 =======
   "Curl bíceps": {
     musculo: "Bíceps",
+    grupo: "Brazos",
     seccion: "General (Cabeza Larga y Corta)",
     hacer: "Mantén el <b>codo fijo</b> pegado al costado. Realiza la subida con un agarre prono y <b>supina (gira la muñeca) al subir</b>, de forma que las palmas miren al techo en la contracción. Baja controladamente.",
     noHacer: "<b>No balancees el torso</b> para generar impulso. No permitas que los codos se muevan hacia adelante.",
@@ -225,6 +245,7 @@ const exerciseTemplates = {
 
   "Curl concentrado": {
     musculo: "Bíceps",
+    grupo: "Brazos",
     seccion: "Cabeza corta (Pico)",
     hacer: "<b>Codo fijo en la parte interna del muslo</b>, actuando como un soporte. Realiza una <b>subida muy lenta y controlada</b>. Enfócate en la contracción máxima en la parte superior.",
     noHacer: "<b>No uses ningún impulso</b> o rebote. Evita levantar el codo del soporte de la pierna.",
@@ -233,6 +254,7 @@ const exerciseTemplates = {
 
   "Curl Scott": {
     musculo: "Bíceps",
+    grupo: "Brazos",
     seccion: "Aislamiento (Preacher Curl)",
     hacer: "Ajusta la altura del banco para que la axila esté sobre el borde superior. <b>Mantén el brazo fijo</b> en la almohadilla. Realiza un rango de movimiento completo, subiendo y bajando de forma controlada.",
     noHacer: "<b>No levantes el codo</b> o la axila del soporte en ningún momento. Evita la hiperextensión en la parte baja del movimiento.",
@@ -241,6 +263,7 @@ const exerciseTemplates = {
 
   "Curl martillo": {
     musculo: "Bíceps/Antebrazo",
+    grupo: "Brazos",
     seccion: "Braquiorradial y Braquial",
     hacer: "<b>Agarre neutro (palmas enfrentadas)</b>. Mantén el codo pegado al costado y realiza el curl de forma estricta. Este ejercicio desarrolla el grosor del brazo.",
     noHacer: "<b>No gires el torso</b> ni te inclines para ayudar el movimiento.",
@@ -249,6 +272,7 @@ const exerciseTemplates = {
 
   "Tríceps en polea": {
     musculo: "Tríceps",
+    grupo: "Brazos",
     seccion: "General (Cabeza Lateral)",
     hacer: "<b>Codos pegados al cuerpo</b> y hombros 'bloqueados' hacia atrás y abajo. La extensión debe ser <b>estricta y completa</b>, de arriba hacia abajo. Solo se mueve el antebrazo.",
     noHacer: "<b>No separes los codos</b> del torso. Evita flexionar la muñeca (muñeca 'rota').",
@@ -257,6 +281,7 @@ const exerciseTemplates = {
 
   "Tríceps cuerda 1 mano": {
     musculo: "Tríceps",
+    grupo: "Brazos",
     seccion: "Aislamiento (Énfasis en Lateral)",
     hacer: "<b>Agarre de una sola mano</b> en la cuerda. <b>Extiende el brazo al máximo</b> hacia abajo y hacia afuera, separando la cuerda al final. Control total del rango.",
     noHacer: "<b>No gires el tronco</b> para ayudar la extensión. Evita el balanceo del brazo.",
@@ -267,6 +292,7 @@ const exerciseTemplates = {
   // ======= PIERNA 🦵 =======
   "Prensa de piernas": {
     musculo: "Pierna",
+    grupo: "Piernas",
     seccion: "Cuádriceps (Énfasis general)",
     hacer: "<b>Mantén la zona lumbar completamente pegada</b> al respaldo; si se despega, has bajado demasiado. Las rodillas deben estar <b>alineadas con las puntas de los pies</b>. Baja hasta un ángulo de 90° o justo antes de que la lumbar se despegue. Empuja hacia arriba.",
     noHacer: "<b>No bloquees las rodillas</b> al final del recorrido (mantén una microflexión). No permitas que las rodillas 'colapsen' hacia dentro.",
@@ -275,6 +301,7 @@ const exerciseTemplates = {
 
   "Prensa sumo": {
     musculo: "Glúteo/Aductores",
+    grupo: "Piernas",
     seccion: "Lateral/Interna",
     hacer: "<b>Pies en la parte alta y ancha de la plataforma</b>, con las <b>puntas apuntando hacia afuera</b> (rotación externa). Baja controlado y empuja con los talones.",
     noHacer: "<b>No dejes que las rodillas colapsen</b> hacia dentro; deben seguir la dirección de las puntas de los pies.",
@@ -283,6 +310,7 @@ const exerciseTemplates = {
 
   "Extensión cuádriceps": {
     musculo: "Cuádriceps",
+    grupo: "Piernas",
     seccion: "Recto Femoral y Vasto Interno",
     hacer: "<b>Alinea la rodilla con el eje de rotación de la máquina</b>. Realiza la extensión de la rodilla de forma controlada hasta la máxima contracción. Mantén la cadera pegada al asiento.",
     noHacer: "<b>No hagas tirones rápidos</b> en la parte superior. Evita levantar el cuerpo del asiento.",
@@ -291,6 +319,7 @@ const exerciseTemplates = {
 
   "Extensión cuádriceps isométrica": {
     musculo: "Cuádriceps",
+    grupo: "Piernas",
     seccion: "Vasto Medial (Acortamiento)",
     hacer: "Realiza la extensión normal, pero <b>mantén la contracción máxima arriba durante un tiempo predefinido</b> (ej. 3–5 segundos) antes de la fase excéntrica lenta.",
     noHacer: "No relajes de golpe la tensión en la fase isométrica.",
@@ -299,6 +328,7 @@ const exerciseTemplates = {
 
   "Curl femoral": {
     musculo: "Femoral",
+    grupo: "Piernas",
     seccion: "General (Sentado o Tumbado)",
     hacer: "<b>Mantén la cadera neutra</b> y pegada al soporte. Lleva el <b>talón hacia el glúteo</b> en un movimiento lento y concentrado. Controla la fase de estiramiento.",
     noHacer: "<b>No arquees la zona lumbar</b> (hiperextensión) para iniciar o terminar la repetición; esto indica que el peso es demasiado alto.",
@@ -307,6 +337,7 @@ const exerciseTemplates = {
 
   "Curl femoral sentado": {
     musculo: "Femoral",
+    grupo: "Piernas",
     seccion: "General (Máximo Estiramiento)",
     hacer: "<b>Alinea la rodilla con el eje de rotación</b>. Realiza un recorrido completo, permitiendo el estiramiento máximo del femoral en la fase excéntrica.",
     noHacer: "<b>No rebotes</b> al iniciar el movimiento desde la posición de estiramiento.",
@@ -315,6 +346,7 @@ const exerciseTemplates = {
 
   "Curl femoral 1 pierna": {
     musculo: "Femoral",
+    grupo: "Piernas",
     seccion: "Aislamiento y Equilibrio",
     hacer: "Realiza el rango completo con <b>control total</b> de la máquina. Enfócate en la conexión mente-músculo y evita cualquier compensación del tronco o cadera.",
     noHacer: "<b>No hagas compensaciones con la cadera</b> (rotación o levantamiento) para ayudarte a mover el peso.",
@@ -323,6 +355,7 @@ const exerciseTemplates = {
 
   "Hack machine": {
     musculo: "Cuádriceps",
+    grupo: "Piernas",
     seccion: "Anterior (Vasto Lateral)",
     hacer: "<b>Coloca los pies más abajo</b> en la plataforma (cerca del borde) para un mayor énfasis en el cuádriceps. <b>Baja controlado</b> (al menos 90° de flexión) y mantén la espalda totalmente apoyada.",
     noHacer: "<b>No bloquees las rodillas</b> arriba. No permitas que la espalda se despegue o se redondee.",
@@ -331,6 +364,7 @@ const exerciseTemplates = {
 
   "Prensa pies juntos arriba": {
     musculo: "Glúteo/Femoral",
+    grupo: "Piernas",
     seccion: "Posterior (Cadera)",
     hacer: "<b>Pies juntos y colocados en la parte más alta</b> de la plataforma. Esto maximiza la flexión de cadera y el estiramiento de los femorales y glúteos. Baja hasta el punto donde la lumbar no se despegue.",
     noHacer: "<b>No levantes la zona lumbar</b> del respaldo. No rebotes.",
@@ -339,6 +373,7 @@ const exerciseTemplates = {
 
   "Zancadas mancuernas": {
     musculo: "Glúteo/Cuádriceps",
+    grupo: "Piernas",
     seccion: "Funcional",
     hacer: "Da un <b>paso largo</b> para un enfoque en el glúteo. La rodilla de la pierna trasera debe bajar verticalmente hacia el suelo, y la <b>rodilla delantera debe estar alineada con el pie</b>. Mantén el torso erguido.",
     noHacer: "<b>No te 'hundas' hacia adelante</b>; el movimiento debe ser vertical. No permitas que la rodilla delantera se meta hacia dentro.",
@@ -347,6 +382,7 @@ const exerciseTemplates = {
 
   "Step-up banco": {
     musculo: "Glúteo/Cuádriceps",
+    grupo: "Piernas",
     seccion: "Funcional (Unilateral)",
     hacer: "Utiliza un banco cuya altura permita una rodilla a 90°. <b>El impulso debe provenir exclusivamente de la pierna que pisa el banco</b>. Baja lentamente y controla el descenso.",
     noHacer: "<b>No uses la pierna de abajo para dar impulso</b> o 'rebotar'. Evita el balanceo del cuerpo.",
@@ -355,6 +391,7 @@ const exerciseTemplates = {
 
   "Abducción máquina": {
     musculo: "Glúteo medio",
+    grupo: "Piernas",
     seccion: "Lateral (Estabilizador)",
     hacer: "<b>Inclínate ligeramente hacia adelante</b> y sujeta firmemente los agarres. <b>Controla la apertura y el retorno</b>; no permitas que las placas se toquen.",
     noHacer: "<b>No te inclines excesivamente</b> hacia adelante o hacia atrás; un ligero ángulo es suficiente. Evita soltar el peso de golpe.",
@@ -363,6 +400,7 @@ const exerciseTemplates = {
 
   "Flexiones": {
     musculo: "Pectoral / Tríceps",
+    grupo: "Pecho",
     seccion: "General",
     hacer: "Cuerpo alineado de pies a cabeza. <b>Activa el core</b> y baja controlando hasta que el pecho se aproxime al suelo. Empuja manteniendo los codos a 30–45° del torso.",
     noHacer: "<b>No hundas la cadera</b> ni eleves el glúteo. No abras los codos en exceso.",
@@ -371,6 +409,7 @@ const exerciseTemplates = {
 
   "Flexiones declinadas": {
     musculo: "Pectoral",
+    grupo: "Pecho",
     seccion: "Superior",
     hacer: "Pies elevados sobre banco. Mantén el cuerpo firme y baja lentamente hasta que el pecho esté alineado con las manos.",
     noHacer: "<b>No pierdas la alineación corporal</b>. Evita rebotes.",
@@ -379,6 +418,7 @@ const exerciseTemplates = {
 
   "Press banca barra": {
     musculo: "Pectoral",
+    grupo: "Pecho",
     seccion: "Media (Esternal)",
     hacer: "Escápulas retraídas y pies firmes en el suelo. Baja la barra al esternón medio y empuja verticalmente.",
     noHacer: "<b>No rebotes la barra</b> ni abras los codos a 90°.",
@@ -387,6 +427,7 @@ const exerciseTemplates = {
 
   "Dominadas asistidas máquina": {
     musculo: "Dorsal",
+    grupo: "Espalda",
     seccion: "Vertical",
     hacer: "Pecho elevado y tirón iniciando con la <b>depresión escapular</b>. Lleva el pecho hacia la barra.",
     noHacer: "<b>No balancees el cuerpo</b> ni tires solo con los brazos.",
@@ -395,6 +436,7 @@ const exerciseTemplates = {
 
   "Bicicleta estática": {
     musculo: "Cardio",
+    grupo: "Cardio",
     seccion: "Aeróbico",
     hacer: "Pedaleo continuo a ritmo moderado, manteniendo una postura erguida y respiración controlada.",
     noHacer: "No encorves la espalda ni pedalees con excesiva resistencia.",
@@ -402,12 +444,13 @@ const exerciseTemplates = {
   },
 
   "Elevación de talones en máquina": {
-  musculo: "Gemelos",
-  seccion: "Sóleo y Gastrocnemio",
-  hacer: "<b>Coloca la parte media del pie</b> sobre la plataforma, dejando los talones libres. Realiza una <b>extensión completa del tobillo</b>, subiendo los talones lo más alto posible. Baja lentamente hasta sentir un estiramiento profundo.",
-  noHacer: "<b>No rebotes</b> en la parte baja del movimiento. No acortes el recorrido ni flexiones las rodillas en exceso para ayudarte.",
-  trucos: "Mantén una <b>pausa de 1–2 segundos arriba</b> en máxima contracción. Para enfatizar el sóleo, realiza el ejercicio con <b>rodillas ligeramente flexionadas</b>; para gastrocnemio, mantenlas extendidas."
-},
+    grupo: "Piernas",
+    musculo: "Gemelos",
+    seccion: "Sóleo y Gastrocnemio",
+    hacer: "<b>Coloca la parte media del pie</b> sobre la plataforma, dejando los talones libres. Realiza una <b>extensión completa del tobillo</b>, subiendo los talones lo más alto posible. Baja lentamente hasta sentir un estiramiento profundo.",
+    noHacer: "<b>No rebotes</b> en la parte baja del movimiento. No acortes el recorrido ni flexiones las rodillas en exceso para ayudarte.",
+    trucos: "Mantén una <b>pausa de 1–2 segundos arriba</b> en máxima contracción. Para enfatizar el sóleo, realiza el ejercicio con <b>rodillas ligeramente flexionadas</b>; para gastrocnemio, mantenlas extendidas."
+  },
 
   // ======= EJERCICIOS BÁSICOS ADICIONALES =======
 
@@ -692,184 +735,115 @@ const exerciseTemplates = {
 
 
 // ---------------------------------------------------------
-// RUTINAS (sin cambios técnicos, pero listas para ampliación)
+// RUTINAS (A/B/C, 4 dias por semana)
 // ---------------------------------------------------------
 
 const routines = {
-  "Semana 1": {
-    "Día 1 – Tren superior (tirón + pecho secundario)": [
-      "Press pecho en máquina",
-      "Aperturas en máquina/polea",
-      "Dominadas asistidas máquina",
+  "Rutina A": {
+    "Día 1 - Tren superior (tiron)": [
+      "Jalón al pecho",
+      "Remo polea sentado",
       "Remo máquina pecho apoyado",
-      "Curl martillo",
+      "Face pull",
+      "Curl bíceps",
+      "Curl martillo"
+    ],
+    "Día 2 - Tren inferior (cuadriceps)": [
+      "Prensa de piernas",
+      "Hack machine",
+      "Extensión cuádriceps",
+      "Zancadas mancuernas",
+      "Elevación de talones en máquina",
+      "Plancha abdominal (Plank)"
+    ],
+    "Día 3 - Tren superior (empuje)": [
+      "Press banca barra",
+      "Press inclinado mancuernas",
+      "Press militar mancuernas",
+      "Elevaciones laterales",
       "Tríceps en polea",
+      "Tríceps cuerda 1 mano",
       "Bicicleta estática"
     ],
-  
-    "Día 2 – Tren superior (empuje + hombro y brazos)": [
-      "Press banca barra",
-      "Flexiones",
-      "Flexiones declinadas",
-      "Dominadas asistidas máquina",
-      "Press militar mancuernas",
-      "Curl martillo",
-      "Tríceps en polea"
-    ],
-  
-    "Día 3 – Tren inferior + core": [
-      "Sentadilla goblet",
-      "Prensa de piernas",
-      "Zancadas mancuernas",
-      "Elevación de talones en máquina"
-    ]
-  },
-
-  "Semana 2": {
-    "Día 1 – Tren superior (tirón + pecho secundario)": [
-      "Remo máquina pecho apoyado",
-      "Jalón al pecho",
-      "Press pecho en máquina",
-      "Aperturas en máquina/polea",
-      "Face pull",
-      "Curl martillo",
-      "Tríceps en polea"
-    ],
-    "Día 2 – Tren superior (empuje + hombro y brazos)": [
-      "Press máquina vertical",
-      "Press militar mancuernas",
-      "Jalón al pecho",
-      "Elevaciones laterales",
-      "Curl bíceps",
-      "Tríceps cuerda 1 mano"
-    ],
-    "Día 3 – Tren inferior + core": [
-      "Prensa de piernas",
-      "Hack machine",
+    "Día 4 - Tren inferior (posterior)": [
       "Curl femoral",
-      "Extensión cuádriceps",
-      "Zancadas mancuernas",
-      "Abducción máquina"
-    ]
-  },
-
-  "Semana 3": {
-    "Día 1 – Tren superior (tirón + pecho secundario)": [
-      "Remo máquina pecho apoyado",
-      "Jalón al pecho",
-      "Press pecho en máquina",
-      "Aperturas en máquina/polea",
-      "Face pull",
-      "Curl martillo",
-      "Tríceps en polea"
-    ],
-    "Día 2 – Tren superior (empuje + hombro y brazos)": [
-      "Press máquina vertical",
-      "Press militar mancuernas",
-      "Jalón al pecho",
-      "Elevaciones laterales",
-      "Curl bíceps",
-      "Tríceps cuerda 1 mano"
-    ],
-    "Día 3 – Tren inferior + core": [
-      "Prensa de piernas",
-      "Hack machine",
-      "Curl femoral",
-      "Extensión cuádriceps",
-      "Zancadas mancuernas",
-      "Abducción máquina",
-      "Elevación de talones en máquina"
-    ]
-  },
-
-  "Semana 4": {
-    "Día 1 – Tren superior (tirón + pecho secundario)": [
-      "Remo polea sentado",
-      "Jalón supino",
-      "Press inclinado mancuernas",
-      "Aperturas inclinadas",
-      "Reverse fly máquina",
-      "Curl bíceps",
-      "Tríceps en polea"
-    ],
-
-    "Día 2 – Tren superior (empuje + hombro y brazos)": [
-      "Press Arnold",
-      "Press máquina vertical",
-      "Jalón al pecho",
-      "Elevaciones laterales polea",
-      "Curl martillo",
-      "Tríceps cuerda 1 mano"
-    ],
-
-    "Día 3 – Tren inferior + core": [
-      "Hack machine",
-      "Prensa sumo",
       "Curl femoral sentado",
-      "Extensión cuádriceps",
-      "Abducción máquina"
+      "Prensa pies juntos arriba",
+      "Abducción máquina",
+      "Sentadilla goblet",
+      "Crunch abdominal"
     ]
   },
-  "Semana 5": {
-    "Día 1 – Tren superior (tirón + pecho secundario)": [
-      "Remo máquina pecho apoyado",
-      "Jalón estrecho triángulo",
-      "Press pecho en máquina",
-      "Cruces desde abajo",
-      "Face pull",
+  "Rutina B": {
+    "Día 1 - Tren superior (tiron)": [
+      "Jalón supino",
+      "Remo polea alta ancho",
+      "Remo inclinado a dos manos",
+      "Pájaros mancuernas",
       "Curl concentrado",
-      "Tríceps en polea"
+      "Curl Scott"
     ],
-
-    "Día 2 – Tren superior (empuje + hombro y brazos)": [
-      "Press neutral grip mancuernas",
-      "Press militar mancuernas",
-      "Jalón al pecho",
-      "Elevaciones laterales",
-      "Curl Scott",
-      "Tríceps cuerda 1 mano"
-    ],
-
-    "Día 3 – Tren inferior + core": [
-      "Prensa de piernas",
-      "Zancadas mancuernas",
-      "Curl femoral",
+    "Día 2 - Tren inferior (cuadriceps)": [
+      "Prensa sumo",
+      "Extensión cuádriceps",
       "Extensión cuádriceps isométrica",
       "Step-up banco",
-      "Elevación de talones en máquina"
+      "Elevación de talones en máquina",
+      "Russian twists"
+    ],
+    "Día 3 - Tren superior (empuje)": [
+      "Press pecho en máquina",
+      "Aperturas en máquina/polea",
+      "Press Arnold",
+      "Elevaciones laterales polea",
+      "Tríceps en polea",
+      "Flexiones",
+      "Bicicleta estática"
+    ],
+    "Día 4 - Tren inferior (posterior)": [
+      "Curl femoral 1 pierna",
+      "Prensa pies juntos arriba",
+      "Zancadas mancuernas",
+      "Abducción máquina",
+      "Sentadillas",
+      "Elevación de piernas colgado"
     ]
   },
-  "Semana 6": {
-    "Día 1 – Tren superior (tirón + pecho secundario)": [
-      "Remo polea alta ancho",
-      "Jalón al pecho",
-      "Press máquina vertical",
-      "Aperturas en máquina/polea",
-      "Pájaros mancuernas",
+  "Rutina C": {
+    "Día 1 - Tren superior (tiron)": [
+      "Jalón estrecho triángulo",
+      "Remo máquina pecho apoyado",
+      "Pullover polea",
+      "Reverse fly máquina",
       "Curl bíceps",
-      "Tríceps en polea"
+      "Curl martillo"
     ],
-
-    "Día 2 – Tren superior (empuje + hombro y brazos)": [
-      "Press Arnold",
-      "Press inclinado mancuernas",
-      "Jalón supino",
-      "Elevaciones laterales polea",
-      "Curl martillo",
-      "Tríceps cuerda 1 mano"
-    ],
-
-    "Día 3 – Tren inferior + core": [
-      "Prensa pies juntos arriba",
-      "Curl femoral 1 pierna",
+    "Día 2 - Tren inferior (cuadriceps)": [
       "Hack machine",
+      "Prensa de piernas",
       "Extensión cuádriceps",
-      "Abducción máquina"
+      "Step-up banco",
+      "Elevación de talones en máquina",
+      "Plancha abdominal (Plank)"
+    ],
+    "Día 3 - Tren superior (empuje)": [
+      "Press máquina vertical",
+      "Press neutral grip mancuernas",
+      "Aperturas inclinadas",
+      "Elevaciones frontales",
+      "Tríceps en polea",
+      "Flexiones declinadas",
+      "Bicicleta estática"
+    ],
+    "Día 4 - Tren inferior (posterior)": [
+      "Curl femoral",
+      "Curl femoral sentado",
+      "Prensa sumo",
+      "Abducción máquina",
+      "Sentadilla goblet",
+      "Crunch abdominal"
     ]
   }
-
-
-
 };
 
 
