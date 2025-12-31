@@ -51,6 +51,10 @@ const step4Status = document.getElementById("step-4-status");
 const step5Status = document.getElementById("step-5-status");
 const stepperPrevBtn = document.getElementById("stepper-prev");
 const stepperNextBtn = document.getElementById("stepper-next");
+const subheader = document.getElementById("subheader");
+const toggleUserManageBtn = document.getElementById("toggle-user-manage");
+const toggleStopwatchBtn = document.getElementById("toggle-stopwatch");
+const toggleQuickAddBtn = document.getElementById("toggle-quick-add");
 const welcomeStartBtn = document.getElementById("welcome-start-btn");
 const welcomeInfoBtn = document.getElementById("welcome-info-btn");
 const welcomeLegalBtn = document.getElementById("welcome-legal-btn");
@@ -473,6 +477,29 @@ function updateStepNavigation() {
     activeStepIndex = maxIndex;
   }
   const activeStep = stepPages[activeStepIndex];
+
+  if (subheader) {
+    const step2Index = stepPages.indexOf(step2);
+    const step3Index = stepPages.indexOf(step3);
+    const showFromStep2 = step2Index >= 0 && activeStepIndex >= step2Index;
+    const isStep3 = step3Index >= 0 && activeStepIndex === step3Index;
+    subheader.style.display = showFromStep2 ? "flex" : "none";
+
+    if (toggleUserManageBtn) {
+      toggleUserManageBtn.style.display = showFromStep2 ? "flex" : "none";
+    }
+    if (toggleStopwatchBtn) {
+      toggleStopwatchBtn.style.display = isStep3 ? "flex" : "none";
+    }
+    if (toggleQuickAddBtn) {
+      toggleQuickAddBtn.style.display = isStep3 ? "flex" : "none";
+    }
+
+    if (!isStep3) {
+      if (typeof closeStopwatchOverlay === "function") closeStopwatchOverlay();
+      if (typeof closeQuickAddOverlay === "function") closeQuickAddOverlay();
+    }
+  }
 
   if (stepperPrevBtn) {
     stepperPrevBtn.disabled = activeStepIndex === 0;
@@ -1218,20 +1245,6 @@ function buildExerciseCard(exData) {
   header.appendChild(headerActions);
   card.appendChild(header);
 
-  // ====== NOTAS TÉCNICAS ======
-  const notes = document.createElement("div");
-  notes.className = "exercise-notes";
-  notes.innerHTML = `
-    <details>
-      <summary><b>Notas de técnica</b></summary>
-      <p><b>Cómo hacerlo:</b> ${hacerDisplay}</p>
-      <p><b>Evitar:</b> ${noHacerDisplay}</p>
-      <p><b>Trucos:</b> ${trucosDisplay}</p>
-    </details>
-  `;
-
-  card.appendChild(notes);
-
   // ====== HISTORIAL RAPIDO ======
   const historyInfo = document.createElement("div");
   historyInfo.className = "exercise-history";
@@ -1335,6 +1348,19 @@ function buildExerciseCard(exData) {
   actions.appendChild(addBtn);
   actions.appendChild(removeBtn);
   card.appendChild(actions);
+
+  // ====== NOTAS TÉCNICAS ======
+  const notes = document.createElement("div");
+  notes.className = "exercise-notes";
+  notes.innerHTML = `
+    <details>
+      <summary><b>Notas de técnica</b></summary>
+      <p><b>Cómo hacerlo:</b> ${hacerDisplay}</p>
+      <p><b>Evitar:</b> ${noHacerDisplay}</p>
+      <p><b>Trucos:</b> ${trucosDisplay}</p>
+    </details>
+  `;
+  card.appendChild(notes);
 
   // Hacer la tarjeta draggable
   card.draggable = true;
@@ -2084,7 +2110,6 @@ const quickAddGroupSelect = document.getElementById('quick-add-group');
 const quickAddExerciseSelect = document.getElementById('quick-add-exercise');
 const quickAddPredefinedBtn = document.getElementById('quick-add-predefined');
 const quickAddCustomBtn = document.getElementById('quick-add-custom');
-const toggleUserManageBtn = document.getElementById('toggle-user-manage');
 
 function updateDisplay() {
   const minutes = Math.floor(stopwatchTime / 60);

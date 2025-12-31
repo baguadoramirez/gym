@@ -131,6 +131,28 @@
       box-shadow: 0 6px 12px rgba(0,0,0,0.2);
     }
 
+    .subheader {
+      position: fixed;
+      top: 76px;
+      left: 0;
+      right: 0;
+      display: none;
+      justify-content: flex-end;
+      align-items: center;
+      min-height: 48px;
+      padding: 0 1rem;
+      background: var(--header-bg);
+      z-index: 1150;
+    }
+
+    .subheader .floating-actions {
+      position: static;
+      gap: 0.6rem;
+      bottom: auto;
+      right: auto;
+      align-items: center;
+    }
+
     .compact-header h1 {
       font-size: 0.8rem;
       margin: 0;
@@ -138,13 +160,14 @@
     }
 
     body {
-      padding-top: 44px;
+      padding-top: 124px;
     }
 
     main {
       max-width: 1100px;
       margin: auto;
       padding: 1.2rem;
+      margin-top: 1rem;
     }
 
     .controls {
@@ -735,9 +758,9 @@
       background: #ffffff;
       color: #111;
       border: 2px solid var(--card-border);
-      border-radius: 100%;
-      width: 60px;
-      height: 60px;
+      border-radius: 8px;
+      width: 48px;
+      height: 48px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -772,9 +795,9 @@
       color: white;
       border: none;
       border: 2px solid var(--card-border);
-      border-radius: 100%;
-      width: 60px;
-      height: 60px;
+      border-radius: 8px;
+      width: 48px;
+      height: 48px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -786,9 +809,9 @@
       background: #2563eb;
       color: white;
       border: 2px solid var(--card-border);
-      border-radius: 100%;
-      width: 60px;
-      height: 60px;
+      border-radius: 8px;
+      width: 48px;
+      height: 48px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -822,6 +845,10 @@
     </a>
     <h1>Gym Tracker</h1>
   </div>
+  <div style="display:flex; align-items:center; gap:0.5rem;">
+    <a href="https://baguadoramirez.github.io/borjas_web/index.html" target="_blank" aria-label="Borja Aguado">
+      <img src="icons/bar_logo.png" alt="Borja Aguado" style="height: 28px; width: auto;">
+    </a>
   <button id="compact-theme-toggle" class="theme-toggle-btn" aria-label="Cambiar tema">
     <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="5"/>
@@ -837,7 +864,16 @@
     <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
     </svg>
-  </button>
+    </button>
+  </div>
+</div>
+
+<div class="subheader" id="subheader">
+  <div class="floating-actions" id="floating-actions">
+    <button id="toggle-user-manage" aria-label="Gestionar usuario">👤</button>
+    <button id="toggle-stopwatch" aria-label="Cuenta atras">⏱️</button>
+    <button id="toggle-quick-add" aria-label="Ejercicios">＋</button>
+  </div>
 </div>
 
 <main>
@@ -1034,11 +1070,6 @@
       </div>
     </div>
   </div>
-  <div class="floating-actions" id="floating-actions">
-    <button id="toggle-user-manage" aria-label="Gestionar usuario">👤</button>
-    <button id="toggle-stopwatch" aria-label="Cuenta atras">⏱️</button>
-    <button id="toggle-quick-add" aria-label="Ejercicios">＋</button>
-  </div>
     </div>
   </details>
 
@@ -1188,11 +1219,6 @@
 <footer>
   Web creada por <a href="https://baguadoramirez.github.io/borjas_web/index.html" target="_blank">Borja Aguado</a> ·
   Código bajo <a href="LICENSE" target="_blank">Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional</a>.
-  <div style="margin-top: 0.5rem;">
-    <a href="https://baguadoramirez.github.io/borjas_web/index.html" target="_blank">
-      <img src="icons/bar_logo.png" alt="Borja Aguado" style="height: 28px; width: auto;">
-    </a>
-  </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
