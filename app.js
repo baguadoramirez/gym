@@ -500,6 +500,7 @@ function updateStepNavigation() {
       if (typeof closeQuickAddOverlay === "function") closeQuickAddOverlay();
     }
   }
+  updateHeaderOffsets();
 
   if (stepperPrevBtn) {
     stepperPrevBtn.disabled = activeStepIndex === 0;
@@ -511,6 +512,20 @@ function updateStepNavigation() {
     stepperNextBtn.disabled = !canMoveNext;
     stepperNextBtn.style.display = activeStepIndex === 0 ? "none" : "inline-flex";
   }
+}
+
+function updateHeaderOffsets() {
+  const header = document.getElementById("compact-header");
+  if (!header) return;
+  const headerHeight = header.offsetHeight || 0;
+  if (subheader) {
+    subheader.style.top = `${headerHeight}px`;
+  }
+  const subheaderHeight = subheader && subheader.style.display !== "none"
+    ? (subheader.offsetHeight || 0)
+    : 0;
+  const spacing = 12;
+  document.body.style.paddingTop = `${headerHeight + subheaderHeight + spacing}px`;
 }
 
 function setActiveStep(index, options = {}) {
@@ -2073,6 +2088,8 @@ onReady(() => {
   if (exportBtn) exportBtn.disabled = true;
   if (saveSessionBtn) saveSessionBtn.disabled = true;
   checkSensationsForm();
+  updateHeaderOffsets();
+  window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   }
