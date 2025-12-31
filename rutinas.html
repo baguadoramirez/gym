@@ -19,6 +19,7 @@
        =========================== */
 
     :root {
+      --base-font: clamp(16px, 1.1vw + 0.8rem, 22px);
       --bg: #f3f4f6;
       --text: #111827;
       --text-color: #f9fafb;
@@ -60,29 +61,27 @@
        ESTILOS GENERALES
        =========================== */
 
+    html {
+      font-size: var(--base-font);
+    }
+
     body {
       font-family: system-ui, sans-serif;
       background: var(--bg);
       margin: 0;
       padding: 0;
       color: var(--text);
+      font-size: 1rem;
+      line-height: 1.2;
+      letter-spacing: 0.1px;
     }
 
-    header {
-      position: relative;
-      background: var(--header-bg);
-      color: var(--text-color);
-      padding: 1rem 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
     .header-logo {
       position: static;
     }
 
     .header-logo img {
-      height: 48px;
+      height: 28px;
       width: auto;
       cursor: pointer;
     }
@@ -117,23 +116,6 @@
       display: block;
     }
 
-    .header-web-link {
-      position: absolute;
-      top: 64px;
-      right: 16px;
-      font-size: 0.8rem;
-      color: #c7d2fe;
-    }
-
-    .header-web-link a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .header-web-link a:hover {
-      text-decoration: underline;
-    }
-
     .compact-header {
       position: fixed;
       top: 0;
@@ -147,38 +129,32 @@
       padding: 0.5rem 1rem;
       z-index: 1200;
       box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-      transform: translateY(-100%);
-      transition: transform 0.2s ease;
-    }
-
-    .compact-header.visible {
-      transform: translateY(0);
     }
 
     .compact-header h1 {
-      font-size: 0.95rem;
+      font-size: 0.8rem;
       margin: 0;
       letter-spacing: 0.2px;
     }
 
-    body.compact-active {
+    body {
       padding-top: 44px;
     }
 
     main {
       max-width: 1100px;
       margin: auto;
-      padding: 1rem;
+      padding: 1.2rem;
     }
 
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
-      padding: 1rem;
+      gap: 1.2rem;
+      padding: 1.2rem;
       background: var(--control-bg);
-      border-radius: 8px;
-      margin-bottom: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.2rem;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       align-items: center;
     }
@@ -192,7 +168,12 @@
     }
 
     #user-history-controls {
-      border: 2px dashed var(--card-border);
+      border: none;
+    }
+
+    #user-history-controls select {
+      width: 100%;
+      box-sizing: border-box;
     }
 
     #user-history-controls .btn-secondary {
@@ -270,6 +251,164 @@
       padding: 0.8rem;
     }
 
+    .step-pages {
+      min-height: 55vh;
+    }
+
+    .step-page {
+      display: none;
+      margin-bottom: 0;
+      animation: pageEnter 0.25s ease;
+    }
+
+    .step-page.active {
+      display: block;
+    }
+
+    .step-page summary {
+      display: none;
+    }
+
+    .stepper-footer {
+      position: sticky;
+      bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.9rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 0.9rem 1rem;
+      margin-top: 1.2rem;
+      box-shadow: 0 16px 30px rgba(0,0,0,0.12);
+    }
+
+    .stepper-footer button {
+      flex: 1;
+    }
+
+    button {
+      font-size: 1rem;
+      padding: 0.8rem 1.1rem;
+      border-radius: 14px;
+      min-height: 48px;
+    }
+
+    input, select, textarea {
+      font-size: 1rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 12px;
+    }
+
+    .hint-text {
+      font-size: 0.9rem;
+    }
+
+    .exercise-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      width: 100%;
+    }
+
+    .exercise-nav-actions {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    .exercise-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      margin-top: 0.8rem;
+    }
+
+    .exercise-counter-bar {
+      margin-bottom: 0.1rem;
+      padding: 0.6rem;
+    }
+
+    #exercises-container {
+      margin-top: 0.1rem;
+    }
+
+    .routine-actions {
+      display: flex;
+      gap: 0.8rem;
+      width: 100%;
+    }
+
+    .routine-actions button {
+      flex: 1;
+      min-height: 64px;
+    }
+
+    .chart-actions {
+      width: 100%;
+    }
+
+    .chart-actions > div {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chart-actions button,
+    .chart-actions select {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+
+    .welcome-hero {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .welcome-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .welcome-actions button {
+      flex: 1 1 auto;
+      max-width: 100%;
+      justify-content: center;
+      font-weight: 700;
+      min-height: 64px;
+    }
+
+    .welcome-title {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 2.4rem !important;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .welcome-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+
+    @keyframes pageEnter {
+      from {
+        opacity: 0;
+        transform: translateX(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
     .step-status {
       font-size: 0.8rem;
       color: var(--meta-text);
@@ -303,11 +442,29 @@
       padding: 1rem;
       width: min(420px, 90vw);
       box-shadow: 0 18px 36px rgba(0,0,0,0.28);
+      position: relative;
+      font-size: 1.15rem;
     }
+
+.overlay-card.manage-user-card {
+  min-height: 20%;
+}
+
+.manage-user-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
 
     .overlay-card h3 {
       margin: 0 0 0.5rem 0;
-      font-size: 1rem;
+      font-size: 1.15rem;
+    }
+
+    .overlay-card button,
+    .overlay-card select,
+    .overlay-card label {
+      font-size: 1.15rem;
     }
 
     .overlay-actions {
@@ -417,22 +574,22 @@
 
     #exercises-container {
       background: var(--card-bg);
-      border-radius: 10px;
-      padding: 1rem;
+      border-radius: 14px;
+      padding: 1.2rem;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .exercise-card {
       border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 0.7rem;
+      border-radius: 12px;
+      padding: 1rem;
       margin-bottom: 1rem;
       background: var(--card-bg);
       cursor: move;
     }
 
     #status-text {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       margin-left: auto;
       opacity: 0.7;
     }
@@ -449,7 +606,7 @@
       background: var(--table-header);
     }
     td, th {
-      padding: 4px;
+      padding: 6px;
     }
 
     /* ===========================
@@ -458,18 +615,13 @@
 
     .exercise-table td input {
       width: 100%;
-      height: 22px;
-      font-size: 0.75rem;
-      padding: 1px 3px;
+      height: 32px;
+      font-size: 0.9rem;
+      padding: 4px 6px;
       box-sizing: border-box;
       background: var(--card-bg);
       color: var(--text);
       border: 1px solid var(--card-border);
-    }
-
-    .btn-small {
-      padding: 3px 6px !important;
-      font-size: 0.75rem !important;
     }
 
     .exercise-notes p {
@@ -486,6 +638,7 @@
       font-weight: bold;
       color: var(--text);
       font-size: 0.85rem;
+      display: block;
     }
 
     .exercise-notes summary:hover {
@@ -545,30 +698,18 @@
       text-decoration: underline;
     }
 
+    body * {
+      font-size: 1rem !important;
+      line-height: 1.2;
+    }
+
     /* Estilos para el cronómetro popup */
     #stopwatch-popup {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      width: auto;
-      max-width: 900px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 18px;
-      box-shadow: 0 18px 36px rgba(0,0,0,0.28);
-      z-index: 1000;
-      display: none; /* Inicialmente oculto */
+      width: min(420px, 90vw);
       font-size: 1.02rem;
     }
-    #stopwatch-popup.collapsed {
-      width: auto;
-      padding: 5px;
-    }
     #stopwatch-display {
-      font-size: 1.9rem;
+      font-size: 4rem !important;
       text-align: center;
       margin-bottom: 10px;
       color: var(--text);
@@ -583,29 +724,12 @@
     #stopwatch-buttons {
       display: flex;
       justify-content: center;
-      gap: 0.8rem;
+      gap: 1.2rem;
       position: relative;
     }
     #stopwatch-buttons button {
-      padding: 5px 10px;
-      font-size: 0.8rem;
-    }
-    #minimize-stopwatch {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: #666;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 26px;
-      height: 26px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
+      padding: 6px 12px;
+      font-size: 1.2rem;
     }
     #toggle-stopwatch {
       background: #ffffff;
@@ -615,46 +739,25 @@
       width: 60px;
       height: 60px;
       cursor: pointer;
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 1001;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
+      font-size: 1.2rem;
     }
 
     /* Estilos para el popup de añadir ejercicios */
     #quick-add-popup {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      width: auto;
-      max-width: 900px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 18px;
-      box-shadow: 0 18px 36px rgba(0,0,0,0.28);
-      z-index: 1000;
-      display: none;
-      font-size: 1.02rem;
-    }
-    #quick-add-popup.collapsed {
-      width: auto;
-      padding: 5px;
+      width: min(420px, 90vw);
+      font-size: 1.2rem;
     }
     #quick-add-popup label {
-      font-size: 0.8rem;
+      font-size: 1.2rem;
       color: var(--meta-text);
     }
     #quick-add-popup select {
       width: 100%;
       margin-bottom: 8px;
-      font-size: 1.02rem;
+      font-size: 1.2rem;
     }
     #quick-add-buttons {
       display: flex;
@@ -662,24 +765,7 @@
     }
     #quick-add-buttons button {
       flex: 1;
-      font-size: 0.8rem;
-    }
-    #minimize-quick-add {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: #666;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 26px;
-      height: 26px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
+      font-size: 1.2rem;
     }
     #toggle-quick-add {
       background: var(--accent-strong);
@@ -690,44 +776,38 @@
       width: 60px;
       height: 60px;
       cursor: pointer;
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1001;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
-    }
-    #quick-add-popup:not(.collapsed) ~ #toggle-quick-add {
-      display: none;
-    }
-    #quick-add-popup.collapsed ~ #toggle-quick-add {
-      display: flex;
-    }
-    #stopwatch-popup:not(.collapsed) ~ #toggle-stopwatch {
-      display: none;
-    }
-    #stopwatch-popup.collapsed ~ #toggle-stopwatch {
-      display: flex;
+      font-size: 1.2rem;
     }
 
-    .tabs {
-      display: flex;
-      margin-bottom: 1rem;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 0.5rem;
-      border: none;
-      background: var(--control-bg);
-      color: var(--text);
+    #toggle-user-manage {
+      background: #2563eb;
+      color: white;
+      border: 2px solid var(--card-border);
+      border-radius: 100%;
+      width: 60px;
+      height: 60px;
       cursor: pointer;
-      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
     }
-    .tab-btn.active {
-      border-bottom: 2px solid #2563eb;
-      background: var(--bg);
+
+    #toggle-user-manage:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .floating-actions {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      display: flex;
+      gap: 1.0rem;
+      z-index: 1001;
     }
 
   </style>
@@ -735,43 +815,12 @@
 
 <body>
 
-  <header>
-    <div>
-      <h1>Registro de Rutina de Gimnasio</h1>
-      <p>Registra tus sesiones y consulta tus datos con gráficos</p>
-    </div>
-
-    <div style="display:flex; align-items:right; gap:0.5rem;">
-      <a class="header-logo">
-        <img src="icons/icon_svg.svg" alt="Icono de la app">
-      </a>
-  
-      <button id="theme-toggle" class="theme-toggle-btn">
-      <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
-      <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>
-    </button>
-    </div>
-  
-</header>
-
 <div class="compact-header" id="compact-header">
   <div style="display:flex; align-items:center; gap:0.6rem;">
     <a class="header-logo">
       <img src="icons/icon_svg.svg" alt="Icono de la app" style="height:28px; width:auto;">
     </a>
-    <h1>Registro de Rutina de Gimnasio</h1>
+    <h1>Gym Tracker</h1>
   </div>
   <button id="compact-theme-toggle" class="theme-toggle-btn" aria-label="Cambiar tema">
     <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -792,63 +841,108 @@
 </div>
 
 <main>
+  <div class="step-pages" id="step-pages">
+  <details id="step-0" class="step-section step-page active" open>
+    <summary>
+      <span>Inicio</span>
+      <span class="step-status">Bienvenida</span>
+    </summary>
+    <div class="step-body">
+      <div class="welcome-hero">
+        <div style="display: flex; justify-content: center; margin-bottom: 0.8rem;">
+          <img src="icons/icon_svg.svg" alt="Icono de la app" style="height: 210px; width: auto;">
+        </div>
+        <div class="welcome-title">
+          Gym Tracker
+        </div>
+        <div class="controls">
+          <div class="welcome-actions">
+            <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
+            <button id="welcome-info-btn" class="btn-secondary">Información relevante</button>
+            <button id="welcome-legal-btn" class="btn-accent-alt">Avisos legales y médicos</button>
+          </div>
+          <div id="welcome-info" style="display: none; margin-top: 0.8rem;">
+            <span class="hint-text">
+              <b>Privacidad:</b> no se guardan datos en la nube. Todo se almacena localmente en tu dispositivo.
+            </span>
+            <br>
+            <span class="hint-text">
+              <b>Sin sincronizacion:</b> los datos no se comparten entre dispositivos salvo que exportes e importes manualmente.
+            </span>
+            <br>
+            <span class="hint-text">
+              <b>Importante:</b> si borras el los datos del navegador o la app, los datos se perderan. Exporta copias si quieres conservarlas.
+            </span>
+            <br>
+            <span class="hint-text">
+              <b>Acceso directo:</b> iOS → Compartir → “Añadir a pantalla de inicio”. Android → Menú → “Instalar app”.
+            </span>
+          </div>
+          <div id="welcome-legal" style="display: none; margin-top: 0.8rem;">
+            <span class="hint-text">
+              <b>Aviso legal:</b> GitHub Pages solo sirve archivos estáticos, sin base de datos ni servidor donde subir datos.
+            </span>
+            <br>
+            <span class="hint-text">
+              <b>Disclaimer médico:</b> esta aplicación no ofrece asesoramiento médico ni deportivo. Consulta a un profesional antes de realizar cambios
+              en tu entrenamiento, especialmente si tienes lesiones o condiciones previas.
+            </span>
+            <br>
+            <span class="hint-text">
+              <b>Uso y responsabilidad:</b> utilizas la web bajo tu cuenta y riesgo. No se garantiza la disponibilidad ni la
+              conservación de los datos si cambias de dispositivo, navegador o modo privado.
+            </span>
+            <br>
+            <span class="hint-text">
+              <b>Sin garantías:</b> la aplicación se ofrece “tal cual”, sin garantías de disponibilidad, continuidad o ausencia de errores.
+            </span>
+            <br>
+            <span class="hint-text">
+              <b>Limitación de responsabilidad:</b> el creador no se hace responsable de daños indirectos, pérdidas de beneficios o
+              decisiones tomadas a partir de la información registrada.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
 
-  <div class="controls">
-    <span class="hint-text">
-      <b>Privacidad:</b> no se guardan datos en la nube. Todo se almacena localmente en tu dispositivo.
-    </span>
-    <span class="hint-text">
-      <b>Sin sincronización:</b> los datos no se comparten entre dispositivos salvo que exportes e importes manualmente.
-    </span>
-    <span class="hint-text">
-      <b>Importante:</b> si borras el los datos del navegador o la app, los datos se perderán. Exporta copias si quieres conservarlas.
-    </span>
-    <span class="hint-text">
-      <b>Acceso directo:</b> iOS → Compartir → “Añadir a pantalla de inicio”. Android → Menú → “Instalar app”.
-    </span>
-    <br>
-    <span class="hint-text">
-      <b>Avisos:</b> <a href="#legal-notes">Ver avisos legales y médicos</a>
-    </span>
-  </div>
-
-
-  <details id="step-1" class="step-section">
+  <details id="step-1" class="step-section step-page" open>
     <summary>
       <span>Paso 1: Selección de usuarios</span>
       <span id="step-1-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
+      <div class="hint-text">Paso 1 · Selección de usuario</div>
       <div class="controls" id="user-history-controls">
         <div class="controls-row">
         <span id="user-history-status" class="hint-text">Empieza seleccionando un usuario para cargar sus datos.</span>
         </div>
         <div class="controls-row">
           <div>
-            <label>Histórico</label><br>
+            <label>Usuario</label><br>
             <select id="user-history-select" disabled></select>
           </div>
-          <button id="new-user-history-btn" class="btn-secondary">Crear nuevo usuario</button>
-          <button id="rename-user-history-btn" class="btn-secondary">Renombrar usuario</button>
         </div>
-        <div class="controls-row">
-          <button id="delete-user-history-btn" class="btn-danger">Eliminar usuario</button>
-          <button id="export-user-history-btn" class="btn-accent-alt">Exportar datos del usuario</button>
+        <div class="controls-row" style="flex-direction: column; align-items: stretch;">
+          <button id="new-user-history-btn" class="btn-secondary">Crear nuevo usuario</button>
           <button id="import-merge-history-btn" class="btn-secondary">Importar datos (fusionar)</button>
         </div>
-        <input type="file" id="upload-user-history" accept=".json" style="display: none;">
+        <div class="controls-row">
+        </div>
         <input type="file" id="import-merge-history-input" accept=".json" style="display: none;">
       </div>
     </div>
   </details>
 
   <div id="app-content" style="display: none;">
-  <details id="step-2" class="step-section">
+  <details id="step-2" class="step-section step-page" open>
     <summary>
       <span>Paso 2: Sesiones predefinidas (Opcional)</span>
       <span id="step-2-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
+      <div class="hint-text">Paso 2: Sesiones predefinidas (Opcional)</div>
 
   <div class="controls">
     <div>
@@ -871,81 +965,97 @@
       </select>
     </div>
 
-    <button id="load-routine-btn" class="btn-secondary">Cargar Rutina</button>
+    <div class="routine-actions">
+      <button id="load-routine-btn" class="btn-secondary">Cargar rutina</button>
+      <button id="delete-routine-btn" class="btn-danger">Borrar rutina</button>
+    </div>
 
     <span id="status-text"></span>
   </div>
     </div>
   </details>
 
-  <details id="step-3" class="step-section">
+  <details id="step-3" class="step-section step-page" open>
     <summary>
       <span>Paso 3: Ejercicios de la sesión</span>
       <span id="step-3-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
+      <div class="hint-text">Paso 3 · Ejercicios de la sesión</div>
 
-  <div class="controls">
-    <div>
-      <label>Fecha</label><br>
-      <input type="date" id="date-input">
+  <div class="controls exercise-counter-bar">
+    <div class="exercise-nav">
+      <div id="exercise-counter" class="hint-text">Ejercicio 0 de 0</div>
+      <div id="save-routine-controls" class="exercise-nav-actions" style="display: none;">
+        <button id="save-routine-btn" class="btn-primary">Guardar rutina</button>
+      </div>
+      <div class="exercise-nav-actions">
+        <button id="exercise-prev" class="btn-secondary">←</button>
+        <button id="exercise-next" class="btn-secondary">→</button>
+      </div>
     </div>
-  </div>
-
-  <div class="controls">
-    <label class="hint-text">Añadir ejercicios desde el botón flotante “＋”. Para reordenarlos, mantén pulsado sobre una tarjeta y arrástrala arriba o abajo.</label>
+    <div id="save-routine-message" class="save-session-message" aria-live="polite"></div>
+    <div id="save-routine-error" class="save-session-error" aria-live="polite"></div>
   </div>
   
   <div id="exercises-container"></div>
   
-  <div id="final-controls-container" style="margin-top: 1rem;">
-    <div class="controls" id="validate-session-controls">
-      <button id="validate-session-btn" class="btn-primary">Acabar sesión</button>
-      <div id="validate-session-message" class="save-session-message" aria-live="polite"></div>
-      <div id="validate-session-error" class="save-session-error" aria-live="polite"></div>
-    </div>
-  </div>
 
-  <div id="stopwatch-popup" class="collapsed">
-    <button id="minimize-stopwatch">−</button>
-    <div id="stopwatch-display">00:00</div>
-    <input type="number" id="stopwatch-input" placeholder="Tiempo en segundos (ej: 60)" min="1">
-    <div id="stopwatch-buttons">
-      <button id="start-stopwatch" class="btn-primary">Iniciar</button>
-      <button id="stop-stopwatch" class="btn-secondary">Detener</button>
-      <button id="reset-stopwatch" class="btn-secondary">Reset</button>
+  <div id="stopwatch-overlay" class="overlay" aria-hidden="true">
+    <div id="stopwatch-popup" class="overlay-card">
+      <div id="stopwatch-display">00:00</div>
+      <input type="number" id="stopwatch-input" placeholder="Tiempo en segundos (ej: 60)" min="1">
+      <div id="stopwatch-buttons">
+        <button id="start-stopwatch" class="btn-primary" aria-label="Iniciar">&#9654;</button>
+        <button id="stop-stopwatch" class="btn-secondary" aria-label="Detener">&#9632;</button>
+        <button id="reset-stopwatch" class="btn-secondary" aria-label="Reiniciar">&#8634;</button>
+      </div>
+      <div class="overlay-actions">
+        <button id="stopwatch-close-btn" class="btn-secondary">Cerrar</button>
+      </div>
     </div>
   </div>
-  <button id="toggle-stopwatch">⏱️</button>
-  <div id="quick-add-popup" class="collapsed">
-    <button id="minimize-quick-add">−</button>
-    <label for="quick-add-group">Grupo muscular</label>
-    <select id="quick-add-group">
-      <option value="">Seleccionar grupo...</option>
-    </select>
-    <label for="quick-add-exercise">Ejercicio</label>
-    <select id="quick-add-exercise" disabled>
-      <option value="">Seleccionar ejercicio...</option>
-    </select>
-    <div id="quick-add-buttons">
-      <button id="quick-add-predefined" class="btn-secondary">Añadir</button>
-      <button id="quick-add-custom" class="btn-secondary">Personalizado</button>
+  <div id="quick-add-overlay" class="overlay" aria-hidden="true">
+    <div id="quick-add-popup" class="overlay-card">
+      <label for="quick-add-group">Grupo muscular</label>
+      <select id="quick-add-group">
+        <option value="">Seleccionar grupo...</option>
+      </select>
+      <label for="quick-add-exercise">Ejercicio</label>
+      <select id="quick-add-exercise" disabled>
+        <option value="">Seleccionar ejercicio...</option>
+      </select>
+      <div id="quick-add-buttons">
+        <button id="quick-add-predefined" class="btn-secondary">Añadir</button>
+        <button id="quick-add-custom" class="btn-secondary">Personalizado</button>
+      </div>
+      <div class="overlay-actions">
+        <button id="quick-add-close-btn" class="btn-secondary">Cerrar</button>
+      </div>
     </div>
   </div>
-  <button id="toggle-quick-add">＋</button>
+  <div class="floating-actions" id="floating-actions">
+    <button id="toggle-user-manage" aria-label="Gestionar usuario">👤</button>
+    <button id="toggle-stopwatch" aria-label="Cuenta atras">⏱️</button>
+    <button id="toggle-quick-add" aria-label="Ejercicios">＋</button>
+  </div>
     </div>
   </details>
 
-  <details id="step-4" class="step-section">
+  <details id="step-4" class="step-section step-page" open>
     <summary>
       <span>Paso 4: Cuestionario post-entreno</span>
       <span id="step-4-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
+      <div class="hint-text">Paso 4 · Cuestionario post-entreno</div>
       <div id="post-workout-section" class="post-workout-locked">
         <div class="controls sensations-form" id="sensations-controls">
           <h3>Cuestionario de Post-Entrenamiento</h3>
-          
+          <div class="control-row">
+            <label for="date-input">Fecha</label>
+            <input type="date" id="date-input">
+          </div>
           <div class="control-row">
             <label for="sense-general">Sensaciones generales del entreno 0-10 (muy mal - excelente)</label>
             <input type="number" id="sense-general" min="0" max="10" placeholder="Ej: 8">
@@ -988,78 +1098,64 @@
     </div>
   </details>
 
-  <details id="step-5" class="step-section">
+  <details id="step-5" class="step-section step-page" open>
     <summary>
       <span>Paso 5: Gráficos del usuario</span>
       <span id="step-5-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
+      <div class="hint-text">Paso 5 · Gráficos del usuario</div>
       <div id="graficos-content">
         <h2>Gráficos del usuario</h2>
         <p id="no-data-msg" style="display: none; color: var(--meta-text);">Todavía no hay datos de este usuario. Guarda sesiones o importa datos para ver los gráficos.</p>
         <div class="controls" id="chart-controls">
-          <div>
-            <label>Ejercicios</label><br>
-            <button id="exercise-dropdown-btn" class="btn-secondary">Seleccionar ejercicios</button>
-            <div id="exercise-dropdown" class="dropdown-content" style="display: none;">
-              <!-- Checkboxes will be added here -->
+          <div class="controls-row chart-actions">
+            <div>
+              <label>Ejercicios</label><br>
+              <button id="exercise-dropdown-btn" class="btn-secondary">Seleccionar ejercicios</button>
+              <div id="exercise-dropdown" class="dropdown-content" style="display: none;">
+                <!-- Checkboxes will be added here -->
+              </div>
+            </div>
+
+            <div>
+              <label>Variable</label><br>
+              <select id="chart-variable-select">
+                <option value="peso">Peso Máximo</option>
+                <option value="carga">Carga Total (Peso x Reps)</option>
+                <option value="cardio_intensity">Cardio - Intensidad Máxima</option>
+                <option value="cardio_time">Cardio - Tiempo Total (min)</option>
+                <option value="sens_general">Sensaciones generales (0-10)</option>
+                <option value="sens_tiredness">Cansancio percibido (0-10)</option>
+                <option value="sens_weight">Peso corporal (kg)</option>
+                <option value="sens_pain">Dolor en algún músculo (Sí/No)</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Generar Gráfico</label><br>
+              <button id="generate-chart-btn" class="btn-primary" aria-label="Generar gráfico">▶</button>
             </div>
           </div>
-
-          <div>
-            <label>Variable</label><br>
-            <select id="chart-variable-select">
-              <option value="peso">Peso Máximo</option>
-              <option value="carga">Carga Total (Peso x Reps)</option>
-              <option value="cardio_intensity">Cardio - Intensidad Máxima</option>
-              <option value="cardio_time">Cardio - Tiempo Total (min)</option>
-              <option value="sens_general">Sensaciones generales (0-10)</option>
-              <option value="sens_tiredness">Cansancio percibido (0-10)</option>
-              <option value="sens_weight">Peso corporal (kg)</option>
-              <option value="sens_pain">Dolor en algún músculo (Sí/No)</option>
-            </select>
-          </div>
-
-          <button id="generate-chart-btn" class="btn-primary">Generar Gráfico</button>
         </div>
 
         <div class="chart-container">
           <canvas id="progress-chart"></canvas>
         </div>
+        <div class="chart-container">
+          <canvas id="progress-chart-sens"></canvas>
+        </div>
       </div>
     </div>
   </details>
   </div>
-
-  <details class="step-section" id="legal-notes">
-  <summary>
-    <span>Avisos legales y médicos</span>
-  </summary>
-  <div class="step-body">
-    <span class="hint-text">
-      <b>Aviso legal:</b> GitHub Pages solo sirve archivos estáticos, sin base de datos ni servidor donde subir datos.
-    </span>
-    <br>
-    <span class="hint-text">
-      <b>Disclaimer médico:</b> esta aplicación no ofrece asesoramiento médico ni deportivo. Consulta a un profesional antes de realizar cambios
-      en tu entrenamiento, especialmente si tienes lesiones o condiciones previas.
-    </span>
-    <br>
-    <span class="hint-text">
-      <b>Uso y responsabilidad:</b> utilizas la web bajo tu cuenta y riesgo. No se garantiza la disponibilidad ni la
-      conservación de los datos si cambias de dispositivo, navegador o modo privado.
-    </span>
-    <br>
-    <span class="hint-text">
-      <b>Sin garantías:</b> la aplicación se ofrece “tal cual”, sin garantías de disponibilidad, continuidad o ausencia de errores.
-    </span>
-    <br>
-    <span class="hint-text">
-      <b>Limitación de responsabilidad:</b> el creador no se hace responsable de daños indirectos, pérdidas de beneficios o
-      decisiones tomadas a partir de la información registrada.
-    </span>
   </div>
-  </details>
+
+  <div class="stepper-footer" id="stepper-footer">
+    <button id="stepper-prev" class="btn-secondary">Anterior</button>
+    <button id="stepper-next" class="btn-primary">Siguiente</button>
+  </div>
+
 </main>
 
 <div id="import-overlay" class="overlay" aria-hidden="true">
@@ -1070,6 +1166,20 @@
     <div class="overlay-actions">
       <button id="import-overlay-cancel" class="btn-secondary">Cancelar</button>
       <button id="import-overlay-confirm" class="btn-primary">Fusionar</button>
+    </div>
+  </div>
+</div>
+
+<div id="manage-user-overlay" class="overlay" aria-hidden="true">
+  <div class="overlay-card manage-user-card">
+    <h3>Gestion del usuario</h3>
+    <div class="manage-user-actions">
+      <button id="rename-user-history-btn" class="btn-secondary">Renombrar usuario</button>
+      <button id="export-user-history-btn" class="btn-accent-alt">Exportar datos del usuario</button>
+      <button id="delete-user-history-btn" class="btn-danger">Eliminar usuario</button>
+    </div>
+    <div class="overlay-actions">
+      <button id="manage-user-close" class="btn-secondary">Cerrar</button>
     </div>
   </div>
 </div>
@@ -1092,7 +1202,6 @@
 
 <script>
   // Script Modificado para el nuevo toggle
-  const themeToggle = document.getElementById("theme-toggle");
   const compactThemeToggle = document.getElementById("compact-theme-toggle");
   const htmlElement = document.documentElement;
 
@@ -1111,34 +1220,11 @@
   const initialTheme = savedTheme === "light" ? "light" : "dark";
   applyTheme(initialTheme);
 
-  // Listener para el evento 'click' del botón
   const onThemeToggle = () => {
     const isDark = htmlElement.classList.contains("dark");
     applyTheme(isDark ? "light" : "dark");
   };
-  themeToggle.addEventListener("click", onThemeToggle);
   if (compactThemeToggle) compactThemeToggle.addEventListener("click", onThemeToggle);
-
-  const compactHeader = document.getElementById("compact-header");
-  const toggleCompactHeader = () => {
-    const show = window.scrollY > 140;
-    if (!compactHeader) return;
-    compactHeader.classList.toggle("visible", show);
-    document.body.classList.toggle("compact-active", show);
-  };
-  window.addEventListener("scroll", toggleCompactHeader, { passive: true });
-  toggleCompactHeader();
-
-  const legalLink = document.querySelector('a[href="#legal-notes"]');
-  const legalNotes = document.getElementById("legal-notes");
-  if (legalLink && legalNotes) {
-    legalLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      legalNotes.open = true;
-      legalNotes.scrollIntoView({ behavior: "smooth", block: "start" });
-      history.replaceState(null, "", "#legal-notes");
-    });
-  }
 
   // Gráficos
   const exerciseDropdownBtn = document.getElementById('exercise-dropdown-btn');
@@ -1146,8 +1232,10 @@
   const chartVariableSelect = document.getElementById('chart-variable-select');
   const generateChartBtn = document.getElementById('generate-chart-btn');
   const chartCanvas = document.getElementById('progress-chart');
+  const chartSensCanvas = document.getElementById('progress-chart-sens');
 
   let chart;
+  let chartSensations;
 
   const chartControls = document.getElementById('chart-controls');
 
@@ -1171,6 +1259,11 @@
         session.exercises.forEach(ex => exercises.add(ex.nombre));
       }
     });
+    const activeExercises = new Set(
+      Array.from(document.querySelectorAll("#exercises-container .exercise-title"))
+        .map(el => el.textContent.trim())
+        .filter(Boolean)
+    );
     const hasSensations = sessions.some(session => session.sensations && (
       session.sensations.general || session.sensations.tiredness || session.sensations.pain
     ));
@@ -1182,16 +1275,30 @@
       noDataMsg.style.display = 'none';
       chartControls.style.display = 'flex';
       exerciseDropdown.innerHTML = '';
+      const currentSession = sessions[sessions.length - 1] || null;
+      const currentExerciseNames = new Set(
+        (currentSession?.exercises || []).map(ex => ex.nombre)
+      );
       exercises.forEach(ex => {
         const label = document.createElement('label');
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.value = ex;
+        if (activeExercises.size ? activeExercises.has(ex) : currentExerciseNames.has(ex)) {
+          checkbox.checked = true;
+        }
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(ex));
         exerciseDropdown.appendChild(label);
       });
+
+      const selected = Array.from(exerciseDropdown.querySelectorAll('input[type="checkbox"]:checked'));
+      if (selected.length) {
+        if (chartVariableSelect) chartVariableSelect.value = 'peso';
+        generateChartBtn.click();
+      }
     }
+    renderDefaultCharts(sessions);
   }
 
   const chartMuscleGroupMap = {
@@ -1407,13 +1514,6 @@
         groupCounts[group] = (groupCounts[group] || 0) + 1;
       });
       const groupIndices = {};
-      const getVariableLabel = (val) => {
-        if (val === 'peso') return 'Peso Máximo';
-        if (val === 'carga') return 'Carga Total';
-        if (val === 'cardio_intensity') return 'Intensidad Máxima';
-        if (val === 'cardio_time') return 'Tiempo Total';
-        return '';
-      };
       selectedExercises.forEach((exerciseName, index) => {
         const values = sortedDates.map(d => dateMap[d][exerciseName]?.value || null);
         const pointStyles = sortedDates.map(d => dateMap[d][exerciseName]?.hasFailure ? 'star' : 'circle');
@@ -1423,7 +1523,7 @@
         const color = getExerciseColor(group, groupIndex, groupTotal);
         groupIndices[group] = groupIndex + 1;
         datasets.push({
-          label: exerciseName + ` (${group})` + ` - ${getVariableLabel(variable)}`,
+          label: exerciseName,
           data: values,
           pointStyle: pointStyles,
           borderColor: color,
@@ -1453,8 +1553,10 @@
           x: {
             title: {
               display: true,
-              text: 'Fecha'
-            }
+              text: 'Fecha',
+              font: { size: 16 }
+            },
+            ticks: { font: { size: 14 } }
           },
           y: {
             title: {
@@ -1468,17 +1570,101 @@
                   : variable === 'cardio_time'
                     ? 'Tiempo (min)'
                     : variable === 'sens_pain'
-                      ? 'Dolor (0=No, 1=Sí)'
-                      : variable === 'sens_weight'
-                        ? 'Peso (kg)'
-                        : 'Puntuación (0-10)'
+                  ? 'Dolor (0=No, 1=Sí)'
+                  : variable === 'sens_weight'
+                    ? 'Peso (kg)'
+                    : 'Puntuación (0-10)',
+              font: { size: 16 }
             },
+            ticks: { font: { size: 14 } },
             beginAtZero: true
           }
         }
       }
     });
   });
+
+  function renderDefaultCharts(sessions) {
+    const hasSessions = Array.isArray(sessions) && sessions.length > 0;
+    if (!hasSessions) {
+      if (chartSensations) chartSensations.destroy();
+      return;
+    }
+
+    const dateMap = {};
+    sessions.forEach(session => {
+      const dateStr = session.date;
+      if (!dateStr) return;
+      const sens = session.sensations || {};
+      if (!dateMap[dateStr]) dateMap[dateStr] = {};
+      if (sens.general != null) dateMap[dateStr].general = parseInt(sens.general, 10);
+      if (sens.tiredness != null) dateMap[dateStr].tiredness = parseInt(sens.tiredness, 10);
+      if (sens.pain != null) {
+        dateMap[dateStr].pain = sens.pain === "si" ? 1 : 0;
+      }
+      if (sens.weight != null) dateMap[dateStr].weight = parseFloat(sens.weight);
+    });
+
+    const sortedDates = Object.keys(dateMap).sort((a, b) => new Date(a) - new Date(b));
+    const labels = sortedDates.map(d => new Date(d).toLocaleDateString('es-ES'));
+
+    const sensData = {
+      labels,
+      datasets: [
+        {
+          label: "Sensaciones generales (0-10)",
+          data: sortedDates.map(d => dateMap[d]?.general ?? null),
+          borderColor: "#0f766e",
+          backgroundColor: "#0f766e20",
+          spanGaps: true
+        },
+        {
+          label: "Cansancio percibido (0-10)",
+          data: sortedDates.map(d => dateMap[d]?.tiredness ?? null),
+          borderColor: "#f97316",
+          backgroundColor: "#f9731620",
+          spanGaps: true
+        }
+      ]
+    };
+
+    if (chartSensations) chartSensations.destroy();
+
+    if (chartSensCanvas) {
+      chartSensations = new Chart(chartSensCanvas, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            ...sensData.datasets,
+            {
+              label: "Peso corporal (kg)",
+              data: sortedDates.map(d => dateMap[d]?.weight ?? null),
+              borderColor: "#2563eb",
+              backgroundColor: "#2563eb20",
+              spanGaps: true,
+              yAxisID: "y2"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: "bottom" } },
+          scales: {
+            x: { title: { display: true, text: "Fecha", font: { size: 16 } }, ticks: { font: { size: 14 } } },
+            y: { beginAtZero: true, ticks: { font: { size: 14 } }, title: { display: true, text: "Sensaciones (0-10)", font: { size: 16 } } },
+            y2: {
+              position: "right",
+              beginAtZero: true,
+              grid: { drawOnChartArea: false },
+              ticks: { font: { size: 14 } },
+              title: { display: true, text: "Peso corporal (kg)", font: { size: 16 } }
+            }
+          }
+        }
+      });
+    }
+  }
 
   loadChartExercises();
   window.loadChartExercises = loadChartExercises;

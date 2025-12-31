@@ -9,34 +9,25 @@ const weekSelect = document.getElementById("week-select");
 const daySelect = document.getElementById("day-select");
 
 const loadBtn = document.getElementById("load-routine-btn");
+const deleteRoutineBtn = document.getElementById("delete-routine-btn");
 const exportBtn = document.getElementById("export-png-btn"); 
 const saveSessionBtn = document.getElementById("save-session-btn");
 const saveSessionMessage = document.getElementById("save-session-message");
 const saveSessionError = document.getElementById("save-session-error");
-const validateSessionBtn = document.getElementById("validate-session-btn");
-const validateSessionMessage = document.getElementById("validate-session-message");
-const validateSessionError = document.getElementById("validate-session-error");
 const postWorkoutSection = document.getElementById("post-workout-section");
 const saveRoutineBtn = document.getElementById("save-routine-btn");
 const saveRoutineMessage = document.getElementById("save-routine-message");
 const saveRoutineError = document.getElementById("save-routine-error");
 
 const exercisesContainer = document.getElementById("exercises-container");
-const predefinedSelect = document.getElementById("predefined-exercise-select");
-const muscleGroupSelect = document.getElementById("muscle-group-select");
-const addPredefinedBtn = document.getElementById("add-predefined-btn");
-const addCustomBtn = document.getElementById("add-custom-btn");
 const statusText = document.getElementById("status-text");
 
 const userHistoryControls = document.getElementById("user-history-controls");
 const userHistorySelect = document.getElementById("user-history-select");
-const confirmUserHistoryBtn = document.getElementById("confirm-user-history-btn");
-const importUserHistoryBtn = document.getElementById("import-user-history-btn");
 const newUserHistoryBtn = document.getElementById("new-user-history-btn");
 const renameUserHistoryBtn = document.getElementById("rename-user-history-btn");
 const deleteUserHistoryBtn = document.getElementById("delete-user-history-btn");
 const exportUserHistoryBtn = document.getElementById("export-user-history-btn");
-const uploadUserHistoryInput = document.getElementById("upload-user-history");
 const importMergeHistoryBtn = document.getElementById("import-merge-history-btn");
 const importMergeHistoryInput = document.getElementById("import-merge-history-input");
 const userHistoryStatus = document.getElementById("user-history-status");
@@ -45,6 +36,9 @@ const importOverlay = document.getElementById("import-overlay");
 const importUserSelect = document.getElementById("import-user-select");
 const importOverlayCancel = document.getElementById("import-overlay-cancel");
 const importOverlayConfirm = document.getElementById("import-overlay-confirm");
+const manageUserOverlay = document.getElementById("manage-user-overlay");
+const manageUserClose = document.getElementById("manage-user-close");
+const step0 = document.getElementById("step-0");
 const step1 = document.getElementById("step-1");
 const step2 = document.getElementById("step-2");
 const step3 = document.getElementById("step-3");
@@ -55,6 +49,17 @@ const step2Status = document.getElementById("step-2-status");
 const step3Status = document.getElementById("step-3-status");
 const step4Status = document.getElementById("step-4-status");
 const step5Status = document.getElementById("step-5-status");
+const stepperPrevBtn = document.getElementById("stepper-prev");
+const stepperNextBtn = document.getElementById("stepper-next");
+const welcomeStartBtn = document.getElementById("welcome-start-btn");
+const welcomeInfoBtn = document.getElementById("welcome-info-btn");
+const welcomeLegalBtn = document.getElementById("welcome-legal-btn");
+const welcomeInfoPanel = document.getElementById("welcome-info");
+const welcomeLegalPanel = document.getElementById("welcome-legal");
+const exerciseCounter = document.getElementById("exercise-counter");
+const exercisePrevBtn = document.getElementById("exercise-prev");
+const exerciseNextBtn = document.getElementById("exercise-next");
+const saveRoutineControls = document.getElementById("save-routine-controls");
 
 const LOCAL_HISTORY_KEY = "gym_history_v1";
 const USER_LIST_KEY = "gym_user_list";
@@ -62,7 +67,11 @@ const CUSTOM_ROUTINES_KEY = "gym_custom_routines_v1";
 
 let currentUserName = "";
 let currentUserKey = "";
-let isSessionValidated = false;
+const stepPages = [step0, step1, step2, step3, step4, step5].filter(Boolean);
+let activeStepIndex = 0;
+let pendingStartStepIndex = null;
+let activeExerciseIndex = 0;
+let exercisePaginationScheduled = false;
 
 function normalizeUserName(name) {
   return name.trim().replace(/\s+/g, "_");
@@ -280,14 +289,13 @@ function refreshUserSelect() {
 
   const placeholder = document.createElement("option");
   placeholder.value = "";
-  placeholder.textContent = "Selecciona un usuario (paso 1)";
+  placeholder.textContent = "Selecciona un usuario";
   placeholder.disabled = true;
   placeholder.selected = true;
   userHistorySelect.appendChild(placeholder);
 
   if (!userList.length) {
     userHistorySelect.disabled = true;
-    confirmUserHistoryBtn.disabled = true;
     setUserHistoryStatus("No hay usuarios. Crea uno nuevo para empezar.");
     return userList;
   }
@@ -299,14 +307,18 @@ function refreshUserSelect() {
     userHistorySelect.appendChild(opt);
   });
   userHistorySelect.disabled = false;
-  confirmUserHistoryBtn.disabled = false;
-  setUserHistoryStatus("Paso 1: selecciona un usuario para cargar sus datos.");
+  setUserHistoryStatus("Selecciona un usuario para continuar");
   return userList;
 }
 
 function setAppVisible(isVisible) {
   if (!appContent) return;
   appContent.style.display = isVisible ? "block" : "none";
+  if (!isVisible) {
+    setActiveStep(0, { skipScroll: true });
+  } else {
+    updateStepNavigation();
+  }
 }
 
 function setAppEnabled(enabled) {
@@ -315,6 +327,7 @@ function setAppEnabled(enabled) {
   const controls = main.querySelectorAll("input, select, button, textarea");
   controls.forEach(el => {
     if (userHistoryControls && userHistoryControls.contains(el)) return;
+    if (step0 && step0.contains(el)) return;
     el.disabled = !enabled;
   });
 }
@@ -338,11 +351,16 @@ function activateSelectedUser(userKey) {
   hydrateHistoryFromSessionKeys();
   setAppEnabled(true);
   setAppVisible(true);
-  setSessionValidated(false);
   populateRoutineSelectors();
   checkSensationsForm();
   setUserHistoryStatus(`Usuario activo: ${selected.name}`);
   updateStepStatus();
+  scheduleExercisePagination(true);
+  if (pendingStartStepIndex != null) {
+    const targetIndex = pendingStartStepIndex;
+    pendingStartStepIndex = null;
+    setActiveStep(targetIndex);
+  }
 }
 
 function updateStepStatus() {
@@ -356,21 +374,122 @@ function updateStepStatus() {
   if (step4Status) {
     step4Status.textContent = postWorkoutComplete
       ? "Completado"
-      : isSessionValidated
+      : hasExercises
         ? "En progreso"
         : "Bloqueado";
   }
   if (step5Status) step5Status.textContent = hasUser ? "Opcional" : "Pendiente";
+  if (toggleUserManageBtn) toggleUserManageBtn.disabled = !hasUser;
+  if (postWorkoutSection) {
+    postWorkoutSection.classList.toggle("post-workout-locked", !hasExercises);
+  }
+  updateStepNavigation();
 }
 
-// Event listener para el select de grupo muscular
-  if (muscleGroupSelect) {
-    populateGroupSelect(muscleGroupSelect);
-    muscleGroupSelect.addEventListener("change", () => {
-      const selectedGroup = muscleGroupSelect.value;
-      populateExerciseSelect(selectedGroup);
-    });
+function updateExercisePagination(resetIndex = false) {
+  if (!exercisesContainer) return;
+  let cards = Array.from(exercisesContainer.querySelectorAll(".exercise-card"));
+  if (!cards.length) {
+    cards = Array.from(exercisesContainer.children).filter(node => node.nodeType === 1);
+    cards.forEach(card => card.classList.add("exercise-card"));
   }
+  const total = cards.length;
+  if (resetIndex) {
+    activeExerciseIndex = 0;
+  }
+  if (total === 0) {
+    if (exerciseCounter) exerciseCounter.textContent = "Ejercicio 0 de 0";
+    if (exercisePrevBtn) exercisePrevBtn.disabled = true;
+    if (exerciseNextBtn) exerciseNextBtn.disabled = true;
+    if (saveRoutineControls) saveRoutineControls.style.display = "none";
+    return;
+  }
+
+  activeExerciseIndex = Math.max(0, Math.min(activeExerciseIndex, total - 1));
+  cards.forEach((card, idx) => {
+    card.style.display = idx === activeExerciseIndex ? "block" : "none";
+  });
+  if (exerciseCounter) {
+    exerciseCounter.textContent = `Ejercicio ${activeExerciseIndex + 1} de ${total}`;
+  }
+  if (exercisePrevBtn) exercisePrevBtn.disabled = activeExerciseIndex === 0;
+  if (exerciseNextBtn) exerciseNextBtn.disabled = activeExerciseIndex >= total - 1;
+  if (saveRoutineControls) {
+    saveRoutineControls.style.display = activeExerciseIndex === total - 1 ? "flex" : "none";
+  }
+}
+
+function scheduleExercisePagination(resetIndex = false) {
+  if (resetIndex) activeExerciseIndex = 0;
+  if (exercisePaginationScheduled) return;
+  exercisePaginationScheduled = true;
+  requestAnimationFrame(() => {
+    exercisePaginationScheduled = false;
+    updateExercisePagination(false);
+  });
+}
+
+function isAppVisible() {
+  return appContent && appContent.style.display !== "none";
+}
+
+function getMaxStepIndex() {
+  if (isAppVisible()) return stepPages.length - 1;
+  const loginIndex = stepPages.indexOf(step1);
+  if (loginIndex >= 0) return loginIndex;
+  return Math.min(1, stepPages.length - 1);
+}
+
+function updateStepNavigation() {
+  if (!stepPages.length) return;
+  const maxIndex = getMaxStepIndex();
+  if (activeStepIndex > maxIndex) {
+    activeStepIndex = maxIndex;
+  }
+  const activeStep = stepPages[activeStepIndex];
+
+  if (stepperPrevBtn) {
+    stepperPrevBtn.disabled = activeStepIndex === 0;
+    stepperPrevBtn.style.display = activeStepIndex === 0 ? "none" : "inline-flex";
+  }
+  if (stepperNextBtn) {
+    const atLast = activeStepIndex >= maxIndex;
+    const canMoveNext = !atLast;
+    stepperNextBtn.disabled = !canMoveNext;
+    stepperNextBtn.style.display = activeStepIndex === 0 ? "none" : "inline-flex";
+  }
+}
+
+function setActiveStep(index, options = {}) {
+  if (!stepPages.length) return;
+  const maxIndex = getMaxStepIndex();
+  let nextIndex = Math.max(0, Math.min(index, maxIndex));
+
+  activeStepIndex = nextIndex;
+  stepPages.forEach((step, idx) => {
+    if (!step) return;
+    step.classList.toggle("active", idx === activeStepIndex);
+    step.setAttribute("aria-hidden", idx === activeStepIndex ? "false" : "true");
+    if ("open" in step) {
+      step.open = idx === activeStepIndex;
+    }
+  });
+
+  updateStepNavigation();
+}
+
+function initializeStepper() {
+  if (!stepPages.length) return;
+
+  if (stepperPrevBtn) {
+    stepperPrevBtn.addEventListener("click", () => setActiveStep(activeStepIndex - 1));
+  }
+  if (stepperNextBtn) {
+    stepperNextBtn.addEventListener("click", () => setActiveStep(activeStepIndex + 1));
+  }
+
+  setActiveStep(activeStepIndex, { skipScroll: true });
+}
 
 // CAMPOS DE SENSACIONES
 const senseGeneralInput = document.getElementById("sense-general");
@@ -767,39 +886,8 @@ function getAllRoutines() {
   return { ...base, ...custom };
 }
 
-function getEncouragementMessage() {
-  const messages = [
-    "Bien hecho! :)",
-    "Eres un maquina! 💪",
-    "Gran trabajo, sigue asi! 😎",
-    "Buen ritmo, a por la siguiente! 🚀",
-    "Ritmo solido, sigue sumando! 🔥",
-    "Hoy se entrena, manana se presume! 😄",
-    "Vas fino, muy buen curro! ✅",
-    "Cada dia mas fuerte! 🦾",
-    "Objetivo cumplido, a descansar! 🧘",
-    "Suma y sigue, campeon! 🏆",
-    "On fire! 🔥",
-    "Progreso real, sigue asi! 📈",
-    "Modo bestia activado! 🐺",
-    "Dejando huella, crack! 👊",
-    "Nivel Llados, a tope! 💥",
-    "Cruasán 🥐 con faking cafe?! Tú no!",
-    "Panza? Es como foak, ni de coña! 🔥",
-    "Entreno limpio, mente fuerte! 🧠"
-  ];
-  return messages[Math.floor(Math.random() * messages.length)];
-}
-
 function showSaveSessionMessage() {
   if (!saveSessionMessage) return;
-  saveSessionMessage.innerHTML = "<strong>Sesión guardada.</strong>";
-  saveSessionMessage.style.display = "block";
-  clearSaveSessionError();
-}
-
-function showValidateSessionMessage() {
-  if (!validateSessionMessage) return;
   const messages = [
     "Bien hecho! :)",
     "Eres un maquina! 💪",
@@ -821,9 +909,9 @@ function showValidateSessionMessage() {
     "Entreno limpio, mente fuerte! 🧠"
   ];
   const message = messages[Math.floor(Math.random() * messages.length)];
-  validateSessionMessage.innerHTML = `<strong>Sesión acabada.</strong> ${message} No te olvides de realizar el cuestionario post entreno para poder guardar la sesión.`;
-  validateSessionMessage.style.display = "block";
-  clearValidateSessionError();
+  saveSessionMessage.innerHTML = `<strong>Sesión guardada.</strong> ${message}`;
+  saveSessionMessage.style.display = "block";
+  clearSaveSessionError();
 }
 
 function showSaveSessionError(message) {
@@ -836,24 +924,6 @@ function clearSaveSessionError() {
   if (!saveSessionError) return;
   saveSessionError.textContent = "";
   saveSessionError.style.display = "none";
-}
-
-function showValidateSessionError(message) {
-  if (!validateSessionError) return;
-  validateSessionError.innerHTML = `<strong>Error.</strong> ${message}`;
-  validateSessionError.style.display = "block";
-}
-
-function clearValidateSessionError() {
-  if (!validateSessionError) return;
-  validateSessionError.textContent = "";
-  validateSessionError.style.display = "none";
-}
-
-function clearValidateSessionMessage() {
-  if (!validateSessionMessage) return;
-  validateSessionMessage.textContent = "";
-  validateSessionMessage.style.display = "none";
 }
 
 function showSaveRoutineMessage(message) {
@@ -874,17 +944,6 @@ function showSaveRoutineError(message) {
     saveRoutineMessage.textContent = "";
     saveRoutineMessage.style.display = "none";
   }
-}
-
-function setSessionValidated(validated) {
-  isSessionValidated = validated;
-  if (postWorkoutSection) {
-    postWorkoutSection.classList.toggle("post-workout-locked", !validated);
-  }
-  if (!validated) {
-    clearValidateSessionMessage();
-  }
-  updateStepStatus();
 }
 
 function setFieldError(fieldId, message) {
@@ -913,7 +972,8 @@ function clearFieldErrors() {
 }
 
 function isPostWorkoutComplete() {
-  if (!isSessionValidated) return false;
+  const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
+  if (!hasExercises) return false;
   if (!senseGeneralInput?.value || senseGeneralInput.value.trim() === "") return false;
   if (!senseTirednessInput?.value || senseTirednessInput.value.trim() === "") return false;
   if (sensePainSelect?.value === "si") {
@@ -931,16 +991,17 @@ function checkSensationsForm(shouldFocus = false) {
     let isValid = true;
     let errorMessage = "";
     let firstInvalid = null;
+    const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
 
     clearFieldErrors();
 
-    if (!isSessionValidated) {
+    if (!hasExercises) {
         isValid = false;
-        errorMessage = "Acaba la sesión para acceder al cuestionario post entreno y activar los botones.";
+        errorMessage = "Añade al menos un ejercicio para activar el cuestionario post entreno.";
     }
     
     // 1. Sensaciones generales y cansancio
-    if (isSessionValidated) {
+    if (hasExercises) {
         if (!senseGeneralInput.value || senseGeneralInput.value.trim() === '') {
             isValid = false;
             errorMessage = "Completa el cuestionario post entreno para activar los botones.";
@@ -956,7 +1017,7 @@ function checkSensationsForm(shouldFocus = false) {
     }
 
     // 2. Dolor específico (si 'si' está seleccionado)
-    if (isSessionValidated && sensePainSelect.value === 'si') {
+    if (hasExercises && sensePainSelect.value === 'si') {
         if (!painZoneInput.value || painZoneInput.value.trim() === '') {
             isValid = false;
             errorMessage = "Completa el cuestionario post entreno para activar los botones.";
@@ -1122,21 +1183,10 @@ function buildExerciseCard(exData) {
   `;
 
 
-  const removeBtn = document.createElement("button");
-  removeBtn.textContent = "Eliminar ejercicio";
-  removeBtn.className = "btn-danger btn-small";
-  
-  removeBtn.onclick = () => {
-    card.remove();
-    saveSession();
-    loadSession(); // Necesario para refrescar el painExerciseSelect
-  };
-
   const headerActions = document.createElement("div");
   headerActions.style.display = "flex";
   headerActions.style.gap = "6px";
   headerActions.style.alignItems = "center";
-  headerActions.appendChild(removeBtn);
 
   header.appendChild(left);
   header.appendChild(headerActions);
@@ -1235,16 +1285,30 @@ function buildExerciseCard(exData) {
 
   const addBtn = document.createElement("button");
   addBtn.textContent = "Añadir serie";
-  addBtn.className = "btn-primary btn-small add-set-btn";
+  addBtn.className = "btn-primary add-set-btn";
   addBtn.onclick = () => {
     addSetRow(tbody, {}, () => updateOverloadWarning(card), isCardio ? cardioSetFields : strengthSetFields);
     saveSession();
     updateOverloadWarning(card);
   };
 
-  headerActions.prepend(addBtn);
-
   updateOverloadWarning(card);
+
+  const removeBtn = document.createElement("button");
+  removeBtn.textContent = "Eliminar ejercicio";
+  removeBtn.className = "btn-danger";
+  removeBtn.onclick = () => {
+    card.remove();
+    saveSession();
+    loadSession(); // Necesario para refrescar el painExerciseSelect
+    scheduleExercisePagination();
+  };
+
+  const actions = document.createElement("div");
+  actions.className = "exercise-actions";
+  actions.appendChild(addBtn);
+  actions.appendChild(removeBtn);
+  card.appendChild(actions);
 
   // Hacer la tarjeta draggable
   card.draggable = true;
@@ -1274,6 +1338,9 @@ function addExerciseFromTemplate(name) {
     })
   );
   saveSession();
+  const total = exercisesContainer.querySelectorAll(".exercise-card").length;
+  activeExerciseIndex = Math.max(0, total - 1);
+  scheduleExercisePagination();
 }
 
 
@@ -1388,37 +1455,13 @@ function saveSession() {
 
   checkSensationsForm();
   updateStepStatus();
+  scheduleExercisePagination(false);
 }
 
 
 // -------------------------
 // FUNCIÓN PARA EL SELECTOR DE AÑADIR EJERCICIO (POR GRUPO)
 // -------------------------
-
-function populateExerciseSelect(selectedGroup) {
-  if (!predefinedSelect) return;
-  predefinedSelect.innerHTML = `<option value="">Seleccionar ejercicio...</option>`;
-  
-  if (!selectedGroup) {
-    predefinedSelect.disabled = true;
-    return;
-  }
-  
-  predefinedSelect.disabled = false;
-  
-  // Filtrar ejercicios por grupo
-  const exercisesInGroup = Object.keys(exerciseTemplates).filter(name => {
-    const tpl = exerciseTemplates[name];
-    return resolveExerciseGroup(tpl) === selectedGroup;
-  }).sort();
-  
-  exercisesInGroup.forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    predefinedSelect.appendChild(opt);
-  });
-}
 
 function resolveExerciseGroup(tpl) {
   if (!tpl) return "Otros";
@@ -1538,7 +1581,6 @@ function populatePainExerciseSelect(exerciseNames) {
 // -------------------------
 
 function loadSession() {
-  setSessionValidated(false);
   const key = sessionKey();
   const saved = JSON.parse(localStorage.getItem(key) || "null");
 
@@ -1632,59 +1674,6 @@ function loadSession() {
   updateStepStatus();
 }
 
-
-// -------------------------
-// AÑADIR EJERCICIO PREDEFINIDO
-// -------------------------
-
-if (addPredefinedBtn) {
-  addPredefinedBtn.onclick = () => {
-    const name = predefinedSelect.value;
-    if (!name) return;
-    addExerciseFromTemplate(name);
-    checkSensationsForm();
-  };
-}
-
-
-// -------------------------
-// AÑADIR PERSONALIZADO
-// -------------------------
-
-if (addCustomBtn) {
-  addCustomBtn.onclick = () => {
-    const name = prompt("Nombre del ejercicio:");
-    if (!name) return;
-
-    exercisesContainer.appendChild(
-      buildExerciseCard({
-        nombre: name,
-        musculo: "Personalizado",
-        seccion: "N/A",
-        hacer: "",
-        noHacer: "",
-        trucos: "",
-        sets: []
-      })
-    );
-
-    saveSession();
-    checkSensationsForm();
-  };
-}
-
-if (validateSessionBtn) {
-  validateSessionBtn.onclick = () => {
-    const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
-    if (!hasExercises) {
-      showValidateSessionError("Añade al menos un ejercicio antes de acabar la sesión.");
-      return;
-    }
-    setSessionValidated(true);
-    showValidateSessionMessage();
-    checkSensationsForm();
-  };
-}
 
 if (saveRoutineBtn) {
   saveRoutineBtn.onclick = () => {
@@ -1947,6 +1936,34 @@ if (painExerciseSelect) painExerciseSelect.addEventListener("change", () => chec
 // Listener para el botón de cargar/cambiar rutina (adicional al change)
 loadBtn.addEventListener("click", loadSession);
 
+if (deleteRoutineBtn) {
+  deleteRoutineBtn.addEventListener("click", () => {
+    if (!currentUserKey) {
+      setStatus("Selecciona un usuario antes de borrar rutinas.");
+      return;
+    }
+    const routineName = weekSelect?.value || "";
+    if (!routineName) {
+      setStatus("Selecciona una rutina para borrar.");
+      return;
+    }
+    const custom = loadCustomRoutines();
+    if (!custom[routineName]) {
+      setStatus("Solo puedes borrar rutinas personalizadas.");
+      return;
+    }
+    if (!confirm(`Borrar la rutina personalizada "${routineName}"?`)) return;
+    delete custom[routineName];
+    saveCustomRoutines(custom);
+    populateRoutineSelectors();
+    if (weekSelect) {
+      weekSelect.value = "Semana 1";
+      populateDaySelect(weekSelect.value);
+    }
+    setStatus("Rutina borrada.");
+  });
+}
+
 function onReady(callback) {
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", callback);
@@ -1963,10 +1980,46 @@ onReady(() => {
   }
 
   initializeForUserSelection();
+  initializeStepper();
+  if (welcomeStartBtn) {
+    const startIndex = stepPages.indexOf(step1);
+    const sessionIndex = stepPages.indexOf(step2);
+    welcomeStartBtn.addEventListener("click", () => {
+      if (currentUserKey && sessionIndex >= 0) {
+        setActiveStep(sessionIndex);
+        return;
+      }
+      if (sessionIndex >= 0) {
+        pendingStartStepIndex = sessionIndex;
+      }
+      if (startIndex >= 0) {
+        setActiveStep(startIndex);
+      }
+    });
+  }
+  if (welcomeLegalBtn) {
+    welcomeLegalBtn.addEventListener("click", () => {
+      if (!welcomeLegalPanel) return;
+      const isHidden = welcomeLegalPanel.style.display === "none";
+      welcomeLegalPanel.style.display = isHidden ? "block" : "none";
+      if (isHidden) {
+        welcomeLegalPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
+  if (welcomeInfoBtn) {
+    welcomeInfoBtn.addEventListener("click", () => {
+      if (!welcomeInfoPanel) return;
+      const isHidden = welcomeInfoPanel.style.display === "none";
+      welcomeInfoPanel.style.display = isHidden ? "block" : "none";
+      if (isHidden) {
+        welcomeInfoPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
   refreshUserSelect();
   if (exportBtn) exportBtn.disabled = true;
   if (saveSessionBtn) saveSessionBtn.disabled = true;
-  setSessionValidated(false);
   checkSensationsForm();
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
@@ -1977,8 +2030,6 @@ window.addEventListener("load", () => {
   refreshUserSelect();
 });
 
-
-// Añadir listeners para que los cambios de fecha/selectores recarguen la sesión
 
 // -------------------------
 // CRONÓMETRO (TEMPORIZADOR DE CUENTA ATRÁS)
@@ -1995,15 +2046,18 @@ const startBtn = document.getElementById('start-stopwatch');
 const stopBtn = document.getElementById('stop-stopwatch');
 const resetBtn = document.getElementById('reset-stopwatch');
 const toggleBtn = document.getElementById('toggle-stopwatch');
-const minimizeBtn = document.getElementById('minimize-stopwatch');
 const popup = document.getElementById('stopwatch-popup');
+const stopwatchOverlay = document.getElementById('stopwatch-overlay');
+const stopwatchCloseBtn = document.getElementById('stopwatch-close-btn');
 const quickAddPopup = document.getElementById('quick-add-popup');
+const quickAddOverlay = document.getElementById('quick-add-overlay');
 const quickAddToggleBtn = document.getElementById('toggle-quick-add');
-const quickAddMinimizeBtn = document.getElementById('minimize-quick-add');
+const quickAddCloseBtn = document.getElementById('quick-add-close-btn');
 const quickAddGroupSelect = document.getElementById('quick-add-group');
 const quickAddExerciseSelect = document.getElementById('quick-add-exercise');
 const quickAddPredefinedBtn = document.getElementById('quick-add-predefined');
 const quickAddCustomBtn = document.getElementById('quick-add-custom');
+const toggleUserManageBtn = document.getElementById('toggle-user-manage');
 
 function updateDisplay() {
   const minutes = Math.floor(stopwatchTime / 60);
@@ -2039,6 +2093,30 @@ function stopBeepLoop() {
   if (!beepInterval) return;
   clearInterval(beepInterval);
   beepInterval = null;
+}
+
+function openStopwatchOverlay() {
+  if (!stopwatchOverlay) return;
+  stopwatchOverlay.style.display = "flex";
+  stopwatchOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeStopwatchOverlay() {
+  if (!stopwatchOverlay) return;
+  stopwatchOverlay.style.display = "none";
+  stopwatchOverlay.setAttribute("aria-hidden", "true");
+}
+
+function openQuickAddOverlay() {
+  if (!quickAddOverlay) return;
+  quickAddOverlay.style.display = "flex";
+  quickAddOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeQuickAddOverlay() {
+  if (!quickAddOverlay) return;
+  quickAddOverlay.style.display = "none";
+  quickAddOverlay.setAttribute("aria-hidden", "true");
 }
 
 startBtn.addEventListener('click', () => {
@@ -2087,22 +2165,14 @@ stopwatchInput.addEventListener('input', () => {
 });
 
 toggleBtn.addEventListener('click', () => {
-  if (quickAddPopup && !quickAddPopup.classList.contains("collapsed")) {
-    quickAddPopup.classList.add("collapsed");
-    quickAddPopup.style.display = "none";
-  }
-  popup.classList.toggle('collapsed');
-  if (popup.classList.contains('collapsed')) {
-    popup.style.display = 'none';
+  closeQuickAddOverlay();
+  if (stopwatchOverlay?.style.display === "flex") {
+    closeStopwatchOverlay();
   } else {
-    popup.style.display = 'block';
+    openStopwatchOverlay();
   }
 });
 
-minimizeBtn.addEventListener('click', () => {
-  popup.classList.add('collapsed');
-  popup.style.display = 'none';
-});
 
 function populateQuickAddGroups() {
   populateGroupSelect(quickAddGroupSelect);
@@ -2159,33 +2229,66 @@ if (quickAddCustomBtn) {
       })
     );
     saveSession();
+    const total = exercisesContainer.querySelectorAll(".exercise-card").length;
+    activeExerciseIndex = Math.max(0, total - 1);
+    scheduleExercisePagination();
   });
 }
 
 if (quickAddToggleBtn) {
   quickAddToggleBtn.addEventListener("click", () => {
-    if (!popup.classList.contains("collapsed")) {
-      popup.classList.add("collapsed");
-      popup.style.display = "none";
-    }
-    quickAddPopup.classList.toggle("collapsed");
-    if (quickAddPopup.classList.contains("collapsed")) {
-      quickAddPopup.style.display = "none";
+    closeStopwatchOverlay();
+    if (quickAddOverlay?.style.display === "flex") {
+      closeQuickAddOverlay();
     } else {
-      quickAddPopup.style.display = "block";
+      openQuickAddOverlay();
     }
   });
 }
 
-if (quickAddMinimizeBtn) {
-  quickAddMinimizeBtn.addEventListener("click", () => {
-    quickAddPopup.classList.add("collapsed");
-    quickAddPopup.style.display = "none";
+if (stopwatchCloseBtn) {
+  stopwatchCloseBtn.addEventListener("click", closeStopwatchOverlay);
+}
+
+if (quickAddCloseBtn) {
+  quickAddCloseBtn.addEventListener("click", closeQuickAddOverlay);
+}
+
+if (exercisePrevBtn) {
+  exercisePrevBtn.addEventListener("click", () => {
+    activeExerciseIndex = Math.max(0, activeExerciseIndex - 1);
+    scheduleExercisePagination();
+  });
+}
+
+if (exerciseNextBtn) {
+  exerciseNextBtn.addEventListener("click", () => {
+    activeExerciseIndex += 1;
+    scheduleExercisePagination();
+  });
+}
+
+if (stopwatchOverlay) {
+  stopwatchOverlay.addEventListener("click", (e) => {
+    if (e.target === stopwatchOverlay) closeStopwatchOverlay();
+  });
+}
+
+if (quickAddOverlay) {
+  quickAddOverlay.addEventListener("click", (e) => {
+    if (e.target === quickAddOverlay) closeQuickAddOverlay();
   });
 }
 
 // Inicializar display
 updateDisplay();
+
+if (exercisesContainer) {
+  const exerciseObserver = new MutationObserver(() => {
+    scheduleExercisePagination(false);
+  });
+  exerciseObserver.observe(exercisesContainer, { childList: true });
+}
 
 // -------------------------
 // DRAG AND DROP PARA REORDENAR EJERCICIOS
@@ -2220,6 +2323,7 @@ exercisesContainer.addEventListener('drop', (e) => {
       exercisesContainer.insertBefore(draggedElement, afterElement);
     }
     saveSession();
+    scheduleExercisePagination();
   }
 });
 
@@ -2331,9 +2435,38 @@ function closeImportOverlay() {
   importOverlay.setAttribute("aria-hidden", "true");
 }
 
+function openManageUserOverlay() {
+  if (!manageUserOverlay) return;
+  manageUserOverlay.style.display = "flex";
+  manageUserOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeManageUserOverlay() {
+  if (!manageUserOverlay) return;
+  manageUserOverlay.style.display = "none";
+  manageUserOverlay.setAttribute("aria-hidden", "true");
+}
+
 if (importOverlayCancel) {
   importOverlayCancel.addEventListener("click", () => {
     closeImportOverlay();
+  });
+}
+
+if (manageUserClose) {
+  manageUserClose.addEventListener("click", closeManageUserOverlay);
+}
+
+if (manageUserOverlay) {
+  manageUserOverlay.addEventListener("click", (e) => {
+    if (e.target === manageUserOverlay) closeManageUserOverlay();
+  });
+}
+
+if (toggleUserManageBtn) {
+  toggleUserManageBtn.addEventListener("click", () => {
+    if (toggleUserManageBtn.disabled) return;
+    openManageUserOverlay();
   });
 }
 
@@ -2345,72 +2478,32 @@ if (importMergeHistoryInput) {
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target.result);
-        let selectedKey = userHistorySelect?.value || "";
+        const firstUser = Array.isArray(data) && data.length ? (data[0]?.user || "") : "";
+        const trimmedName = String(firstUser || "").trim();
+        const normalizedKey = normalizeUserName(trimmedName);
         let userList = loadUserList();
-        let entry = selectedKey ? userList.find(u => u.key === selectedKey) : null;
+        let entry = normalizedKey
+          ? userList.find(u => u.key === normalizedKey || u.name.toLowerCase() === trimmedName.toLowerCase())
+          : null;
 
-        if (!selectedKey) {
-          if (!userList.length) {
-            alert("No hay usuarios disponibles. Primero crea uno nuevo.");
+        if (!entry) {
+          if (!trimmedName) {
+            alert("No se ha encontrado un nombre de usuario en los datos importados.");
             return;
           }
-          openImportOverlay(userList);
-          if (importOverlayConfirm) {
-            importOverlayConfirm.onclick = () => {
-              const chosenKey = importUserSelect?.value || "";
-              const chosen = userList.find(u => u.key === chosenKey);
-              if (!chosen) return;
-              mergeImportedHistoryForUser(data, chosen.name, chosen.key);
-              refreshUserSelect();
-              if (userHistorySelect) userHistorySelect.value = chosen.key;
-              setUserHistoryStatus("Histórico fusionado correctamente.");
-              closeImportOverlay();
-            };
-          }
-          return;
+          entry = { name: trimmedName, key: normalizedKey };
+          userList.push(entry);
+          saveUserList(userList);
+          setLocalHistoryForUser(entry.key, []);
         }
 
-        const name = entry?.name || selectedKey;
-        mergeImportedHistoryForUser(data, name, selectedKey);
+        mergeImportedHistoryForUser(data, entry.name, entry.key);
         refreshUserSelect();
-        setUserHistoryStatus("Datos fusionados correctamente.");
+        if (userHistorySelect) userHistorySelect.value = entry.key;
+        activateSelectedUser(entry.key);
+        setUserHistoryStatus("Datos importados y fusionados correctamente.");
       } catch (err) {
         setUserHistoryStatus("Error al fusionar los datos: " + err.message);
-      }
-    };
-    reader.readAsText(file);
-  });
-}
-
-if (importUserHistoryBtn && uploadUserHistoryInput) {
-  importUserHistoryBtn.addEventListener("click", () => {
-    uploadUserHistoryInput.value = "";
-    uploadUserHistoryInput.click();
-  });
-}
-
-if (uploadUserHistoryInput) {
-  uploadUserHistoryInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const data = JSON.parse(event.target.result);
-        const firstUser = Array.isArray(data) && data.length ? (data[0]?.user || "") : "";
-        const name = promptForNewUserName(firstUser);
-        if (!name) return;
-        const key = normalizeUserName(name);
-        mergeImportedHistoryForUser(data, name, key);
-        const userList = loadUserList();
-        if (!userList.some(u => u.key === key)) {
-          userList.push({ name, key });
-          saveUserList(userList);
-        }
-        refreshUserSelect();
-        setUserHistoryStatus(`Datos importados para ${name}.`);
-      } catch (err) {
-        setUserHistoryStatus("Error al importar los datos: " + err.message);
       }
     };
     reader.readAsText(file);
