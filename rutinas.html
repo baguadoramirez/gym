@@ -251,57 +251,6 @@
       padding: 0.8rem;
     }
 
-    .stepper-shell {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 1rem 1.2rem;
-      margin-bottom: 1.2rem;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .stepper-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .stepper-title {
-      font-size: 1.1rem;
-      font-weight: 800;
-    }
-
-    .stepper-status,
-    .stepper-count {
-      font-size: 0.8rem;
-      color: var(--meta-text);
-    }
-
-    .stepper-progress {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .stepper-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
-      border: none;
-      background: var(--card-border);
-      cursor: pointer;
-      padding: 0;
-    }
-
-    .stepper-dot.active {
-      background: var(--accent);
-      box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.18);
-    }
-
     .step-pages {
       min-height: 55vh;
     }
@@ -675,12 +624,6 @@
       border: 1px solid var(--card-border);
     }
 
-    .btn-small {
-      padding: 0.4rem 0.7rem !important;
-      font-size: 0.9rem !important;
-      min-height: 40px !important;
-    }
-
     .exercise-notes p {
       margin: 3px 0;
       font-size: 0.82rem;
@@ -766,7 +709,7 @@
       font-size: 1.02rem;
     }
     #stopwatch-display {
-      font-size: 3.0rem;
+      font-size: 4rem !important;
       text-align: center;
       margin-bottom: 10px;
       color: var(--text);
@@ -867,24 +810,6 @@
       z-index: 1001;
     }
 
-    .tabs {
-      display: flex;
-      margin-bottom: 1rem;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 0.5rem;
-      border: none;
-      background: var(--control-bg);
-      color: var(--text);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-    }
-    .tab-btn.active {
-      border-bottom: 2px solid #2563eb;
-      background: var(--bg);
-    }
-
   </style>
 </head>
 
@@ -895,7 +820,7 @@
     <a class="header-logo">
       <img src="icons/icon_svg.svg" alt="Icono de la app" style="height:28px; width:auto;">
     </a>
-    <h1>Gym Tracker V3</h1>
+    <h1>Gym Tracker V5</h1>
   </div>
   <button id="compact-theme-toggle" class="theme-toggle-btn" aria-label="Cambiar tema">
     <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1005,7 +930,6 @@
         </div>
         <div class="controls-row">
         </div>
-        <input type="file" id="upload-user-history" accept=".json" style="display: none;">
         <input type="file" id="import-merge-history-input" accept=".json" style="display: none;">
       </div>
     </div>
@@ -1301,17 +1225,6 @@
     applyTheme(isDark ? "light" : "dark");
   };
   if (compactThemeToggle) compactThemeToggle.addEventListener("click", onThemeToggle);
-
-  const legalLink = document.querySelector('a[href="#legal-notes"]');
-  const legalNotes = document.getElementById("legal-notes");
-  if (legalLink && legalNotes) {
-    legalLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      legalNotes.open = true;
-      legalNotes.scrollIntoView({ behavior: "smooth", block: "start" });
-      history.replaceState(null, "", "#legal-notes");
-    });
-  }
 
   // Gráficos
   const exerciseDropdownBtn = document.getElementById('exercise-dropdown-btn');
@@ -1756,6 +1669,52 @@
   loadChartExercises();
   window.loadChartExercises = loadChartExercises;
 
+  function attachWelcomeFallbacks() {
+    if (window.__gymAppReady) return;
+    const setFallbackStep = (stepId) => {
+      const steps = Array.from(document.querySelectorAll(".step-page"));
+      steps.forEach(step => {
+        const isTarget = step.id === stepId;
+        step.classList.toggle("active", isTarget);
+        step.setAttribute("aria-hidden", isTarget ? "false" : "true");
+        if ("open" in step) step.open = isTarget;
+      });
+      const target = document.getElementById(stepId);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    const startBtn = document.getElementById("welcome-start-btn");
+    const infoBtn = document.getElementById("welcome-info-btn");
+    const legalBtn = document.getElementById("welcome-legal-btn");
+    const infoPanel = document.getElementById("welcome-info");
+    const legalPanel = document.getElementById("welcome-legal");
+
+    if (startBtn) {
+      startBtn.addEventListener("click", () => setFallbackStep("step-1"));
+    }
+    if (infoBtn && infoPanel) {
+      infoBtn.addEventListener("click", () => {
+        const isHidden = infoPanel.style.display === "none" || !infoPanel.style.display;
+        infoPanel.style.display = isHidden ? "block" : "none";
+        if (isHidden) infoPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+    if (legalBtn && legalPanel) {
+      legalBtn.addEventListener("click", () => {
+        const isHidden = legalPanel.style.display === "none" || !legalPanel.style.display;
+        legalPanel.style.display = isHidden ? "block" : "none";
+        if (isHidden) legalPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", attachWelcomeFallbacks);
+  } else {
+    attachWelcomeFallbacks();
+  }
 
 </script>
 

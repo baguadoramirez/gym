@@ -2050,6 +2050,7 @@ onReady(() => {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   }
+  window.__gymAppReady = true;
 });
 
 window.addEventListener("load", () => {
