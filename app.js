@@ -2379,7 +2379,8 @@ if (newUserHistoryBtn) {
     }
     refreshUserSelect();
     if (userHistorySelect) userHistorySelect.value = key;
-    setUserHistoryStatus("Usuario creado. Selecciónalo para cargar sus datos.");
+    activateSelectedUser(key);
+    setUserHistoryStatus("Usuario creado y cargado.");
   });
 }
 
