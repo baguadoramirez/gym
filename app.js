@@ -65,6 +65,32 @@ const LOCAL_HISTORY_KEY = "gym_history_v1";
 const USER_LIST_KEY = "gym_user_list";
 const CUSTOM_ROUTINES_KEY = "gym_custom_routines_v1";
 
+function getSafeStorage() {
+  try {
+    const testKey = "__gym_test__";
+    window.localStorage.setItem(testKey, "1");
+    window.localStorage.removeItem(testKey);
+    return window.localStorage;
+  } catch (err) {
+    const memory = new Map();
+    return {
+      getItem: key => (memory.has(key) ? memory.get(key) : null),
+      setItem: (key, value) => {
+        memory.set(key, String(value));
+      },
+      removeItem: key => {
+        memory.delete(key);
+      },
+      key: index => Array.from(memory.keys())[index] ?? null,
+      get length() {
+        return memory.size;
+      }
+    };
+  }
+}
+
+const storage = getSafeStorage();
+
 let currentUserName = "";
 let currentUserKey = "";
 const stepPages = [step0, step1, step2, step3, step4, step5].filter(Boolean);
@@ -81,7 +107,7 @@ function loadUserList() {
   let list = [];
   let changed = false;
   try {
-    const raw = localStorage.getItem(USER_LIST_KEY);
+    const raw = storage.getItem(USER_LIST_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     if (Array.isArray(parsed)) {
       if (parsed.length && typeof parsed[0] === "string") {
@@ -96,8 +122,8 @@ function loadUserList() {
     list = [];
   }
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i) || "";
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
     const prefix = `${LOCAL_HISTORY_KEY}_`;
     if (!key.startsWith(prefix)) continue;
     const userKey = key.slice(prefix.length);
@@ -109,8 +135,8 @@ function loadUserList() {
     }
   }
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i) || "";
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
     const match = key.match(/^gym_(.*?)_\d{4}-\d{2}-\d{2}_/);
     if (!match) continue;
     const userKey = match[1];
@@ -122,7 +148,7 @@ function loadUserList() {
     }
   }
 
-  const lastUser = localStorage.getItem("gym_user_name") || "";
+  const lastUser = storage.getItem("gym_user_name") || "";
   if (lastUser.trim()) {
     const lastKey = normalizeUserName(lastUser.trim());
     const exists = list.some(item => item.key === lastKey);
@@ -133,14 +159,14 @@ function loadUserList() {
   }
 
   if (changed) {
-    localStorage.setItem(USER_LIST_KEY, JSON.stringify(list));
+    storage.setItem(USER_LIST_KEY, JSON.stringify(list));
   }
 
   return list;
 }
 
 function saveUserList(list) {
-  localStorage.setItem(USER_LIST_KEY, JSON.stringify(list));
+  storage.setItem(USER_LIST_KEY, JSON.stringify(list));
 }
 
 function promptForNewUserName(defaultValue) {
@@ -152,7 +178,7 @@ function promptForNewUserName(defaultValue) {
 function setCurrentUser(name, key) {
   currentUserName = name;
   currentUserKey = key;
-  localStorage.setItem("gym_user_name", currentUserName);
+  storage.setItem("gym_user_name", currentUserName);
 }
 
 function refreshCharts() {
@@ -183,7 +209,7 @@ function renameUserHistory(userKey, newName) {
   }));
   setLocalHistoryForUser(newKey, sessions);
   if (newKey !== userKey) {
-    localStorage.removeItem(getHistoryStorageKeyForUser(userKey));
+    storage.removeItem(getHistoryStorageKeyForUser(userKey));
   }
 
   entry.name = trimmed;
@@ -223,21 +249,21 @@ function deleteUserHistory(userKey) {
   const ok = confirm(`Eliminar el usuario "${entry.name}"? Esta acción no se puede deshacer.`);
   if (!ok) return;
 
-  localStorage.removeItem(getHistoryStorageKeyForUser(entry.key));
+  storage.removeItem(getHistoryStorageKeyForUser(entry.key));
   const prefix = `gym_${entry.key}_`;
-  for (let i = localStorage.length - 1; i >= 0; i--) {
-    const key = localStorage.key(i) || "";
+  for (let i = storage.length - 1; i >= 0; i--) {
+    const key = storage.key(i) || "";
     if (key.startsWith(prefix)) {
-      localStorage.removeItem(key);
+      storage.removeItem(key);
       continue;
     }
     if (!key.startsWith("gym_")) continue;
     try {
-      const raw = localStorage.getItem(key);
+      const raw = storage.getItem(key);
       if (!raw) continue;
       const parsed = JSON.parse(raw);
       if (parsed && parsed.user && parsed.user === entry.name) {
-        localStorage.removeItem(key);
+        storage.removeItem(key);
       }
     } catch (err) {
       // Ignore malformed entries.
@@ -245,16 +271,16 @@ function deleteUserHistory(userKey) {
   }
 
   const legacyKey = "gym_history_v1";
-  const legacyRaw = localStorage.getItem(legacyKey);
+  const legacyRaw = storage.getItem(legacyKey);
   if (legacyRaw) {
     try {
       const legacyParsed = JSON.parse(legacyRaw);
       if (Array.isArray(legacyParsed)) {
         const filtered = legacyParsed.filter(item => item?.user !== entry.name);
         if (filtered.length === 0) {
-          localStorage.removeItem(legacyKey);
+          storage.removeItem(legacyKey);
         } else {
-          localStorage.setItem(legacyKey, JSON.stringify(filtered));
+          storage.setItem(legacyKey, JSON.stringify(filtered));
         }
       }
     } catch (err) {
@@ -265,11 +291,11 @@ function deleteUserHistory(userKey) {
   userList.splice(entryIndex, 1);
   saveUserList(userList);
 
-  const storedName = localStorage.getItem("gym_user_name");
+  const storedName = storage.getItem("gym_user_name");
   if (currentUserKey === entry.key || storedName === entry.name) {
     currentUserKey = "";
     currentUserName = "";
-    localStorage.removeItem("gym_user_name");
+    storage.removeItem("gym_user_name");
     setAppEnabled(false);
     setAppVisible(false);
   }
@@ -551,7 +577,7 @@ function buildSessionKey(session) {
 }
 
 function getLocalHistory() {
-  const raw = localStorage.getItem(getHistoryStorageKey());
+  const raw = storage.getItem(getHistoryStorageKey());
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -562,7 +588,7 @@ function getLocalHistory() {
 }
 
 function getLocalHistoryForUser(userKey) {
-  const raw = localStorage.getItem(getHistoryStorageKeyForUser(userKey));
+  const raw = storage.getItem(getHistoryStorageKeyForUser(userKey));
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -575,27 +601,27 @@ function getLocalHistoryForUser(userKey) {
 function hasHistoryForUser(userKey) {
   if (!userKey) return false;
   const historyKey = getHistoryStorageKeyForUser(userKey);
-  if (localStorage.getItem(historyKey)) return true;
+  if (storage.getItem(historyKey)) return true;
   const prefix = `gym_${userKey}_`;
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i) || "";
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
     if (key.startsWith(prefix)) return true;
   }
   return false;
 }
 
 function setLocalHistory(sessions) {
-  localStorage.setItem(getHistoryStorageKey(), JSON.stringify(sessions));
+  storage.setItem(getHistoryStorageKey(), JSON.stringify(sessions));
 }
 
 function setLocalHistoryForUser(userKey, sessions) {
-  localStorage.setItem(getHistoryStorageKeyForUser(userKey), JSON.stringify(sessions));
+  storage.setItem(getHistoryStorageKeyForUser(userKey), JSON.stringify(sessions));
 }
 
 function collectSessionsFromSessionKeys(userKey) {
   const sessions = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i) || "";
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
     if (userKey === "local") {
       if (!/^gym_\d{4}-\d{2}-\d{2}_/.test(key)) continue;
     } else {
@@ -603,7 +629,7 @@ function collectSessionsFromSessionKeys(userKey) {
       if (!key.startsWith(prefix)) continue;
     }
     try {
-      const raw = localStorage.getItem(key);
+      const raw = storage.getItem(key);
       if (!raw) continue;
       const parsed = JSON.parse(raw);
       if (!parsed || typeof parsed !== "object") continue;
@@ -867,7 +893,7 @@ function setStatus(msg) {
 function loadCustomRoutines() {
   try {
     const key = currentUserKey ? `${CUSTOM_ROUTINES_KEY}_${currentUserKey}` : CUSTOM_ROUTINES_KEY;
-    const raw = localStorage.getItem(key);
+    const raw = storage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : {};
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch (err) {
@@ -877,7 +903,7 @@ function loadCustomRoutines() {
 
 function saveCustomRoutines(data) {
   const key = currentUserKey ? `${CUSTOM_ROUTINES_KEY}_${currentUserKey}` : CUSTOM_ROUTINES_KEY;
-  localStorage.setItem(key, JSON.stringify(data));
+  storage.setItem(key, JSON.stringify(data));
 }
 
 function getAllRoutines() {
@@ -1443,7 +1469,7 @@ function saveSession() {
     });
   });
 
-  localStorage.setItem(key, JSON.stringify(data));
+  storage.setItem(key, JSON.stringify(data));
   setStatus("Guardado");
   
   // 1. Repopulate the list of exercises for the pain selector
@@ -1582,7 +1608,7 @@ function populatePainExerciseSelect(exerciseNames) {
 
 function loadSession() {
   const key = sessionKey();
-  const saved = JSON.parse(localStorage.getItem(key) || "null");
+  const saved = JSON.parse(storage.getItem(key) || "null");
 
   const week = weekSelect.value;
   const day = daySelect.value;
@@ -1736,7 +1762,7 @@ exportBtn.onclick = () => {
   saveSession();
 
   const key = sessionKey();
-  const saved = JSON.parse(localStorage.getItem(key) || "null");
+  const saved = JSON.parse(storage.getItem(key) || "null");
   if (!saved) return alert("No hay datos registrados hoy.");
 
   // Crear contenedor sin borrar nada antes
@@ -1892,7 +1918,7 @@ if (saveSessionBtn) {
     }
     saveSession();
     const key = sessionKey();
-    const saved = JSON.parse(localStorage.getItem(key) || "null");
+    const saved = JSON.parse(storage.getItem(key) || "null");
     if (!saved) return alert("No hay datos registrados hoy.");
     upsertLocalHistory(saved);
     setStatus("Sesion guardada en historico local.");
