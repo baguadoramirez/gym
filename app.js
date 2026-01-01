@@ -593,6 +593,8 @@ function getMaxStepIndex() {
     let maxIndex = stepPages.length - 1;
     const step5Index = stepPages.indexOf(step5);
     const step4Index = stepPages.indexOf(step4);
+    const step6Index = stepPages.indexOf(step6);
+    const step7Index = stepPages.indexOf(step7);
     if (!isPostWorkoutComplete() && step5Index > 0) {
       maxIndex = Math.min(maxIndex, step5Index - 1);
       if (step4Index >= 0) {
@@ -604,6 +606,9 @@ function getMaxStepIndex() {
       if (step4Index >= 0) {
         maxIndex = Math.max(maxIndex, step4Index);
       }
+    }
+    if (!editingSessionContext && step7Index >= 0 && step6Index >= 0) {
+      maxIndex = Math.min(maxIndex, step6Index);
     }
     return maxIndex;
   }
@@ -854,7 +859,14 @@ function buildExportContent(saved, options = {}) {
     });
   }
 
-  exportDiv.appendChild(table);
+  if (usePngStyles) {
+    exportDiv.appendChild(table);
+  } else {
+    const tableWrap = document.createElement("div");
+    tableWrap.className = "session-summary-table-wrap";
+    tableWrap.appendChild(table);
+    exportDiv.appendChild(tableWrap);
+  }
 
   const summary = document.createElement("div");
   if (usePngStyles) {

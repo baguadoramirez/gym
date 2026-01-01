@@ -362,6 +362,7 @@
       color: var(--text);
       width: 100%;
       box-sizing: border-box;
+      overflow: hidden;
     }
 
     .session-summary-title {
@@ -371,8 +372,15 @@
       color: var(--text);
     }
 
+    .session-summary-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
     .session-summary-table {
       width: 100%;
+      max-width: 100%;
+      min-width: 560px;
       border-collapse: collapse;
       font-size: 0.9rem;
       color: var(--text);
@@ -1043,6 +1051,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
+        <div class="hint-text" style="text-align:center;">v.0.1</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
