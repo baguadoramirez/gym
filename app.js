@@ -2280,6 +2280,7 @@ if (saveSessionBtn) {
     const saved = JSON.parse(storage.getItem(key) || "null");
     if (!saved) return alert("No hay datos registrados hoy.");
     upsertLocalHistory(saved);
+    updateStepStatus();
     setStatus("Sesion guardada en historico local.");
     showSaveSessionMessage();
   };

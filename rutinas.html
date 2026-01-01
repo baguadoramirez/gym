@@ -214,7 +214,14 @@
 
     #user-history-controls select {
       width: 100%;
+      min-height: 44px;
+      padding: 0.7rem 0.8rem;
+      border-radius: 12px;
       box-sizing: border-box;
+    }
+
+    #user-history-controls .user-select-wrap {
+      width: 100%;
     }
 
     #user-history-controls .btn-secondary {
@@ -1080,7 +1087,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text" style="text-align:center;">v0.1.1</div>
+        <div class="hint-text" style="text-align:center;">v0.1.2</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
@@ -1145,7 +1152,7 @@
         <span id="user-history-status" class="hint-text">Empieza seleccionando un usuario para cargar sus datos.</span>
         </div>
         <div class="controls-row">
-          <div>
+          <div class="user-select-wrap">
             <label for="user-history-select">Usuario</label><br>
             <select id="user-history-select" disabled></select>
           </div>
