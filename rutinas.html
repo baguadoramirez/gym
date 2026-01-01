@@ -380,10 +380,15 @@
     .session-summary-table {
       width: 100%;
       max-width: 100%;
-      min-width: 560px;
+      table-layout: fixed;
       border-collapse: collapse;
       font-size: 0.9rem;
       color: var(--text);
+    }
+
+    .session-summary-table th,
+    .session-summary-table td {
+      word-break: break-word;
     }
 
     .session-summary-table th,
@@ -1051,7 +1056,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text" style="text-align:center;">v.0.1</div>
+        <div class="hint-text" style="text-align:center;">v0.1.1</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
