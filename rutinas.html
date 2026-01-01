@@ -386,6 +386,15 @@
       color: var(--text);
     }
 
+    .session-summary-mini-table {
+      width: 100%;
+      max-width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
     .session-summary-table th,
     .session-summary-table td {
       word-break: break-word;
@@ -395,6 +404,21 @@
     .session-summary-table td {
       border: 1px solid var(--card-border);
       padding: 6px;
+    }
+
+    .session-summary-mini-table th,
+    .session-summary-mini-table td {
+      border: 1px solid var(--card-border);
+      padding: 6px;
+      word-break: break-word;
+    }
+
+    .session-summary-mini-table td:nth-child(3) {
+      text-align: right;
+    }
+
+    .session-summary-mini-table td:nth-child(4) {
+      text-align: center;
     }
 
     .session-summary-head {
@@ -1330,7 +1354,7 @@
       <div class="controls">
         <div class="controls-row" style="flex-direction: column; align-items: stretch;">
           <div id="session-summary" class="hint-text"></div>
-          <button id="export-png-btn" class="btn-secondary" disabled>Imagen sesión (📷)</button>
+          <button id="export-png-btn" class="btn-secondary" disabled>Imagen sesión completa (📷)</button>
         </div>
       </div>
     </div>

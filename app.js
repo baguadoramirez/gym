@@ -775,16 +775,13 @@ function buildExportContent(saved, options = {}) {
       </tr>
     `;
   } else {
-    table.className = "session-summary-table";
+    table.className = "session-summary-mini-table";
     table.innerHTML = `
       <tr class="session-summary-head">
         <th>Ejercicio</th>
-        <th>Serie</th>
-        <th>Peso/<br>Intensidad</th>
-        <th>Reps/<br>Tiempo</th>
+        <th>Series</th>
+        <th>Peso máx / Tiempo</th>
         <th>Fallo</th>
-        <th>Reps fallo</th>
-        <th>Notas</th>
       </tr>
     `;
   }
@@ -799,6 +796,34 @@ function buildExportContent(saved, options = {}) {
     totalExercises += 1;
 
     const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
+    if (!usePngStyles) {
+      const sets = Array.isArray(ex.sets) ? ex.sets : [];
+      const seriesCount = sets.length;
+      const weights = sets
+        .map(set => parseFloat(set.peso))
+        .filter(value => !Number.isNaN(value));
+      const times = sets
+        .map(set => parseFloat(set.tiempo ?? set.reps))
+        .filter(value => !Number.isNaN(value));
+      const maxWeight = isCardio ? "-" : (weights.length ? Math.max(...weights) : "-");
+      const maxTime = isCardio ? (times.length ? Math.max(...times) : "-") : "-";
+      const hasFailure = isCardio
+        ? "-"
+        : sets.some(set => set.fallo === true) ? "Sí" : "No";
+      const weightOrTime = isCardio
+        ? (maxTime !== "-" ? `${maxTime} min` : "-")
+        : (maxWeight !== "-" ? `${maxWeight} kg` : "-");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${ex.nombre || "Ejercicio"}</td>
+        <td>${seriesCount}</td>
+        <td>${weightOrTime}</td>
+        <td>${hasFailure}</td>
+      `;
+      table.appendChild(row);
+      return;
+    }
+
     ex.sets.forEach((set, setIndex) => {
       totalSets += 1;
       const displayPeso = isCardio ? (set.intensidad ?? set.peso ?? "") : (set.peso ?? "");
@@ -835,15 +860,11 @@ function buildExportContent(saved, options = {}) {
       table.appendChild(tr);
     });
 
-    if (exIndex < saved.exercises.length - 1) {
+    if (usePngStyles && exIndex < saved.exercises.length - 1) {
       const separator = document.createElement("tr");
       if (usePngStyles) {
         separator.innerHTML = `
           <td colspan="7" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #777; padding:0; height:6px; background:#fff;"></td>
-        `;
-      } else {
-        separator.innerHTML = `
-          <td colspan="7" style="border-top:1px solid var(--card-border); padding:0; height:6px; background:transparent;"></td>
         `;
       }
       table.appendChild(separator);
@@ -868,8 +889,8 @@ function buildExportContent(saved, options = {}) {
     exportDiv.appendChild(tableWrap);
   }
 
-  const summary = document.createElement("div");
   if (usePngStyles) {
+    const summary = document.createElement("div");
     summary.style.marginTop = "8px";
     summary.style.fontSize = "12px";
     summary.style.color = "#000";
@@ -878,60 +899,38 @@ function buildExportContent(saved, options = {}) {
       <p style="margin: 3px 0; color:#000;">- Total ejercicios: ${totalExercises}</p>
       <p style="margin: 3px 0; color:#000;">- Total series: ${totalSets}</p>
     `;
-  } else {
-    summary.className = "session-summary-section";
-    summary.innerHTML = `
-      <p class="session-summary-label">Resumen:</p>
-      <p>- Total ejercicios: ${totalExercises}</p>
-      <p>- Total series: ${totalSets}</p>
-    `;
-  }
-  exportDiv.appendChild(summary);
+    exportDiv.appendChild(summary);
 
-  const sensations = saved.sensations || {};
-  const sensDiv = document.createElement("div");
-  if (usePngStyles) {
+    const sensations = saved.sensations || {};
+    const sensDiv = document.createElement("div");
     sensDiv.style.marginTop = "20px";
     sensDiv.style.borderTop = "1px solid #000";
     sensDiv.style.paddingTop = "10px";
     sensDiv.style.color = "#000";
-  } else {
-    sensDiv.className = "session-summary-section";
-  }
 
-  let painText = "";
-  if (sensations.pain === "si") {
-    painText = `Sí (${sensations.painZone || "Zona N/A"} - Ejercicio: ${sensations.painExercise || "N/A"})`;
-  } else {
-    painText = "No";
-  }
+    let painText = "";
+    if (sensations.pain === "si") {
+      painText = `Sí (${sensations.painZone || "Zona N/A"} - Ejercicio: ${sensations.painExercise || "N/A"})`;
+    } else {
+      painText = "No";
+    }
 
-  sensDiv.innerHTML = usePngStyles
-    ? `
+    sensDiv.innerHTML = `
         <p style="font-weight:bold; margin: 3px 0; color:#000; font-size:14px;">Métricas Subjetivas:</p>
         <p style="margin: 3px 0; color:#000; font-size:12px;">- Sensaciones generales (0-10): ${sensations.general || "N/A"}</p>
         <p style="margin: 3px 0; color:#000; font-size:12px;">- Cansancio percibido (0-10): ${sensations.tiredness || "N/A"}</p>
         <p style="margin: 3px 0; color:#000; font-size:12px;">- Dolor en algún músculo: ${painText}</p>
-      `
-    : `
-        <p class="session-summary-label">Métricas subjetivas:</p>
-        <p>- Sensaciones generales (0-10): ${sensations.general || "N/A"}</p>
-        <p>- Cansancio percibido (0-10): ${sensations.tiredness || "N/A"}</p>
-        <p>- Dolor en algún músculo: ${painText}</p>
-      `;
-  exportDiv.appendChild(sensDiv);
+    `;
+    exportDiv.appendChild(sensDiv);
 
-  const footer = document.createElement("p");
-  footer.textContent = "Registrado con GymTracker by Borja Aguado";
-  if (usePngStyles) {
+    const footer = document.createElement("p");
+    footer.textContent = "Registrado con GymTracker by Borja Aguado";
     footer.style.fontSize = "10px";
     footer.style.textAlign = "right";
     footer.style.marginTop = "15px";
     footer.style.color = "#000";
-  } else {
-    footer.className = "session-summary-footer";
+    exportDiv.appendChild(footer);
   }
-  exportDiv.appendChild(footer);
 
   return exportDiv;
 }
