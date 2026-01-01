@@ -19,7 +19,9 @@ const saveRoutineBtn = document.getElementById("save-routine-btn");
 const saveRoutineMessage = document.getElementById("save-routine-message");
 const saveRoutineError = document.getElementById("save-routine-error");
 
-const exercisesContainer = document.getElementById("exercises-container");
+const mainExercisesContainer = document.getElementById("exercises-container");
+const editExercisesContainer = document.getElementById("edit-exercises-container");
+let exercisesContainer = mainExercisesContainer;
 const statusText = document.getElementById("status-text");
 
 const userHistoryControls = document.getElementById("user-history-controls");
@@ -28,6 +30,7 @@ const newUserHistoryBtn = document.getElementById("new-user-history-btn");
 const renameUserHistoryBtn = document.getElementById("rename-user-history-btn");
 const deleteUserHistoryBtn = document.getElementById("delete-user-history-btn");
 const exportUserHistoryBtn = document.getElementById("export-user-history-btn");
+const exportUserHistoryCsvBtn = document.getElementById("export-user-history-csv-btn");
 const importMergeHistoryBtn = document.getElementById("import-merge-history-btn");
 const importMergeHistoryInput = document.getElementById("import-merge-history-input");
 const userHistoryStatus = document.getElementById("user-history-status");
@@ -38,23 +41,35 @@ const importOverlayCancel = document.getElementById("import-overlay-cancel");
 const importOverlayConfirm = document.getElementById("import-overlay-confirm");
 const manageUserOverlay = document.getElementById("manage-user-overlay");
 const manageUserClose = document.getElementById("manage-user-close");
+const manageUserHistoryBtn = document.getElementById("manage-user-history-btn");
+const historyMenuOverlay = document.getElementById("history-menu-overlay");
+const historyMenuClose = document.getElementById("history-menu-close");
 const step0 = document.getElementById("step-0");
 const step1 = document.getElementById("step-1");
 const step2 = document.getElementById("step-2");
 const step3 = document.getElementById("step-3");
 const step4 = document.getElementById("step-4");
 const step5 = document.getElementById("step-5");
+const step6 = document.getElementById("step-6");
+const step7 = document.getElementById("step-7");
+const step3Body = document.getElementById("step-3-body");
+const step7Body = document.getElementById("step-7-body");
 const step1Status = document.getElementById("step-1-status");
 const step2Status = document.getElementById("step-2-status");
 const step3Status = document.getElementById("step-3-status");
 const step4Status = document.getElementById("step-4-status");
 const step5Status = document.getElementById("step-5-status");
+const step6Status = document.getElementById("step-6-status");
 const stepperPrevBtn = document.getElementById("stepper-prev");
 const stepperNextBtn = document.getElementById("stepper-next");
 const subheader = document.getElementById("subheader");
 const toggleUserManageBtn = document.getElementById("toggle-user-manage");
 const toggleStopwatchBtn = document.getElementById("toggle-stopwatch");
 const toggleQuickAddBtn = document.getElementById("toggle-quick-add");
+const toggleFastModeBtn = document.getElementById("toggle-fast-mode");
+const fastModeLabel = document.getElementById("fast-mode-label");
+const autoSaveStatus = document.getElementById("autosave-status");
+const exerciseEmptyState = document.getElementById("exercise-empty-state");
 const welcomeStartBtn = document.getElementById("welcome-start-btn");
 const welcomeInfoBtn = document.getElementById("welcome-info-btn");
 const welcomeLegalBtn = document.getElementById("welcome-legal-btn");
@@ -64,6 +79,14 @@ const exerciseCounter = document.getElementById("exercise-counter");
 const exercisePrevBtn = document.getElementById("exercise-prev");
 const exerciseNextBtn = document.getElementById("exercise-next");
 const saveRoutineControls = document.getElementById("save-routine-controls");
+const homeLogoBtn = document.getElementById("home-logo-btn");
+const historyDateInput = document.getElementById("history-date-input");
+const historyViewBtn = document.getElementById("history-view-btn");
+const historyEditBtn = document.getElementById("history-edit-btn");
+const historyViewOverlay = document.getElementById("history-view-overlay");
+const historyViewContent = document.getElementById("history-view-content");
+const historyViewClose = document.getElementById("history-view-close");
+const sessionSummary = document.getElementById("session-summary");
 
 const LOCAL_HISTORY_KEY = "gym_history_v1";
 const USER_LIST_KEY = "gym_user_list";
@@ -97,11 +120,16 @@ const storage = getSafeStorage();
 
 let currentUserName = "";
 let currentUserKey = "";
-const stepPages = [step0, step1, step2, step3, step4, step5].filter(Boolean);
+const stepPages = [step0, step1, step2, step3, step4, step5, step6, step7].filter(Boolean);
 let activeStepIndex = 0;
 let pendingStartStepIndex = null;
 let activeExerciseIndex = 0;
 let exercisePaginationScheduled = false;
+let showAllExercises = false;
+let lastAutoSaveTime = null;
+let autoSaveTimer = null;
+let editingSessionContext = null;
+let isFastMode = false;
 
 function normalizeUserName(name) {
   return name.trim().replace(/\s+/g, "_");
@@ -189,6 +217,85 @@ function refreshCharts() {
   if (typeof window.loadChartExercises === "function") {
     window.loadChartExercises();
   }
+}
+
+function setFastMode(enabled) {
+  isFastMode = enabled;
+  document.body.classList.toggle("fast-mode", enabled);
+  if (toggleFastModeBtn) {
+    toggleFastModeBtn.setAttribute("aria-pressed", enabled ? "true" : "false");
+  }
+  if (fastModeLabel) {
+    fastModeLabel.textContent = enabled ? "Básico" : "Avanzado";
+  }
+  storage.setItem("gym_fast_mode", enabled ? "1" : "0");
+}
+
+function refreshHistoryUI() {
+  if (!historyDateInput) return;
+  const sessions = window.uploadedHistory || [];
+  const latest = sessions
+    .slice()
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0];
+  if (latest && (!historyDateInput.value || historyDateInput.value === "")) {
+    historyDateInput.value = latest.date || "";
+  }
+  updateHistoryButtons();
+}
+
+function updateHistoryButtons() {
+  if (!historyDateInput) return;
+  const dateStr = historyDateInput.value;
+  const hasSession = Boolean(
+    dateStr && (window.uploadedHistory || []).some(session => session.date === dateStr)
+  );
+  if (historyViewBtn) historyViewBtn.disabled = !hasSession;
+  if (historyEditBtn) historyEditBtn.disabled = !hasSession;
+}
+
+function getSelectedHistorySession() {
+  const dateStr = historyDateInput?.value || "";
+  if (!dateStr) return null;
+  const sessions = (window.uploadedHistory || []).filter(session => session.date === dateStr);
+  if (!sessions.length) return null;
+  const sorted = sessions.slice().sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  return sorted[0];
+}
+
+function openHistoryViewOverlay(session) {
+  if (!historyViewOverlay || !historyViewContent || !session) return;
+  const exercises = Array.isArray(session.exercises) ? session.exercises : [];
+  const lines = [
+    `Fecha: ${session.date || "-"}`,
+    `Semana: ${session.week || "-"}`,
+    `Dia: ${session.day || "-"}`,
+    `Ejercicios: ${exercises.length}`
+  ];
+  exercises.forEach(ex => {
+    const sets = Array.isArray(ex.sets) ? ex.sets.length : 0;
+    lines.push(`- ${ex.nombre || "Ejercicio"} (${sets} series)`);
+  });
+  historyViewContent.textContent = lines.join("\n");
+  historyViewOverlay.style.display = "flex";
+  historyViewOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeHistoryViewOverlay() {
+  if (!historyViewOverlay) return;
+  historyViewOverlay.style.display = "none";
+  historyViewOverlay.setAttribute("aria-hidden", "true");
+}
+
+function ensureSelectValue(selectEl, value) {
+  if (!selectEl || !value) return;
+  const exists = Array.from(selectEl.options).some(opt => opt.value === value);
+  if (!exists) {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = value;
+    selectEl.appendChild(opt);
+  }
+  selectEl.value = value;
 }
 
 function renameUserHistory(userKey, newName) {
@@ -408,7 +515,12 @@ function updateStepStatus() {
         ? "En progreso"
         : "Bloqueado";
   }
-  if (step5Status) step5Status.textContent = hasUser ? "Opcional" : "Pendiente";
+  if (step5Status) {
+    step5Status.textContent = postWorkoutComplete && isSessionSavedToHistory()
+      ? "Disponible"
+      : "Bloqueado";
+  }
+  if (step6Status) step6Status.textContent = hasUser ? "Opcional" : "Pendiente";
   if (toggleUserManageBtn) toggleUserManageBtn.disabled = !hasUser;
   if (postWorkoutSection) {
     postWorkoutSection.classList.toggle("post-workout-locked", !hasExercises);
@@ -429,6 +541,19 @@ function updateExercisePagination(resetIndex = false) {
   }
   if (total === 0) {
     if (exerciseCounter) exerciseCounter.textContent = "Ejercicio 0 de 0";
+    if (exercisePrevBtn) exercisePrevBtn.disabled = true;
+    if (exerciseNextBtn) exerciseNextBtn.disabled = true;
+    if (saveRoutineControls) saveRoutineControls.style.display = "none";
+    if (exerciseEmptyState) exerciseEmptyState.style.display = "block";
+    return;
+  }
+  if (exerciseEmptyState) exerciseEmptyState.style.display = "none";
+
+  if (showAllExercises) {
+    cards.forEach(card => {
+      card.style.display = "block";
+    });
+    if (exerciseCounter) exerciseCounter.textContent = `Ejercicios: ${total}`;
     if (exercisePrevBtn) exercisePrevBtn.disabled = true;
     if (exerciseNextBtn) exerciseNextBtn.disabled = true;
     if (saveRoutineControls) saveRoutineControls.style.display = "none";
@@ -464,10 +589,34 @@ function isAppVisible() {
 }
 
 function getMaxStepIndex() {
-  if (isAppVisible()) return stepPages.length - 1;
+  if (isAppVisible()) {
+    let maxIndex = stepPages.length - 1;
+    const step5Index = stepPages.indexOf(step5);
+    const step4Index = stepPages.indexOf(step4);
+    if (!isPostWorkoutComplete() && step5Index > 0) {
+      maxIndex = Math.min(maxIndex, step5Index - 1);
+      if (step4Index >= 0) {
+        maxIndex = Math.max(maxIndex, step4Index);
+      }
+    }
+    if (!isSessionSavedToHistory() && step5Index > 0) {
+      maxIndex = Math.min(maxIndex, step5Index - 1);
+      if (step4Index >= 0) {
+        maxIndex = Math.max(maxIndex, step4Index);
+      }
+    }
+    return maxIndex;
+  }
   const loginIndex = stepPages.indexOf(step1);
   if (loginIndex >= 0) return loginIndex;
   return Math.min(1, stepPages.length - 1);
+}
+
+function isSessionSavedToHistory() {
+  if (!currentUserKey) return false;
+  const key = sessionKey();
+  if (!key) return false;
+  return getLocalHistory().some(session => session.key === key);
 }
 
 function updateStepNavigation() {
@@ -483,7 +632,7 @@ function updateStepNavigation() {
     const step3Index = stepPages.indexOf(step3);
     const showFromStep2 = step2Index >= 0 && activeStepIndex >= step2Index;
     const isStep3 = step3Index >= 0 && activeStepIndex === step3Index;
-    subheader.style.display = showFromStep2 ? "flex" : "none";
+    subheader.classList.toggle("is-visible", showFromStep2);
 
     if (toggleUserManageBtn) {
       toggleUserManageBtn.style.display = showFromStep2 ? "flex" : "none";
@@ -494,10 +643,14 @@ function updateStepNavigation() {
     if (toggleQuickAddBtn) {
       toggleQuickAddBtn.style.display = isStep3 ? "flex" : "none";
     }
+    if (toggleFastModeBtn) {
+      toggleFastModeBtn.style.display = isStep3 ? "flex" : "none";
+    }
 
     if (!isStep3) {
       if (typeof closeStopwatchOverlay === "function") closeStopwatchOverlay();
       if (typeof closeQuickAddOverlay === "function") closeQuickAddOverlay();
+      if (isFastMode) setFastMode(false);
     }
   }
   updateHeaderOffsets();
@@ -521,17 +674,285 @@ function updateHeaderOffsets() {
   if (subheader) {
     subheader.style.top = `${headerHeight}px`;
   }
-  const subheaderHeight = subheader && subheader.style.display !== "none"
+  const subheaderHeight = subheader && subheader.classList.contains("is-visible")
     ? (subheader.offsetHeight || 0)
     : 0;
   const spacing = 12;
   document.body.style.paddingTop = `${headerHeight + subheaderHeight + spacing}px`;
 }
 
+function updateAutoSaveLabel() {
+  if (!autoSaveStatus) return;
+  if (!lastAutoSaveTime) {
+    autoSaveStatus.textContent = "";
+    return;
+  }
+  const diffSeconds = Math.floor((Date.now() - lastAutoSaveTime) / 1000);
+  if (diffSeconds < 2) {
+    autoSaveStatus.textContent = "Guardado ahora";
+    return;
+  }
+  autoSaveStatus.textContent = `Guardado hace ${diffSeconds} s`;
+}
+
+function markAutoSaved() {
+  lastAutoSaveTime = Date.now();
+  updateAutoSaveLabel();
+  if (!autoSaveTimer) {
+    autoSaveTimer = setInterval(updateAutoSaveLabel, 15000);
+  }
+}
+
+function updateSessionSummary() {
+  if (!sessionSummary) return;
+  if (exercisesContainer !== mainExercisesContainer) return;
+  const key = sessionKey();
+  const saved = JSON.parse(storage.getItem(key) || "null");
+  if (!saved) {
+    sessionSummary.textContent = "Sin datos de sesión.";
+    return;
+  }
+  sessionSummary.innerHTML = "";
+  const exportContent = buildExportContent(saved, { variant: "web" });
+  sessionSummary.appendChild(exportContent);
+}
+
+function buildExportContent(saved, options = {}) {
+  const variant = options.variant || "png";
+  const usePngStyles = variant === "png";
+  const isDarkTheme = document.documentElement.classList.contains("dark");
+  const exportDiv = document.createElement("div");
+  if (usePngStyles) {
+    exportDiv.style.background = "white";
+    exportDiv.style.padding = "20px";
+    exportDiv.style.fontFamily = "sans-serif";
+    exportDiv.style.width = "fit-content";
+    exportDiv.style.color = "#000";
+  } else {
+    exportDiv.className = "session-summary";
+  }
+
+  const title = document.createElement("h2");
+  const dateObj = new Date(saved.date);
+  const isValidDate = !isNaN(dateObj);
+  const formattedDate = isValidDate
+    ? dateObj.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : saved.date;
+  const weekday = isValidDate
+    ? dateObj.toLocaleDateString("es-ES", { weekday: "long" })
+    : "";
+  const weekdayText = weekday ? ` (${weekday})` : "";
+  title.textContent = `${formattedDate}${weekdayText}`;
+  if (usePngStyles) {
+    title.style.color = "#000";
+  } else {
+    title.className = "session-summary-title";
+  }
+  exportDiv.appendChild(title);
+
+  const table = document.createElement("table");
+  if (usePngStyles) {
+    const headerBg = isDarkTheme ? "#000" : "#e5e7eb";
+    const headerText = isDarkTheme ? "#fff" : "#000";
+    table.style.borderCollapse = "separate";
+    table.style.borderSpacing = "0";
+    table.style.fontSize = "12px";
+    table.style.color = "#000";
+    table.innerHTML = `
+      <tr style="background:${headerBg}; font-weight:bold;">
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">Ejercicio</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">Serie</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">Peso/<br>Intensidad</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">Reps/<br>Tiempo</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">Fallo</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">Reps fallo</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">Notas</th>
+      </tr>
+    `;
+  } else {
+    table.className = "session-summary-table";
+    table.innerHTML = `
+      <tr class="session-summary-head">
+        <th>Ejercicio</th>
+        <th>Serie</th>
+        <th>Peso/<br>Intensidad</th>
+        <th>Reps/<br>Tiempo</th>
+        <th>Fallo</th>
+        <th>Reps fallo</th>
+        <th>Notas</th>
+      </tr>
+    `;
+  }
+
+  let totalExercises = 0;
+  let totalSets = 0;
+
+  saved.exercises.forEach((ex, exIndex) => {
+    const groupBg = usePngStyles
+      ? (exIndex % 2 === 0 ? "#e2e8f0" : "#f8fafc")
+      : (exIndex % 2 === 0 ? "var(--control-bg)" : "var(--card-bg)");
+    totalExercises += 1;
+
+    const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
+    ex.sets.forEach((set, setIndex) => {
+      totalSets += 1;
+      const displayPeso = isCardio ? (set.intensidad ?? set.peso ?? "") : (set.peso ?? "");
+      const displayReps = isCardio ? (set.tiempo ?? set.reps ?? "") : (set.reps ?? "");
+      const displayFallo = isCardio ? "" : (set.fallo ? "Sí" : "No");
+      const displayRepsFallo = isCardio ? "" : (set.repsFallo ?? "");
+
+      const tr = document.createElement("tr");
+      tr.style.background = groupBg;
+      if (setIndex === 0) {
+        tr.style.borderTop = "2px solid #000";
+      }
+      if (usePngStyles) {
+        tr.innerHTML = `
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-weight: bold;">${ex.nombre}</td>
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.serie ?? ""}</td>
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${displayPeso}</td>
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${displayReps}</td>
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${displayFallo}</td>
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${displayRepsFallo}</td>
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.obs ?? ""}</td>
+        `;
+      } else {
+        tr.innerHTML = `
+          <td style="background:${groupBg}; font-weight: 700;">${ex.nombre}</td>
+          <td style="background:${groupBg};">${set.serie ?? ""}</td>
+          <td style="background:${groupBg}; text-align:right;">${displayPeso}</td>
+          <td style="background:${groupBg}; text-align:right;">${displayReps}</td>
+          <td style="background:${groupBg};">${displayFallo}</td>
+          <td style="background:${groupBg};">${displayRepsFallo}</td>
+          <td style="background:${groupBg};">${set.obs ?? ""}</td>
+        `;
+      }
+      table.appendChild(tr);
+    });
+
+    if (exIndex < saved.exercises.length - 1) {
+      const separator = document.createElement("tr");
+      if (usePngStyles) {
+        separator.innerHTML = `
+          <td colspan="7" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #777; padding:0; height:6px; background:#fff;"></td>
+        `;
+      } else {
+        separator.innerHTML = `
+          <td colspan="7" style="border-top:1px solid var(--card-border); padding:0; height:6px; background:transparent;"></td>
+        `;
+      }
+      table.appendChild(separator);
+    }
+  });
+
+  if (usePngStyles) {
+    table.querySelectorAll("th, td").forEach(cell => {
+      cell.style.borderColor = "#000";
+    });
+    table.querySelectorAll("td").forEach(cell => {
+      cell.style.color = "#000";
+    });
+  }
+
+  exportDiv.appendChild(table);
+
+  const summary = document.createElement("div");
+  if (usePngStyles) {
+    summary.style.marginTop = "8px";
+    summary.style.fontSize = "12px";
+    summary.style.color = "#000";
+    summary.innerHTML = `
+      <p style="margin: 3px 0; font-weight:bold; color:#000;">Resumen:</p>
+      <p style="margin: 3px 0; color:#000;">- Total ejercicios: ${totalExercises}</p>
+      <p style="margin: 3px 0; color:#000;">- Total series: ${totalSets}</p>
+    `;
+  } else {
+    summary.className = "session-summary-section";
+    summary.innerHTML = `
+      <p class="session-summary-label">Resumen:</p>
+      <p>- Total ejercicios: ${totalExercises}</p>
+      <p>- Total series: ${totalSets}</p>
+    `;
+  }
+  exportDiv.appendChild(summary);
+
+  const sensations = saved.sensations || {};
+  const sensDiv = document.createElement("div");
+  if (usePngStyles) {
+    sensDiv.style.marginTop = "20px";
+    sensDiv.style.borderTop = "1px solid #000";
+    sensDiv.style.paddingTop = "10px";
+    sensDiv.style.color = "#000";
+  } else {
+    sensDiv.className = "session-summary-section";
+  }
+
+  let painText = "";
+  if (sensations.pain === "si") {
+    painText = `Sí (${sensations.painZone || "Zona N/A"} - Ejercicio: ${sensations.painExercise || "N/A"})`;
+  } else {
+    painText = "No";
+  }
+
+  sensDiv.innerHTML = usePngStyles
+    ? `
+        <p style="font-weight:bold; margin: 3px 0; color:#000; font-size:14px;">Métricas Subjetivas:</p>
+        <p style="margin: 3px 0; color:#000; font-size:12px;">- Sensaciones generales (0-10): ${sensations.general || "N/A"}</p>
+        <p style="margin: 3px 0; color:#000; font-size:12px;">- Cansancio percibido (0-10): ${sensations.tiredness || "N/A"}</p>
+        <p style="margin: 3px 0; color:#000; font-size:12px;">- Dolor en algún músculo: ${painText}</p>
+      `
+    : `
+        <p class="session-summary-label">Métricas subjetivas:</p>
+        <p>- Sensaciones generales (0-10): ${sensations.general || "N/A"}</p>
+        <p>- Cansancio percibido (0-10): ${sensations.tiredness || "N/A"}</p>
+        <p>- Dolor en algún músculo: ${painText}</p>
+      `;
+  exportDiv.appendChild(sensDiv);
+
+  const footer = document.createElement("p");
+  footer.textContent = "Registrado con GymTracker by Borja Aguado";
+  if (usePngStyles) {
+    footer.style.fontSize = "10px";
+    footer.style.textAlign = "right";
+    footer.style.marginTop = "15px";
+    footer.style.color = "#000";
+  } else {
+    footer.className = "session-summary-footer";
+  }
+  exportDiv.appendChild(footer);
+
+  return exportDiv;
+}
+
 function setActiveStep(index, options = {}) {
   if (!stepPages.length) return;
   const maxIndex = getMaxStepIndex();
   let nextIndex = Math.max(0, Math.min(index, maxIndex));
+
+  const step7Index = stepPages.indexOf(step7);
+  const enteringStep7 = step7Index >= 0 && nextIndex === step7Index;
+  const leavingStep7 = step7Index >= 0 && activeStepIndex === step7Index && nextIndex !== step7Index;
+  if (enteringStep7 && editExercisesContainer) {
+    exercisesContainer = editExercisesContainer;
+    showAllExercises = true;
+  }
+  if (leavingStep7) {
+    exercisesContainer = mainExercisesContainer;
+    showAllExercises = false;
+    if (editExercisesContainer) editExercisesContainer.innerHTML = "";
+    if (editingSessionContext) {
+      if (dateInput) dateInput.value = editingSessionContext.date || "";
+      if (weekSelect) {
+        ensureSelectValue(weekSelect, editingSessionContext.week || "");
+      }
+      if (daySelect) {
+        if (weekSelect) populateDaySelect(weekSelect.value);
+        ensureSelectValue(daySelect, editingSessionContext.day || "");
+      }
+      loadSession();
+      editingSessionContext = null;
+    }
+  }
 
   activeStepIndex = nextIndex;
   stepPages.forEach((step, idx) => {
@@ -722,6 +1143,7 @@ function loadLocalHistory() {
   window.uploadedHistory = sessions;
   rebuildHistoryData(sessions);
   refreshCharts();
+  refreshHistoryUI();
 }
 
 function upsertLocalHistory(session) {
@@ -731,7 +1153,15 @@ function upsertLocalHistory(session) {
   const sessionWithKey = { ...session, key, user: session.user || currentUserName };
   const index = sessions.findIndex(item => item.key === key);
   if (index >= 0) {
-    sessions[index] = sessionWithKey;
+    const existing = sessions[index];
+    const revisions = Array.isArray(existing.revisions) ? existing.revisions.slice() : [];
+    const snapshot = { ...existing };
+    delete snapshot.revisions;
+    revisions.push({ savedAt: new Date().toISOString(), data: snapshot });
+    if (revisions.length > 10) {
+      revisions.splice(0, revisions.length - 10);
+    }
+    sessions[index] = { ...sessionWithKey, revisions };
   } else {
     sessions.push(sessionWithKey);
   }
@@ -739,6 +1169,7 @@ function upsertLocalHistory(session) {
   window.uploadedHistory = sessions;
   rebuildHistoryData(sessions);
   refreshCharts();
+  refreshHistoryUI();
 }
 
 function mergeImportedHistory(imported) {
@@ -779,6 +1210,7 @@ function mergeImportedHistoryForUser(imported, userName, userKey) {
   const merged = Array.from(byKey.values());
   setLocalHistoryForUser(userKey, merged);
   refreshCharts();
+  refreshHistoryUI();
 }
 
 function getExportHistoryForUser(userKey) {
@@ -1393,6 +1825,7 @@ function buildExerciseCard(exData) {
 function addExerciseFromTemplate(name) {
   if (!name) return;
   const tpl = exerciseTemplates[name] || {};
+  if (!exercisesContainer) exercisesContainer = mainExercisesContainer;
   exercisesContainer.appendChild(
     buildExerciseCard({
       nombre: name,
@@ -1512,6 +1945,8 @@ function saveSession() {
 
   storage.setItem(key, JSON.stringify(data));
   setStatus("Guardado");
+  markAutoSaved();
+  updateSessionSummary();
   
   // 1. Repopulate the list of exercises for the pain selector
   const currentExerciseNames = data.exercises.map(ex => ex.nombre);
@@ -1650,6 +2085,8 @@ function populatePainExerciseSelect(exerciseNames) {
 function loadSession() {
   const key = sessionKey();
   const saved = JSON.parse(storage.getItem(key) || "null");
+  lastAutoSaveTime = null;
+  updateAutoSaveLabel();
 
   const week = weekSelect.value;
   const day = daySelect.value;
@@ -1739,6 +2176,8 @@ function loadSession() {
   
   checkSensationsForm();
   updateStepStatus();
+  updateSessionSummary();
+  scheduleExercisePagination(true);
 }
 
 
@@ -1806,139 +2245,7 @@ exportBtn.onclick = () => {
   const saved = JSON.parse(storage.getItem(key) || "null");
   if (!saved) return alert("No hay datos registrados hoy.");
 
-  // Crear contenedor sin borrar nada antes
-  const exportDiv = document.createElement("div");
-  exportDiv.style.background = "white";
-  exportDiv.style.padding = "20px";
-  exportDiv.style.fontFamily = "sans-serif";
-  exportDiv.style.width = "fit-content";
-  exportDiv.style.color = "#000"; 
-
-  // Cabecera: Solo la fecha
-  const title = document.createElement("h2");
-  const weekday = new Date(saved.date).toLocaleDateString("es-ES", { weekday: "long" });
-  const weekdayText = weekday && weekday !== "Invalid Date" ? ` (${weekday})` : "";
-  title.textContent = `${saved.date}${weekdayText}`; 
-  title.style.color = "#000"; 
-  exportDiv.appendChild(title);
-
-  // Tabla
-  const table = document.createElement("table");
-  table.style.borderCollapse = "separate";
-  table.style.borderSpacing = "0";
-  table.style.fontSize = "12px";
-  table.style.color = "#000"; 
-
-  // Estilos de la cabecera (Texto blanco, fondo oscuro)
-  table.innerHTML = `
-    <tr style="background:#000; font-weight:bold;"> 
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Ejercicio</th>
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Serie</th>
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Peso/<br>Intensidad</th>
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Reps/<br>Tiempo</th>
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Fallo</th>
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Reps fallo</th>
-      <th style="border:1px solid #000; padding:4px; color:#fff;">Notas</th>
-    </tr>
-  `;
-
-  // Rellenar tabla con todos los sets (texto negro)
-  let totalExercises = 0;
-  let totalSets = 0;
-
-  saved.exercises.forEach((ex, exIndex) => {
-    const groupBg = exIndex % 2 === 0 ? "#e2e8f0" : "#f8fafc";
-    totalExercises += 1;
-
-    const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
-    ex.sets.forEach((set, setIndex) => {
-      totalSets += 1;
-      const displayPeso = isCardio ? (set.intensidad ?? set.peso ?? "") : (set.peso ?? "");
-      const displayReps = isCardio ? (set.tiempo ?? set.reps ?? "") : (set.reps ?? "");
-      const displayFallo = isCardio ? "" : (set.fallo ? "Sí" : "No");
-      const displayRepsFallo = isCardio ? "" : (set.repsFallo ?? "");
-
-      const tr = document.createElement("tr");
-      tr.style.background = groupBg;
-      if (setIndex === 0) {
-        tr.style.borderTop = "2px solid #000";
-      }
-      tr.innerHTML = `
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-weight: bold;">${ex.nombre}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.serie ?? ""}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${displayPeso}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${displayReps}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${displayFallo}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${displayRepsFallo}</td>
-        <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.obs ?? ""}</td>
-      `;
-      table.appendChild(tr);
-    });
-
-    if (exIndex < saved.exercises.length - 1) {
-      const separator = document.createElement("tr");
-      separator.innerHTML = `
-        <td colspan="7" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #777; padding:0; height:6px; background:#fff;"></td>
-      `;
-      table.appendChild(separator);
-    }
-  });
-
-  table.querySelectorAll("th, td").forEach(cell => {
-    cell.style.borderColor = "#000";
-  });
-  table.querySelectorAll("td").forEach(cell => {
-    cell.style.color = "#000";
-  });
-
-  exportDiv.appendChild(table);
-
-  // RESUMEN
-  const summary = document.createElement("div");
-  summary.style.marginTop = "8px";
-  summary.style.fontSize = "12px";
-  summary.style.color = "#000";
-  summary.innerHTML = `
-    <p style="margin: 3px 0; font-weight:bold; color:#000;">Resumen:</p>
-    <p style="margin: 3px 0; color:#000;">- Total ejercicios: ${totalExercises}</p>
-    <p style="margin: 3px 0; color:#000;">- Total series: ${totalSets}</p>
-  `;
-  exportDiv.appendChild(summary);
-
-  // AÑADIR SENSACIONES AL EXPORT (Texto negro)
-  const sensations = saved.sensations || {};
-  const sensDiv = document.createElement('div');
-  sensDiv.style.marginTop = '20px';
-  sensDiv.style.borderTop = '1px solid #000';
-  sensDiv.style.paddingTop = '10px';
-  sensDiv.style.color = "#000";
-  
-  let painText = "";
-  if (sensations.pain === 'si') {
-      painText = `Sí (${sensations.painZone || 'Zona N/A'} - Ejercicio: ${sensations.painExercise || 'N/A'})`;
-  } else {
-      painText = 'No';
-  }
-  
-  // Usar párrafos para formato de fila separada
-  sensDiv.innerHTML = `
-      <p style="font-weight:bold; margin: 3px 0; color:#000; font-size:14px;">Métricas Subjetivas:</p>
-      <p style="margin: 3px 0; color:#000; font-size:12px;">- Sensaciones generales (0-10): ${sensations.general || 'N/A'}</p>
-      <p style="margin: 3px 0; color:#000; font-size:12px;">- Cansancio percibido (0-10): ${sensations.tiredness || 'N/A'}</p>
-      <p style="margin: 3px 0; color:#000; font-size:12px;">- Dolor en algún músculo: ${painText}</p>
-  `;
-  exportDiv.appendChild(sensDiv);
-  
-  // MARCA DE AGUA (Texto negro)
-  const footer = document.createElement('p');
-  footer.textContent = 'Registrado con GymTracker by Borja Aguado';
-  footer.style.fontSize = '10px';
-  footer.style.textAlign = 'right';
-  footer.style.marginTop = '15px';
-  footer.style.color = "#000";
-  exportDiv.appendChild(footer);
-  
-  // Añadir al DOM para que html2canvas pueda capturarlo
+  const exportDiv = buildExportContent(saved, { variant: "png" });
   document.body.appendChild(exportDiv);
 
   // Exportar a PNG
@@ -2084,10 +2391,22 @@ onReady(() => {
       }
     });
   }
+  if (homeLogoBtn) {
+    homeLogoBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      setActiveStep(0);
+    });
+  }
   refreshUserSelect();
   if (exportBtn) exportBtn.disabled = true;
   if (saveSessionBtn) saveSessionBtn.disabled = true;
   checkSensationsForm();
+  setFastMode(storage.getItem("gym_fast_mode") === "1");
+  if (toggleFastModeBtn) {
+    toggleFastModeBtn.addEventListener("click", () => {
+      setFastMode(!isFastMode);
+    });
+  }
   updateHeaderOffsets();
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
@@ -2127,6 +2446,11 @@ const quickAddGroupSelect = document.getElementById('quick-add-group');
 const quickAddExerciseSelect = document.getElementById('quick-add-exercise');
 const quickAddPredefinedBtn = document.getElementById('quick-add-predefined');
 const quickAddCustomBtn = document.getElementById('quick-add-custom');
+const customExerciseOverlay = document.getElementById('custom-exercise-overlay');
+const customExerciseName = document.getElementById('custom-exercise-name');
+const customExerciseIsCardio = document.getElementById('custom-exercise-is-cardio');
+const customExerciseCancel = document.getElementById('custom-exercise-cancel');
+const customExerciseConfirm = document.getElementById('custom-exercise-confirm');
 
 function updateDisplay() {
   const minutes = Math.floor(stopwatchTime / 60);
@@ -2186,6 +2510,23 @@ function closeQuickAddOverlay() {
   if (!quickAddOverlay) return;
   quickAddOverlay.style.display = "none";
   quickAddOverlay.setAttribute("aria-hidden", "true");
+}
+
+function openCustomExerciseOverlay() {
+  if (!customExerciseOverlay) return;
+  customExerciseOverlay.style.display = "flex";
+  customExerciseOverlay.setAttribute("aria-hidden", "false");
+  if (customExerciseName) {
+    customExerciseName.value = "";
+    customExerciseName.focus();
+  }
+  if (customExerciseIsCardio) customExerciseIsCardio.checked = false;
+}
+
+function closeCustomExerciseOverlay() {
+  if (!customExerciseOverlay) return;
+  customExerciseOverlay.style.display = "none";
+  customExerciseOverlay.setAttribute("aria-hidden", "true");
 }
 
 startBtn.addEventListener('click', () => {
@@ -2284,23 +2625,8 @@ if (quickAddPredefinedBtn) {
 
 if (quickAddCustomBtn) {
   quickAddCustomBtn.addEventListener("click", () => {
-    const name = prompt("Nombre del ejercicio:");
-    if (!name) return;
-    exercisesContainer.appendChild(
-      buildExerciseCard({
-        nombre: name,
-        musculo: "Personalizado",
-        seccion: "N/A",
-        hacer: "",
-        noHacer: "",
-        trucos: "",
-        sets: []
-      })
-    );
-    saveSession();
-    const total = exercisesContainer.querySelectorAll(".exercise-card").length;
-    activeExerciseIndex = Math.max(0, total - 1);
-    scheduleExercisePagination();
+    closeQuickAddOverlay();
+    openCustomExerciseOverlay();
   });
 }
 
@@ -2321,6 +2647,35 @@ if (stopwatchCloseBtn) {
 
 if (quickAddCloseBtn) {
   quickAddCloseBtn.addEventListener("click", closeQuickAddOverlay);
+}
+
+if (customExerciseCancel) {
+  customExerciseCancel.addEventListener("click", closeCustomExerciseOverlay);
+}
+
+if (customExerciseConfirm) {
+  customExerciseConfirm.addEventListener("click", () => {
+    const name = customExerciseName?.value.trim();
+    if (!name) return;
+    const isCardio = customExerciseIsCardio ? customExerciseIsCardio.checked : false;
+  if (!exercisesContainer) exercisesContainer = mainExercisesContainer;
+  exercisesContainer.appendChild(
+      buildExerciseCard({
+        nombre: name,
+        musculo: isCardio ? "Cardio" : "Personalizado",
+        seccion: "N/A",
+        hacer: "",
+        noHacer: "",
+        trucos: "",
+        sets: []
+      })
+    );
+    saveSession();
+    const total = exercisesContainer.querySelectorAll(".exercise-card").length;
+    activeExerciseIndex = Math.max(0, total - 1);
+    scheduleExercisePagination();
+    closeCustomExerciseOverlay();
+  });
 }
 
 if (exercisePrevBtn) {
@@ -2349,14 +2704,23 @@ if (quickAddOverlay) {
   });
 }
 
+if (customExerciseOverlay) {
+  customExerciseOverlay.addEventListener("click", (e) => {
+    if (e.target === customExerciseOverlay) closeCustomExerciseOverlay();
+  });
+}
+
 // Inicializar display
 updateDisplay();
 
-if (exercisesContainer) {
-  const exerciseObserver = new MutationObserver(() => {
-    scheduleExercisePagination(false);
-  });
-  exerciseObserver.observe(exercisesContainer, { childList: true });
+const exerciseObserver = new MutationObserver(() => {
+  scheduleExercisePagination(false);
+});
+if (mainExercisesContainer) {
+  exerciseObserver.observe(mainExercisesContainer, { childList: true });
+}
+if (editExercisesContainer) {
+  exerciseObserver.observe(editExercisesContainer, { childList: true });
 }
 
 // -------------------------
@@ -2376,25 +2740,31 @@ function getDragAfterElement(container, y) {
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
-exercisesContainer.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-});
+function bindDragAndDrop(container) {
+  if (!container) return;
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  });
 
-exercisesContainer.addEventListener('drop', (e) => {
-  e.preventDefault();
-  const draggedElement = document.querySelector('.exercise-card[style*="opacity: 0.5"]');
-  if (draggedElement) {
-    const afterElement = getDragAfterElement(exercisesContainer, e.clientY);
-    if (afterElement == null) {
-      exercisesContainer.appendChild(draggedElement);
-    } else {
-      exercisesContainer.insertBefore(draggedElement, afterElement);
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const draggedElement = document.querySelector('.exercise-card[style*="opacity: 0.5"]');
+    if (draggedElement) {
+      const afterElement = getDragAfterElement(container, e.clientY);
+      if (afterElement == null) {
+        container.appendChild(draggedElement);
+      } else {
+        container.insertBefore(draggedElement, afterElement);
+      }
+      saveSession();
+      scheduleExercisePagination();
     }
-    saveSession();
-    scheduleExercisePagination();
-  }
-});
+  });
+}
+
+bindDragAndDrop(mainExercisesContainer);
+bindDragAndDrop(editExercisesContainer);
 
 // -------------------------
 // HISTÓRICO
@@ -2479,6 +2849,173 @@ if (exportUserHistoryBtn) {
   });
 }
 
+function escapeCsvCell(value) {
+  if (value == null) return "";
+  const text = String(value);
+  if (/[",\n\r]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+}
+
+function buildCsvForUser(sessions) {
+  const header = [
+    "usuario",
+    "fecha",
+    "semana",
+    "dia",
+    "ejercicio",
+    "musculo",
+    "seccion",
+    "serie",
+    "peso",
+    "reps",
+    "fallo",
+    "reps_fallo",
+    "intensidad",
+    "tiempo",
+    "notas",
+    "sens_general",
+    "sens_tiredness",
+    "sens_weight",
+    "sens_pain",
+    "sens_pain_zone",
+    "sens_pain_exercise"
+  ];
+  const rows = [header.map(escapeCsvCell).join(",")];
+
+  sessions.forEach(session => {
+    const sensations = session.sensations || {};
+    const base = {
+      usuario: session.user || "",
+      fecha: session.date || "",
+      semana: session.week || "",
+      dia: session.day || "",
+      sens_general: sensations.general ?? "",
+      sens_tiredness: sensations.tiredness ?? "",
+      sens_weight: sensations.weight ?? "",
+      sens_pain: sensations.pain ?? "",
+      sens_pain_zone: sensations.painZone ?? "",
+      sens_pain_exercise: sensations.painExercise ?? ""
+    };
+
+    const exercises = Array.isArray(session.exercises) ? session.exercises : [];
+    if (!exercises.length) {
+      const row = [
+        base.usuario,
+        base.fecha,
+        base.semana,
+        base.dia,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        base.sens_general,
+        base.sens_tiredness,
+        base.sens_weight,
+        base.sens_pain,
+        base.sens_pain_zone,
+        base.sens_pain_exercise
+      ];
+      rows.push(row.map(escapeCsvCell).join(","));
+      return;
+    }
+
+    exercises.forEach(ex => {
+      const sets = Array.isArray(ex.sets) ? ex.sets : [];
+      if (!sets.length) {
+        const row = [
+          base.usuario,
+          base.fecha,
+          base.semana,
+          base.dia,
+          ex.nombre || "",
+          ex.musculo || "",
+          ex.seccion || "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          base.sens_general,
+          base.sens_tiredness,
+          base.sens_weight,
+          base.sens_pain,
+          base.sens_pain_zone,
+          base.sens_pain_exercise
+        ];
+        rows.push(row.map(escapeCsvCell).join(","));
+        return;
+      }
+      sets.forEach(set => {
+        const row = [
+          base.usuario,
+          base.fecha,
+          base.semana,
+          base.dia,
+          ex.nombre || "",
+          ex.musculo || "",
+          ex.seccion || "",
+          set.serie ?? "",
+          set.peso ?? "",
+          set.reps ?? "",
+          set.fallo === true ? "si" : set.fallo === false ? "no" : "",
+          set.repsFallo ?? "",
+          set.intensidad ?? "",
+          set.tiempo ?? "",
+          set.obs ?? "",
+          base.sens_general,
+          base.sens_tiredness,
+          base.sens_weight,
+          base.sens_pain,
+          base.sens_pain_zone,
+          base.sens_pain_exercise
+        ];
+        rows.push(row.map(escapeCsvCell).join(","));
+      });
+    });
+  });
+
+  return rows.join("\n");
+}
+
+if (exportUserHistoryCsvBtn) {
+  exportUserHistoryCsvBtn.addEventListener("click", () => {
+    const selectedKey = userHistorySelect?.value || "";
+    if (!selectedKey) {
+      alert("Selecciona un usuario para exportar.");
+      return;
+    }
+    const userList = loadUserList();
+    const entry = userList.find(u => u.key === selectedKey);
+    const data = getExportHistoryForUser(selectedKey);
+    if (!data.length) {
+      setUserHistoryStatus("No hay datos de este usuario para exportar.");
+      return;
+    }
+    const csv = buildCsvForUser(data);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safeName = entry?.name ? normalizeUserName(entry.name) : selectedKey;
+    a.download = `historico_${safeName}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setUserHistoryStatus("CSV del usuario exportado.");
+  });
+}
+
 if (importMergeHistoryBtn && importMergeHistoryInput) {
   importMergeHistoryBtn.addEventListener("click", () => {
     importMergeHistoryInput.value = "";
@@ -2517,6 +3054,19 @@ function closeManageUserOverlay() {
   manageUserOverlay.setAttribute("aria-hidden", "true");
 }
 
+function openHistoryMenuOverlay() {
+  if (!historyMenuOverlay) return;
+  historyMenuOverlay.style.display = "flex";
+  historyMenuOverlay.setAttribute("aria-hidden", "false");
+  refreshHistoryUI();
+}
+
+function closeHistoryMenuOverlay() {
+  if (!historyMenuOverlay) return;
+  historyMenuOverlay.style.display = "none";
+  historyMenuOverlay.setAttribute("aria-hidden", "true");
+}
+
 if (importOverlayCancel) {
   importOverlayCancel.addEventListener("click", () => {
     closeImportOverlay();
@@ -2530,6 +3080,77 @@ if (manageUserClose) {
 if (manageUserOverlay) {
   manageUserOverlay.addEventListener("click", (e) => {
     if (e.target === manageUserOverlay) closeManageUserOverlay();
+  });
+}
+
+if (manageUserHistoryBtn) {
+  manageUserHistoryBtn.addEventListener("click", () => {
+    openHistoryMenuOverlay();
+  });
+}
+
+if (historyMenuClose) {
+  historyMenuClose.addEventListener("click", closeHistoryMenuOverlay);
+}
+
+if (historyMenuOverlay) {
+  historyMenuOverlay.addEventListener("click", (e) => {
+    if (e.target === historyMenuOverlay) closeHistoryMenuOverlay();
+  });
+}
+
+if (historyDateInput) {
+  historyDateInput.addEventListener("change", () => {
+    updateHistoryButtons();
+  });
+}
+
+if (historyViewBtn) {
+  historyViewBtn.addEventListener("click", () => {
+    const session = getSelectedHistorySession();
+    if (session) openHistoryViewOverlay(session);
+  });
+}
+
+if (historyEditBtn) {
+  historyEditBtn.addEventListener("click", () => {
+    const session = getSelectedHistorySession();
+    if (!session) return;
+    if (!editingSessionContext) {
+      editingSessionContext = {
+        date: dateInput?.value || "",
+        week: weekSelect?.value || "",
+        day: daySelect?.value || ""
+      };
+    }
+    if (editExercisesContainer) {
+      exercisesContainer = editExercisesContainer;
+      showAllExercises = true;
+      editExercisesContainer.innerHTML = "";
+    }
+    if (dateInput) dateInput.value = session.date || "";
+    if (weekSelect) {
+      ensureSelectValue(weekSelect, session.week || "");
+    }
+    if (daySelect) {
+      if (weekSelect) populateDaySelect(weekSelect.value);
+      ensureSelectValue(daySelect, session.day || "");
+    }
+    loadSession();
+    const step7Index = stepPages.indexOf(step7);
+    if (step7Index >= 0) setActiveStep(step7Index);
+    closeHistoryMenuOverlay();
+    closeManageUserOverlay();
+  });
+}
+
+if (historyViewClose) {
+  historyViewClose.addEventListener("click", closeHistoryViewOverlay);
+}
+
+if (historyViewOverlay) {
+  historyViewOverlay.addEventListener("click", (e) => {
+    if (e.target === historyViewOverlay) closeHistoryViewOverlay();
   });
 }
 

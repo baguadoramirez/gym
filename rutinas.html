@@ -136,13 +136,31 @@
       top: 76px;
       left: 0;
       right: 0;
-      display: none;
+      display: flex;
       justify-content: flex-end;
       align-items: center;
       min-height: 48px;
       padding: 0 1rem;
       background: var(--header-bg);
       z-index: 1150;
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .subheader-title {
+      margin-right: auto;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-color);
+      letter-spacing: 0.2px;
+    }
+
+    .subheader.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
 
     .subheader .floating-actions {
@@ -321,10 +339,74 @@
       font-size: 1rem;
       padding: 0.7rem 0.8rem;
       border-radius: 12px;
+      min-height: 44px;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid rgba(249, 115, 22, 0.5);
+      outline-offset: 2px;
     }
 
     .hint-text {
       font-size: 0.9rem;
+    }
+
+    .session-summary {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      color: var(--text);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .session-summary-title {
+      margin: 0 0 0.8rem 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .session-summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .session-summary-table th,
+    .session-summary-table td {
+      border: 1px solid var(--card-border);
+      padding: 6px;
+    }
+
+    .session-summary-head {
+      background: var(--table-header);
+      font-weight: 700;
+    }
+
+    .session-summary-section {
+      margin-top: 0.9rem;
+      border-top: 1px solid var(--card-border);
+      padding-top: 0.7rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .session-summary-label {
+      font-weight: 700;
+      margin: 0 0 0.3rem 0;
+    }
+
+    .session-summary-footer {
+      margin-top: 0.8rem;
+      text-align: right;
+      font-size: 0.8rem;
+      color: var(--meta-text);
     }
 
     .exercise-nav {
@@ -340,6 +422,26 @@
       gap: 0.6rem;
     }
 
+    .step-3-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+      gap: 0.8rem;
+    }
+
+    #toggle-fast-mode {
+      background: #f97316 !important;
+      color: #ffffff !important;
+      border: 2px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      padding: 0.6rem 1.6rem !important;
+      min-height: 48px;
+      min-width: 180px;
+      justify-content: center;
+    }
+
     .exercise-actions {
       display: flex;
       justify-content: flex-end;
@@ -350,6 +452,18 @@
     .exercise-counter-bar {
       margin-bottom: 0.1rem;
       padding: 0.6rem;
+    }
+
+    .exercise-empty-state {
+      display: none;
+      margin-top: 0.6rem;
+      padding: 0.9rem 1rem;
+      background: var(--card-bg);
+      border: 1px dashed var(--card-border);
+      border-radius: 12px;
+      color: var(--meta-text);
+      font-size: 0.9rem;
+      text-align: center;
     }
 
     #exercises-container {
@@ -563,6 +677,24 @@
       color: #64748b;
     }
 
+    .btn-orange-dark {
+      background: #c2410c;
+      color: white;
+    }
+
+    .fast-mode .exercise-table th:nth-child(4),
+    .fast-mode .exercise-table td:nth-child(4),
+    .fast-mode .exercise-table th:nth-child(5),
+    .fast-mode .exercise-table td:nth-child(5),
+    .fast-mode .exercise-table th:nth-child(6),
+    .fast-mode .exercise-table td:nth-child(6) {
+      display: none;
+    }
+
+    .fast-mode .exercise-notes {
+      display: none;
+    }
+
     .btn-danger {
       background: #b91c1c;
       color: white;
@@ -638,13 +770,21 @@
 
     .exercise-table td input {
       width: 100%;
-      height: 32px;
+      height: 44px;
       font-size: 0.9rem;
       padding: 4px 6px;
       box-sizing: border-box;
       background: var(--card-bg);
       color: var(--text);
       border: 1px solid var(--card-border);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid rgba(249, 115, 22, 0.5);
+      outline-offset: 2px;
     }
 
     .exercise-notes p {
@@ -819,6 +959,17 @@
       font-size: 1.2rem;
     }
 
+    #toggle-fast-mode {
+      border: 2px solid var(--card-border);
+      border-radius: 8px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
     #toggle-user-manage:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -840,7 +991,7 @@
 
 <div class="compact-header" id="compact-header">
   <div style="display:flex; align-items:center; gap:0.6rem;">
-    <a class="header-logo">
+    <a class="header-logo" id="home-logo-btn" aria-label="Volver al inicio">
       <img src="icons/icon_svg.svg" alt="Icono de la app" style="height:28px; width:auto;">
     </a>
     <h1>Gym Tracker</h1>
@@ -869,6 +1020,7 @@
 </div>
 
 <div class="subheader" id="subheader">
+  <div class="subheader-title">Barra de opciones</div>
   <div class="floating-actions" id="floating-actions">
     <button id="toggle-user-manage" aria-label="Gestionar usuario">👤</button>
     <button id="toggle-stopwatch" aria-label="Cuenta atras">⏱️</button>
@@ -883,7 +1035,7 @@
       <span>Inicio</span>
       <span class="step-status">Bienvenida</span>
     </summary>
-    <div class="step-body">
+    <div class="step-body" id="step-3-body">
       <div class="welcome-hero">
         <div style="display: flex; justify-content: center; margin-bottom: 0.8rem;">
           <img src="icons/icon_svg.svg" alt="Icono de la app" style="height: 210px; width: auto;">
@@ -956,7 +1108,7 @@
         </div>
         <div class="controls-row">
           <div>
-            <label>Usuario</label><br>
+            <label for="user-history-select">Usuario</label><br>
             <select id="user-history-select" disabled></select>
           </div>
         </div>
@@ -982,7 +1134,7 @@
 
   <div class="controls">
     <div>
-      <label>Semana</label><br>
+      <label for="week-select">Semana</label><br>
       <select id="week-select">
         <option value="Semana 1">Semana 1</option>
         <option value="Semana 2">Semana 2</option>
@@ -993,7 +1145,7 @@
     </div>
 
     <div>
-      <label>Día</label><br>
+      <label for="day-select">Día</label><br>
       <select id="day-select">
         <option value="Día 1 – Tren superior (tirón + pecho secundario)">Día 1 – Tren superior (tirón)</option>
         <option value="Día 2 – Tren superior (empuje + hombro y brazos)">Día 2 – Tren superior (empuje)</option>
@@ -1017,11 +1169,18 @@
       <span id="step-3-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 3 · Ejercicios de la sesión</div>
+      <div class="step-3-header">
+        <div class="hint-text">Paso 3 · Ejercicios de la sesión</div>
+        <button id="toggle-fast-mode" class="btn-secondary" aria-label="Modo limpio" aria-pressed="false">
+          <span id="fast-mode-label">Modo detallado</span>
+        </button>
+      </div>
 
+  <div id="exercise-panel">
   <div class="controls exercise-counter-bar">
     <div class="exercise-nav">
       <div id="exercise-counter" class="hint-text">Ejercicio 0 de 0</div>
+      <div id="autosave-status" class="hint-text" aria-live="polite"></div>
       <div id="save-routine-controls" class="exercise-nav-actions" style="display: none;">
         <button id="save-routine-btn" class="btn-primary">Guardar rutina</button>
       </div>
@@ -1035,6 +1194,9 @@
   </div>
   
   <div id="exercises-container"></div>
+  <div id="exercise-empty-state" class="exercise-empty-state">
+    Aún no hay ejercicios en esta sesión. Usa el botón naranja arriba a la derecha "+" para añadir el primer ejercicio.
+  </div>
   
 
   <div id="stopwatch-overlay" class="overlay" aria-hidden="true">
@@ -1069,6 +1231,22 @@
         <button id="quick-add-close-btn" class="btn-secondary">Cerrar</button>
       </div>
     </div>
+  </div>
+  <div id="custom-exercise-overlay" class="overlay" aria-hidden="true">
+    <div class="overlay-card">
+      <h3>Ejercicio personalizado</h3>
+      <label for="custom-exercise-name">Nombre del ejercicio</label>
+      <input type="text" id="custom-exercise-name" placeholder="Ej: Remo en barra">
+      <label style="display:flex; align-items:center; gap:0.5rem; margin-top: 0.6rem;">
+        <input type="checkbox" id="custom-exercise-is-cardio">
+        Es cardio
+      </label>
+      <div class="overlay-actions">
+        <button id="custom-exercise-cancel" class="btn-secondary">Cancelar</button>
+        <button id="custom-exercise-confirm" class="btn-primary">Añadir</button>
+      </div>
+    </div>
+  </div>
   </div>
     </div>
   </details>
@@ -1121,7 +1299,6 @@
         
         <div class="final-action-row" style="margin-top: 1rem;">
           <button id="save-session-btn" class="btn-primary" style="flex:1;" disabled>Guardar sesión del usuario</button>
-          <button id="export-png-btn" class="btn-secondary" disabled>Imagen sesión (📷)</button>
         </div>
         <div id="save-session-message" class="save-session-message" aria-live="polite"></div>
         <div id="save-session-error" class="save-session-error" aria-live="polite"></div>
@@ -1131,18 +1308,34 @@
 
   <details id="step-5" class="step-section step-page" open>
     <summary>
-      <span>Paso 5: Gráficos del usuario</span>
-      <span id="step-5-status" class="step-status">Opcional</span>
+      <span>Paso 5: Resumen de la sesión</span>
+      <span id="step-5-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 5 · Gráficos del usuario</div>
+      <div class="hint-text">Paso 5 · Resumen de la sesión</div>
+      <div class="controls">
+        <div class="controls-row" style="flex-direction: column; align-items: stretch;">
+          <div id="session-summary" class="hint-text"></div>
+          <button id="export-png-btn" class="btn-secondary" disabled>Imagen sesión (📷)</button>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <details id="step-6" class="step-section step-page" open>
+    <summary>
+      <span>Paso 6: Gráficos del usuario</span>
+      <span id="step-6-status" class="step-status">Opcional</span>
+    </summary>
+    <div class="step-body">
+      <div class="hint-text">Paso 6 · Gráficos del usuario</div>
       <div id="graficos-content">
         <h2>Gráficos del usuario</h2>
         <p id="no-data-msg" style="display: none; color: var(--meta-text);">Todavía no hay datos de este usuario. Guarda sesiones o importa datos para ver los gráficos.</p>
         <div class="controls" id="chart-controls">
           <div class="controls-row chart-actions">
             <div>
-              <label>Ejercicios</label><br>
+              <label for="exercise-dropdown-btn">Ejercicios</label><br>
               <button id="exercise-dropdown-btn" class="btn-secondary">Seleccionar ejercicios</button>
               <div id="exercise-dropdown" class="dropdown-content" style="display: none;">
                 <!-- Checkboxes will be added here -->
@@ -1150,7 +1343,7 @@
             </div>
 
             <div>
-              <label>Variable</label><br>
+              <label for="chart-variable-select">Variable</label><br>
               <select id="chart-variable-select">
                 <option value="peso">Peso Máximo</option>
                 <option value="carga">Carga Total (Peso x Reps)</option>
@@ -1164,7 +1357,7 @@
             </div>
 
             <div>
-              <label>Generar Gráfico</label><br>
+              <label for="generate-chart-btn">Generar Grafico</label><br>
               <button id="generate-chart-btn" class="btn-primary" aria-label="Generar gráfico">▶</button>
             </div>
           </div>
@@ -1177,6 +1370,17 @@
           <canvas id="progress-chart-sens"></canvas>
         </div>
       </div>
+    </div>
+  </details>
+
+  <details id="step-7" class="step-section step-page" open>
+    <summary>
+      <span>Paso 7: Editar sesion anterior</span>
+      <span class="step-status">Edicion</span>
+    </summary>
+    <div class="step-body" id="step-7-body">
+      <div class="hint-text">Paso 7 · Editar sesion anterior</div>
+      <div id="edit-exercises-container"></div>
     </div>
   </details>
   </div>
@@ -1205,12 +1409,37 @@
   <div class="overlay-card manage-user-card">
     <h3>Gestion del usuario</h3>
     <div class="manage-user-actions">
+      <button id="manage-user-history-btn" class="btn-secondary">Sesiones anteriores</button>
       <button id="rename-user-history-btn" class="btn-secondary">Renombrar usuario</button>
-      <button id="export-user-history-btn" class="btn-accent-alt">Exportar datos del usuario</button>
+      <button id="export-user-history-btn" class="btn-accent-alt">Copia de seguridad (JSON)</button>
+      <button id="export-user-history-csv-btn" class="btn-accent-alt">Exportar datos análisis (CSV)</button>
       <button id="delete-user-history-btn" class="btn-danger">Eliminar usuario</button>
     </div>
     <div class="overlay-actions">
-      <button id="manage-user-close" class="btn-secondary">Cerrar</button>
+      <button id="manage-user-close" class="btn-orange-dark">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="history-menu-overlay" class="overlay" aria-hidden="true">
+  <div class="overlay-card">
+    <h3>Sesiones anteriores</h3>
+    <label for="history-date-input">Fecha</label><br>
+    <input type="date" id="history-date-input">
+    <div class="overlay-actions">
+      <button id="history-view-btn" class="btn-secondary" disabled>Ver</button>
+      <button id="history-edit-btn" class="btn-primary" disabled>Editar</button>
+      <button id="history-menu-close" class="btn-secondary">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="history-view-overlay" class="overlay" aria-hidden="true">
+  <div class="overlay-card">
+    <h3>Sesion seleccionada</h3>
+    <div id="history-view-content" style="white-space: pre-wrap;"></div>
+    <div class="overlay-actions">
+      <button id="history-view-close" class="btn-secondary">Cerrar</button>
     </div>
   </div>
 </div>
