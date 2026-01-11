@@ -2877,6 +2877,47 @@ function normalizeRoutineExerciseName(name) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function normalizeRoutineLabel(label) {
+  return String(label || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[–—]/g, "-")
+    .replace(/\s+/g, " ");
+}
+
+function findMatchingRoutineKey(group, label) {
+  if (!group || typeof group !== "object") return "";
+  const target = normalizeRoutineLabel(label);
+  if (!target) return "";
+  return Object.keys(group).find(key => normalizeRoutineLabel(key) === target) || "";
+}
+
+function resolveRoutineKeys(week, day) {
+  const allRoutines = getAllRoutines();
+  let weekKey = week;
+  if (!allRoutines[weekKey]) {
+    const matchedWeek = findMatchingRoutineKey(allRoutines, week);
+    if (matchedWeek) weekKey = matchedWeek;
+  }
+  const weekGroup = allRoutines[weekKey] || {};
+  let dayKey = day;
+  if (!weekGroup[dayKey]) {
+    const matchedDay = findMatchingRoutineKey(weekGroup, day);
+    if (matchedDay) {
+      dayKey = matchedDay;
+    } else {
+      const targetNumber = extractRoutineNumber(day);
+      if (!Number.isNaN(targetNumber)) {
+        const numberMatch = Object.keys(weekGroup).find(key => extractRoutineNumber(key) === targetNumber);
+        if (numberMatch) dayKey = numberMatch;
+      }
+    }
+  }
+  return { weekKey, dayKey };
+}
+
 function getRoutineSignature(exercises) {
   if (!Array.isArray(exercises) || exercises.length === 0) return "";
   return exercises
@@ -3864,7 +3905,8 @@ function loadSession(options = {}) {
 
   const week = weekSelect.value;
   const day = daySelect.value;
-  const routine = getAllRoutines()[week]?.[day];
+  const resolved = resolveRoutineKeys(week, day);
+  const routine = getAllRoutines()[resolved.weekKey]?.[resolved.dayKey];
   
   exercisesContainer.innerHTML = "";
   
@@ -4231,7 +4273,9 @@ onReady(() => {
   updateHeaderOffsets();
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    navigator.serviceWorker.register("./sw.js?v=3").then(reg => {
+      reg.update().catch(() => {});
+    }).catch(() => {});
   }
   window.__gymAppReady = true;
 });
