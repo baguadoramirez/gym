@@ -625,14 +625,6 @@
       color: var(--meta-text);
     }
 
-    .exercise-nav {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 0.8rem;
-      width: 100%;
-    }
-
     .exercise-nav-left {
       display: flex;
       align-items: center;
@@ -662,7 +654,7 @@
       letter-spacing: 0.2px;
     }
 
-    .exercise-nav .hint-text {
+    .exercise-counter-top .hint-text {
       font-weight: 600;
       letter-spacing: 0.2px;
     }
@@ -686,9 +678,9 @@
       width: 36px;
       height: 36px;
       padding: 0;
-      background: #34c759;
+      background: #16a34a;
       color: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.08);
+      border: 2px solid var(--card-border);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -697,9 +689,9 @@
     }
 
     #remove-exercise-btn {
-      background: #ff3b30;
+      background: #dc2626;
       color: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.08);
+      border: 2px solid var(--card-border);
       border-radius: 8px;
       width: 36px;
       height: 36px;
@@ -754,6 +746,27 @@
       border: 1px solid var(--card-border);
       border-radius: 18px;
       box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .exercise-counter-top {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .exercise-counter-bottom {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .step-3-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .exercise-empty-state {
@@ -1063,10 +1076,10 @@
     }
 
     #exercises-container {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 1.2rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      background: transparent;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
     }
 
     .exercise-card {
@@ -1077,6 +1090,7 @@
       background: var(--card-bg);
       box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
       cursor: default;
+      overflow-x: auto;
     }
 
     #status-text {
@@ -1087,6 +1101,7 @@
 
     table {
       width: 100%;
+      max-width: 100%;
       border-collapse: collapse;
       margin-top: .5rem;
     }
@@ -1414,7 +1429,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text" style="text-align:center;">v0.2.2</div>
+        <div class="hint-text" style="text-align:center;">v0.2.3</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary" data-i18n="welcome.start">Inicia sessió</button>
@@ -1579,23 +1594,27 @@
     <div class="step-body">
       <div class="step-3-header">
         <div class="hint-text" data-i18n="step3.hint">Pas 3 · Exercicis de la sessió</div>
+        <div class="step-3-header-actions">
+          <button id="toggle-fast-mode" class="btn-secondary" aria-label="Canviar mode" data-i18n-aria="aria.toggleMode" aria-pressed="false">
+            <span id="fast-mode-label" data-i18n="fastMode.detailed">Detallat</span>
+          </button>
+        </div>
       </div>
 
   <div id="exercise-panel">
   <div class="controls exercise-counter-bar">
-    <div class="exercise-nav">
+    <div class="exercise-counter-top">
+      <div id="exercise-counter" class="hint-text" data-i18n="exercise.counter.empty">Exercici 0 de 0</div>
+    </div>
+    <div class="exercise-counter-bottom">
       <div class="exercise-nav-left">
-        <div id="exercise-counter" class="hint-text" data-i18n="exercise.counter.empty">Exercici 0 de 0</div>
         <button id="exercise-prev" class="btn-secondary">←</button>
         <button id="exercise-next" class="btn-secondary">→</button>
       </div>
       <div class="exercise-nav-actions">
-        <button id="toggle-fast-mode" class="btn-secondary" aria-label="Canviar mode" data-i18n-aria="aria.toggleMode" aria-pressed="false">
-          <span id="fast-mode-label" data-i18n="fastMode.detailed">Detallat</span>
-        </button>
-        <button id="toggle-order-mode" class="btn-secondary" data-i18n="button.order">Ordenar</button>
         <button id="remove-exercise-btn" class="remove-exercise-btn" type="button" aria-label="Eliminar exercici" data-i18n-aria="exercise.remove">−</button>
         <button id="toggle-quick-add" aria-label="Exercicis" data-i18n-aria="aria.exercises">＋</button>
+        <button id="toggle-order-mode" class="btn-secondary" data-i18n="button.order">Ordenar</button>
       </div>
     </div>
   </div>
@@ -1844,8 +1863,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="ejercicios.js"></script>
-<script src="app.js"></script>
+<script src="ejercicios.js?v=3"></script>
+<script src="app.js?v=3"></script>
 
 <script>
   // Script Modificado para el nuevo toggle
