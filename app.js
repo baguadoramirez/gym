@@ -4097,9 +4097,9 @@ onReady(() => {
   setLanguage(currentLanguage);
   const languageSelect = document.getElementById("language-select");
   if (languageSelect) {
-    languageSelect.addEventListener("change", (event) => {
-      setLanguage(event.target.value);
-    });
+    const handleLanguageSelect = event => setLanguage(event.target.value);
+    languageSelect.addEventListener("change", handleLanguageSelect);
+    languageSelect.addEventListener("input", handleLanguageSelect);
   }
   const savedMode = getSessionMode();
   setSessionMode(savedMode);

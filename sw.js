@@ -1,4 +1,4 @@
-const CACHE_NAME = "gym-tracker-v1";
+const CACHE_NAME = "gym-tracker-v3";
 const ASSETS = [
   "./",
   "./rutinas.html",
@@ -29,6 +29,20 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+  const isNavigation = event.request.mode === "navigate";
+  const isScript = event.request.destination === "script";
+  if (isNavigation || isScript) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
