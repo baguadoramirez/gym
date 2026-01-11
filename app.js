@@ -7,6 +7,7 @@
 const dateInput = document.getElementById("date-input");
 const weekSelect = document.getElementById("week-select");
 const daySelect = document.getElementById("day-select");
+const routineSelect = document.getElementById("routine-select");
 
 const loadBtn = document.getElementById("load-routine-btn");
 const deleteRoutineBtn = document.getElementById("delete-routine-btn");
@@ -42,6 +43,7 @@ const importOverlayConfirm = document.getElementById("import-overlay-confirm");
 const manageUserOverlay = document.getElementById("manage-user-overlay");
 const manageUserClose = document.getElementById("manage-user-close");
 const manageUserHistoryBtn = document.getElementById("manage-user-history-btn");
+const manageUserNameLabel = document.getElementById("manage-user-name");
 const historyMenuOverlay = document.getElementById("history-menu-overlay");
 const historyMenuClose = document.getElementById("history-menu-close");
 const step0 = document.getElementById("step-0");
@@ -66,6 +68,7 @@ const subheader = document.getElementById("subheader");
 const toggleUserManageBtn = document.getElementById("toggle-user-manage");
 const toggleStopwatchBtn = document.getElementById("toggle-stopwatch");
 const toggleQuickAddBtn = document.getElementById("toggle-quick-add");
+const toggleOrderModeBtn = document.getElementById("toggle-order-mode");
 const toggleFastModeBtn = document.getElementById("toggle-fast-mode");
 const fastModeLabel = document.getElementById("fast-mode-label");
 const autoSaveStatus = document.getElementById("autosave-status");
@@ -87,10 +90,19 @@ const historyViewOverlay = document.getElementById("history-view-overlay");
 const historyViewContent = document.getElementById("history-view-content");
 const historyViewClose = document.getElementById("history-view-close");
 const sessionSummary = document.getElementById("session-summary");
+const removeExerciseBtn = document.getElementById("remove-exercise-btn");
+const step2ModeInputs = document.querySelectorAll('input[name="step2-mode"]');
+const step2ManualSection = document.getElementById("step2-manual");
+const step2PreviousSection = document.getElementById("step2-previous");
+const step2PredefinedSection = document.getElementById("step2-predefined");
+const historyDaySelect = document.getElementById("history-day-select");
+const loadPreviousSessionBtn = document.getElementById("load-previous-session-btn");
 
 const LOCAL_HISTORY_KEY = "gym_history_v1";
 const USER_LIST_KEY = "gym_user_list";
 const CUSTOM_ROUTINES_KEY = "gym_custom_routines_v1";
+let lastRoutinePromptSignature = "";
+const ROUTINE_VALUE_SEP = "|||";
 
 function getSafeStorage() {
   try {
@@ -117,6 +129,1227 @@ function getSafeStorage() {
 }
 
 const storage = getSafeStorage();
+
+const LANG_KEY = "gym_lang";
+const FONT_SCALE_KEY = "gym_font_scale";
+const FONT_SCALE_MIN = 0.75;
+const FONT_SCALE_MAX = 1.45;
+const FONT_SCALE_STEP = 0.05;
+const SESSION_MODE_KEY = "gym_session_mode";
+const SESSION_MODE_DEFAULT = "manual";
+const DEFAULT_LANG = "es";
+const I18N_STRINGS = {
+  ca: {
+    "app.title": "Registre de rutines de gimnàs",
+    "label.language": "Idioma",
+    "lang.ca": "CAT",
+    "lang.es": "ESP",
+    "lang.en": "ENG",
+    "header.backHome": "Torna a l'inici",
+    "header.changeTheme": "Canvia el tema",
+    "header.appIconAlt": "Icona de l'app",
+    "header.borjaAlt": "Logotip de Borja Aguado",
+    "subheader.title": "Barra d'opcions",
+    "textSize.decrease": "Reduir text",
+    "textSize.increase": "Augmentar text",
+    "aria.manageUser": "Gestionar usuari",
+    "aria.countdown": "Compte enrere",
+    "aria.exercises": "Exercicis",
+    "aria.toggleMode": "Canviar mode",
+    "stopwatch.start": "Inicia",
+    "stopwatch.stop": "Atura",
+    "stopwatch.reset": "Reinicia",
+    "welcome.start": "Inicia sessió",
+    "welcome.info": "Informació rellevant",
+    "welcome.legal": "Avisos legals i mèdics",
+    "welcome.info.privacy": "<b>Privacitat:</b> no es guarden dades al núvol. Tot s'emmagatzema localment al dispositiu.",
+    "welcome.info.sync": "<b>Sense sincronització:</b> les dades no es comparteixen entre dispositius excepte si exportes i importes manualment.",
+    "welcome.info.important": "<b>Important:</b> si esborres les dades del navegador o l'app, es perdran. Exporta còpies si les vols conservar.",
+    "welcome.info.shortcut": "<b>Accés directe:</b> iOS → Compartir → “Afegir a la pantalla d'inici”. Android → Menú → “Instal·lar l'app”.",
+    "welcome.legal.legal": "<b>Avís legal:</b> GitHub Pages només serveix fitxers estàtics, sense base de dades ni servidor on pujar dades.",
+    "welcome.legal.medical": "<b>Avís mèdic:</b> aquesta aplicació no ofereix assessorament mèdic ni esportiu. Consulta un professional abans de fer canvis en el teu entrenament, especialment si tens lesions o condicions prèvies.",
+    "welcome.legal.use": "<b>Ús i responsabilitat:</b> utilitzes la web sota el teu compte i risc. No es garanteix la disponibilitat ni la conservació de les dades si canvies de dispositiu, navegador o mode privat.",
+    "welcome.legal.warranty": "<b>Sense garanties:</b> l'aplicació s'ofereix “tal com és”, sense garanties de disponibilitat, continuïtat o absència d'errors.",
+    "welcome.legal.limitation": "<b>Limitació de responsabilitat:</b> el creador no es fa responsable de danys indirectes, pèrdues de beneficis o decisions preses a partir de la informació registrada.",
+    "step0.title": "Inici",
+    "step0.status": "Benvinguda",
+    "step1.summary": "Pas 1: Selecció d'usuaris",
+    "step1.hint": "Pas 1 · Selecció d'usuari",
+    "step1.statusText": "Comença seleccionant un usuari per carregar les seves dades.",
+    "step2.summary": "Pas 2: Com vols iniciar la sessió?",
+    "step2.hint": "Pas 2: Tria com vols crear la sessió",
+    "step2.option.manual": "Crear la sessió manualment",
+    "step2.option.previous": "Carregar una sessió prèvia",
+    "step2.option.predefined": "Utilitzar una sessió predefinida",
+    "step2.manualHint": "Afegeix exercicis a la sessió des del pas 3.",
+    "step3.summary": "Pas 3: Exercicis de la sessió",
+    "step3.hint": "Pas 3 · Exercicis de la sessió",
+    "step4.summary": "Pas 4: Qüestionari post-entrenament",
+    "step4.hint": "Pas 4 · Qüestionari post-entrenament",
+    "step5.summary": "Pas 5: Resum de la sessió",
+    "step5.hint": "Pas 5 · Resum de la sessió",
+    "step6.summary": "Pas 6: Gràfics de l'usuari",
+    "step6.hint": "Pas 6 · Gràfics de l'usuari",
+    "step7.summary": "Pas 7: Edita sessió anterior",
+    "step7.hint": "Pas 7 · Edita sessió anterior",
+    "status.pending": "Pendent",
+    "status.optional": "Opcional",
+    "status.inProgress": "En progrés",
+    "status.completed": "Completat",
+    "status.blocked": "Bloquejat",
+    "status.available": "Disponible",
+    "status.editing": "Edició",
+    "label.user": "Usuari",
+    "label.week": "Setmana",
+    "label.day": "Dia",
+    "label.routine": "Rutines",
+    "label.exercise": "Exercici",
+    "label.muscleGroup": "Grup muscular",
+    "label.variable": "Variable",
+    "label.date": "Data",
+    "label.exercises": "Exercicis",
+    "label.sensGeneral": "Sensacions generals de l'entrenament 0-10 (molt malament - excel·lent)",
+    "label.sensTiredness": "Cansament percebut 0-10",
+    "label.sensWeight": "Pes corporal (kg) - Opcional",
+    "label.sensPain": "Dolor en algun múscul (sí/no)",
+    "label.painZone": "Zona del dolor",
+    "label.painExercise": "Identifica si algun exercici pot haver estat el responsable",
+    "placeholder.sensGeneral": "Ex: 8",
+    "placeholder.sensTiredness": "Ex: 6",
+    "placeholder.sensWeight": "Ex: 78.5",
+    "placeholder.painZone": "Ex: Espatlla dreta",
+    "placeholder.selectGroup": "Seleccionar grup...",
+    "placeholder.selectExercise": "Seleccionar exercici...",
+    "stopwatch.placeholder": "Temps en segons (ex: 60)",
+    "customExercise.namePlaceholder": "Ex: Rem en barra",
+    "cardio.placeholderIntensity": "1-10",
+    "cardio.placeholderTime": "min",
+    "option.no": "No",
+    "option.yes": "Sí",
+    "option.notIdentified": "No identificat",
+    "week.1": "Setmana 1",
+    "week.2": "Setmana 2",
+    "week.3": "Setmana 3",
+    "week.4": "Setmana 4",
+    "week.5": "Setmana 5",
+    "day.1": "Dia 1 – Tren superior (tracció)",
+    "day.2": "Dia 2 – Tren superior (empenta)",
+    "day.3": "Dia 3 – Tren inferior + core",
+    "button.newUser": "Crea un usuari nou",
+    "button.importMerge": "Importa dades (fusiona)",
+    "button.loadRoutine": "Carrega rutina",
+    "button.deleteRoutine": "Esborra rutina",
+    "button.saveRoutine": "Desa rutina",
+    "button.loadPreviousSession": "Carrega sessió prèvia",
+    "button.saveSession": "Desa sessió de l'usuari",
+    "button.exportPng": "Imatge de sessió completa (📷)",
+    "button.selectExercises": "Selecciona exercicis",
+    "button.generateChart": "Genera gràfic",
+    "button.merge": "Fusiona",
+    "button.close": "Tanca",
+    "button.cancel": "Cancel·la",
+    "button.add": "Afegir",
+    "button.custom": "Personalitzat",
+    "button.prev": "Anterior",
+    "button.next": "Següent",
+    "button.order": "Ordenar",
+    "button.apply": "Aplicar",
+    "button.view": "Veure",
+    "button.edit": "Edita",
+    "footer.createdBy": "Web creada per",
+    "footer.licensePrefix": "Codi sota",
+    "footer.licenseLink": "Llicència Creative Commons Reconeixement-CompartirIgual 4.0 Internacional",
+    "import.title": "Selecciona l'usuari per fusionar",
+    "manage.title": "Gestió de l'usuari",
+    "manage.history": "Sessions anteriors",
+    "manage.rename": "Canvia el nom de l'usuari",
+    "manage.exportJson": "Còpia de seguretat (JSON)",
+    "manage.exportCsv": "Exporta dades d'anàlisi (CSV)",
+    "manage.delete": "Elimina usuari",
+    "history.menuTitle": "Sessions anteriors",
+    "order.title": "Ordenar exercicis",
+    "order.empty": "No hi ha exercicis per ordenar.",
+    "history.viewTitle": "Sessió seleccionada",
+    "postWorkout.title": "Qüestionari de Post-Entrenament",
+    "customExercise.title": "Exercici personalitzat",
+    "customExercise.nameLabel": "Nom de l'exercici",
+    "customExercise.isCardio": "És cardio",
+    "charts.title": "Gràfics de l'usuari",
+    "charts.noData": "Encara no hi ha dades d'aquest usuari. Desa sessions o importa dades per veure els gràfics.",
+    "chart.variable.maxWeight": "Pes màxim",
+    "chart.variable.totalLoad": "Càrrega total (pes x reps)",
+    "chart.variable.cardioIntensity": "Cardio - Intensitat màxima",
+    "chart.variable.cardioTime": "Cardio - Temps total (min)",
+    "chart.variable.sensGeneral": "Sensacions generals (0-10)",
+    "chart.variable.sensTiredness": "Cansament percebut (0-10)",
+    "chart.variable.sensWeight": "Pes corporal (kg)",
+    "chart.variable.sensPain": "Dolor en algun múscul (Sí/No)",
+    "chart.generateLabel": "Genera gràfic",
+    "chart.alert.selectExercise": "Selecciona com a mínim un exercici.",
+    "chart.axis.date": "Data",
+    "chart.axis.weight": "Pes (kg)",
+    "chart.axis.load": "Càrrega (kg*reps)",
+    "chart.axis.intensity": "Intensitat (1-10)",
+    "chart.axis.time": "Temps (min)",
+    "chart.axis.pain": "Dolor (0=No, 1=Sí)",
+    "chart.axis.score": "Puntuació (0-10)",
+    "chart.axis.sensations": "Sensacions (0-10)",
+    "chart.axis.bodyWeight": "Pes corporal (kg)",
+    "chart.option.bodyWeight": "Pes corporal",
+    "exercise.counter.empty": "Exercici 0 de 0",
+    "exercise.counter.all": "Exercicis: {total}",
+    "exercise.counter.current": "Exercici {current} de {total}",
+    "exercise.empty": "Encara no hi ha exercicis en aquesta sessió. Usa el botó taronja a dalt a la dreta \"+\" per afegir el primer exercici.",
+    "fastMode.basic": "+ info",
+    "fastMode.detailed": "- info",
+    "autoSave.now": "Desat ara",
+    "autoSave.ago": "Desat fa {seconds} s",
+    "session.noData": "Sense dades de sessió.",
+    "session.table.exercise": "Exercici",
+    "session.table.set": "Sèrie",
+    "session.table.weightIntensity": "Pes/<br>Intensitat",
+    "session.table.repsTime": "Reps/<br>Temps",
+    "session.table.failure": "Fallada",
+    "session.table.failureReps": "Reps de fallada",
+    "session.table.notes": "Notes",
+    "session.table.series": "Sèries",
+    "session.table.maxWeightTime": "Pes màx / Temps",
+    "session.summary.header": "Resum:",
+    "session.summary.totalExercises": "- Total exercicis: {count}",
+    "session.summary.totalSets": "- Total sèries: {count}",
+    "session.metrics.title": "Mètriques subjectives:",
+    "session.metrics.general": "- Sensacions generals (0-10): {value}",
+    "session.metrics.tiredness": "- Cansament percebut (0-10): {value}",
+    "session.metrics.pain": "- Dolor en algun múscul: {value}",
+    "session.footer": "Registrat amb GymTracker by Borja Aguado",
+    "session.failure.yes": "Sí",
+    "session.failure.no": "No",
+    "session.pain.zoneNA": "Zona N/A",
+    "session.pain.exerciseNA": "Exercici: N/A",
+    "warning.overload": "Avís de sobrecàrrega: últim màxim {baseline} kg, ara {current} kg.",
+    "history.view.date": "Data",
+    "history.view.week": "Setmana",
+    "history.view.day": "Dia",
+    "history.view.exercises": "Exercicis",
+    "history.view.exerciseDefault": "Exercici",
+    "history.view.sets": "sèries",
+    "status.historyRenamed": "Històric reanomenat a {name}.",
+    "status.historyDeleted": "Històric eliminat.",
+    "status.selectUser": "Selecciona un usuari",
+    "status.noUsers": "No hi ha usuaris. Crea'n un de nou per començar.",
+    "status.selectUserContinue": "Selecciona un usuari per continuar",
+    "status.selectDay": "Selecciona un dia.",
+    "status.noHistoryDay": "No hi ha sessions per a aquest dia.",
+    "status.noHistorySessions": "No hi ha sessions prèvies disponibles.",
+    "status.loadedPreviousSession": "Sessió prèvia carregada.",
+    "status.userActive": "Usuari actiu: {name}",
+    "status.createdLoaded": "Usuari creat i carregat.",
+    "status.userExported": "Dades de l'usuari exportades.",
+    "status.userExportedCsv": "CSV de l'usuari exportat.",
+    "status.noUserDataExport": "No hi ha dades d'aquest usuari per exportar.",
+    "status.importMerged": "Dades importades i fusionades correctament.",
+    "status.importError": "Error en fusionar les dades: {error}",
+    "prompt.newUserName": "Nom del nou usuari:",
+    "prompt.routineName": "Nom de la rutina:",
+    "alert.selectValidUser": "Selecciona un usuari vàlid.",
+    "alert.userExists": "Ja existeix un usuari amb aquest nom.",
+    "confirm.deleteUser": "Eliminar l'usuari \"{name}\"? Aquesta acció no es pot desfer.",
+    "alert.selectUserRename": "Selecciona un usuari per reanomenar.",
+    "alert.selectUserDelete": "Selecciona un usuari per eliminar.",
+    "alert.selectUserExport": "Selecciona un usuari per exportar.",
+    "alert.noDataToday": "No hi ha dades registrades avui.",
+    "alert.noUserInImport": "No s'ha trobat un nom d'usuari a les dades importades.",
+    "confirm.saveNewRoutine": "Aquesta rutina no està desada. La vols desar?",
+    "confirm.overwriteRoutine": "La rutina \"{name}\" ja existeix. La vols sobrescriure?",
+    "confirm.deleteRoutine": "Esborrar la rutina personalitzada \"{name}\"?",
+    "status.selectUserBeforeSaveRoutine": "Selecciona un usuari abans de desar rutines personalitzades.",
+    "status.noExercisesToSaveRoutine": "Afegeix com a mínim un exercici abans de desar la rutina.",
+    "status.emptyRoutineName": "El nom de la rutina no pot estar buit.",
+    "status.noValidExercises": "No s'han trobat exercicis vàlids.",
+    "status.routineAdded": "Ja apareix a rutines predefinides.",
+    "status.postWorkoutExportError": "Completa tot el qüestionari de post-entrenament abans d'exportar.",
+    "status.postWorkoutSaveError": "Completa tot el qüestionari de post-entrenament abans de desar.",
+    "status.sessionSavedLocal": "Sessió desada a l'històric local.",
+    "status.saved": "Desat",
+    "status.loadedMemory": "Carregat des de memòria",
+    "status.loadedRoutine": "Carregat des de rutina base",
+    "status.noRoutine": "No hi ha rutina definida",
+    "status.selectUserBeforeRoutineDelete": "Selecciona un usuari abans d'esborrar rutines.",
+    "status.selectRoutineToDelete": "Selecciona una rutina per esborrar.",
+    "status.onlyCustomRoutineDelete": "Només pots esborrar rutines personalitzades.",
+    "status.routineDeleted": "Rutina esborrada.",
+    "status.timeFinished": "Temps acabat.",
+    "error.addExerciseToActivate": "Afegeix com a mínim un exercici per activar el qüestionari post-entrenament.",
+    "error.completeQuestionnaire": "Completa el qüestionari post-entrenament per activar els botons.",
+    "error.requiredField": "Camp obligatori.",
+    "error.painZoneRequired": "Indica la zona del dolor.",
+    "error.exerciseRequired": "Selecciona un exercici.",
+    "error.completeQuestionnaireButtons": "Completa el qüestionari per activar els botons.",
+    "message.sessionSavedTitle": "Sessió desada.",
+    "message.routineSavedTitle": "Rutina desada.",
+    "message.errorTitle": "Error.",
+    "message.saveSessionRandom.0": "Ben fet! :)",
+    "message.saveSessionRandom.1": "Ets una màquina! 💪",
+    "message.saveSessionRandom.2": "Gran feina, segueix així! 😎",
+    "message.saveSessionRandom.3": "Bon ritme, a per la següent! 🚀",
+    "message.saveSessionRandom.4": "Ritme sòlid, segueix sumant! 🔥",
+    "message.saveSessionRandom.5": "Avui s'entrena, demà es presumeix! 😄",
+    "message.saveSessionRandom.6": "Vas fi, molt bona feina! ✅",
+    "message.saveSessionRandom.7": "Cada dia més fort! 🦾",
+    "message.saveSessionRandom.8": "Objectiu complert, a descansar! 🧘",
+    "message.saveSessionRandom.9": "Suma i segueix, campió! 🏆",
+    "message.saveSessionRandom.10": "En flames! 🔥",
+    "message.saveSessionRandom.11": "Progrés real, segueix així! 📈",
+    "message.saveSessionRandom.12": "Mode bèstia activat! 🐺",
+    "message.saveSessionRandom.13": "Deixant empremta, crack! 👊",
+    "message.saveSessionRandom.14": "Nivell Llados, a tope! 💥",
+    "message.saveSessionRandom.15": "Croissant 🥐 amb faking cafè?! Tu no!",
+    "message.saveSessionRandom.16": "Panxa? Això és com foak, ni de conya! 🔥",
+    "message.saveSessionRandom.17": "Entrenament net, ment forta! 🧠",
+    "exercise.history.none": "Sense historial per a aquest exercici.",
+    "exercise.table.cardio": "<th>Sèrie</th><th>Intensitat</th><th>Temps (min)</th><th>Notes</th><th class=\"set-action-col\"></th>",
+    "exercise.table.strength": "<th>Sèrie</th><th>Pes</th><th>Reps</th><th>Fallada</th><th>Reps de fallada</th><th>Notes</th><th class=\"set-action-col\"></th>",
+    "exercise.addSet": "Afegir sèrie",
+    "exercise.removeSet": "Eliminar sèrie",
+    "exercise.remove": "Eliminar exercici",
+    "exercise.notes.title": "Notes de tècnica",
+    "exercise.notes.how": "Com fer-ho:",
+    "exercise.notes.avoid": "Evitar:",
+    "exercise.notes.tips": "Trucs:",
+    "exercise.custom.noDescription": "Descripció no disponible per a exercicis personalitzats.",
+    "exercise.lastSession": "Última sessió: {date} · {detail}",
+    "exercise.lastSession.cardio": "Cardio: {detail}",
+    "exercise.cardio.noData": "Cardio sense dades",
+    "exercise.firstSet": "Primera sèrie: {detail}",
+    "exercise.firstSet.noData": "Primera sèrie sense dades",
+    "exercise.detail.intensity": "Intensitat {value}",
+    "exercise.detail.time": "{value} min",
+    "exercise.detail.weight": "{value} kg",
+    "exercise.detail.reps": "{value} reps",
+    "group.Pecho": "Pectoral",
+    "group.Espalda": "Esquena",
+    "group.Hombros": "Espatlles",
+    "group.Brazos": "Braços",
+    "group.Piernas": "Cames",
+    "group.Antebrazos": "Avantbraços",
+    "group.Cardio": "Cardio",
+    "group.Core": "Core",
+    "group.Otros": "Altres",
+    "group.Personalizado": "Personalitzat",
+    "file.sessionPrefix": "sessio",
+    "file.historyPrefix": "historic",
+    "muscle.Pectoral": "Pectoral",
+    "muscle.Deltoides": "Deltoides",
+    "muscle.Bíceps": "Bíceps",
+    "muscle.Tríceps": "Tríceps",
+    "muscle.Espalda": "Esquena",
+    "muscle.Dorsal": "Dorsal",
+    "muscle.Cuádriceps": "Quàdriceps",
+    "muscle.Femoral": "Isquiotibials",
+    "muscle.Gemelos": "Bessons",
+    "muscle.Glúteo": "Gluti",
+    "muscle.Cardio": "Cardio",
+    "muscle.Antebrazo": "Avantbraç",
+    "muscle.Trapecio": "Trapezi",
+    "muscle.Abdominales": "Abdominals",
+    "muscle.Oblicuos": "Oblics",
+    "muscle.Transverso": "Transvers",
+    "muscle.Inferior": "Inferior",
+    "muscle.Lateral": "Lateral",
+    "csv.usuario": "usuari",
+    "csv.fecha": "data",
+    "csv.semana": "setmana",
+    "csv.dia": "dia",
+    "csv.ejercicio": "exercici",
+    "csv.musculo": "muscul",
+    "csv.seccion": "secció",
+    "csv.serie": "sèrie",
+    "csv.peso": "pes",
+    "csv.reps": "reps",
+    "csv.fallo": "fallada",
+    "csv.reps_fallo": "reps_fallada",
+    "csv.intensidad": "intensitat",
+    "csv.tiempo": "temps",
+    "csv.notas": "notes",
+    "csv.sens_general": "sens_general",
+    "csv.sens_tiredness": "sens_tiredness",
+    "csv.sens_weight": "sens_weight",
+    "csv.sens_pain": "sens_pain",
+    "csv.sens_pain_zone": "sens_pain_zone",
+    "csv.sens_pain_exercise": "sens_pain_exercise"
+  },
+  en: {
+    "app.title": "Gym Routine Tracker",
+    "label.language": "Language",
+    "lang.ca": "CAT",
+    "lang.es": "ESP",
+    "lang.en": "ENG",
+    "header.backHome": "Back to home",
+    "header.changeTheme": "Switch theme",
+    "header.appIconAlt": "App icon",
+    "header.borjaAlt": "Borja Aguado logo",
+    "subheader.title": "Options bar",
+    "textSize.decrease": "Decrease text",
+    "textSize.increase": "Increase text",
+    "aria.manageUser": "Manage user",
+    "aria.countdown": "Countdown",
+    "aria.exercises": "Exercises",
+    "aria.toggleMode": "Toggle mode",
+    "stopwatch.start": "Start",
+    "stopwatch.stop": "Stop",
+    "stopwatch.reset": "Reset",
+    "welcome.start": "Start session",
+    "welcome.info": "Relevant info",
+    "welcome.legal": "Legal and medical notices",
+    "welcome.info.privacy": "<b>Privacy:</b> no data is stored in the cloud. Everything is stored locally on your device.",
+    "welcome.info.sync": "<b>No sync:</b> data is not shared between devices unless you export and import manually.",
+    "welcome.info.important": "<b>Important:</b> if you delete browser or app data, it will be lost. Export backups if you want to keep them.",
+    "welcome.info.shortcut": "<b>Shortcut:</b> iOS → Share → “Add to Home Screen”. Android → Menu → “Install app”.",
+    "welcome.legal.legal": "<b>Legal notice:</b> GitHub Pages only serves static files, with no database or server to upload data.",
+    "welcome.legal.medical": "<b>Medical disclaimer:</b> this app does not provide medical or sports advice. Consult a professional before making changes to your training, especially if you have injuries or prior conditions.",
+    "welcome.legal.use": "<b>Use and responsibility:</b> you use the website at your own risk. Availability or data preservation is not guaranteed if you change device, browser, or private mode.",
+    "welcome.legal.warranty": "<b>No warranties:</b> the app is provided “as is”, without guarantees of availability, continuity, or error-free operation.",
+    "welcome.legal.limitation": "<b>Limitation of liability:</b> the creator is not responsible for indirect damages, lost profits, or decisions made based on recorded information.",
+    "step0.title": "Home",
+    "step0.status": "Welcome",
+    "step1.summary": "Step 1: User selection",
+    "step1.hint": "Step 1 · User selection",
+    "step1.statusText": "Start by selecting a user to load their data.",
+    "step2.summary": "Step 2: How do you want to start?",
+    "step2.hint": "Step 2: Choose how you want to create the session",
+    "step2.option.manual": "Create the session manually",
+    "step2.option.previous": "Load a previous session",
+    "step2.option.predefined": "Use a preset session",
+    "step2.manualHint": "Add exercises in step 3.",
+    "step3.summary": "Step 3: Session exercises",
+    "step3.hint": "Step 3 · Session exercises",
+    "step4.summary": "Step 4: Post-workout questionnaire",
+    "step4.hint": "Step 4 · Post-workout questionnaire",
+    "step5.summary": "Step 5: Session summary",
+    "step5.hint": "Step 5 · Session summary",
+    "step6.summary": "Step 6: User charts",
+    "step6.hint": "Step 6 · User charts",
+    "step7.summary": "Step 7: Edit previous session",
+    "step7.hint": "Step 7 · Edit previous session",
+    "status.pending": "Pending",
+    "status.optional": "Optional",
+    "status.inProgress": "In progress",
+    "status.completed": "Completed",
+    "status.blocked": "Locked",
+    "status.available": "Available",
+    "status.editing": "Editing",
+    "label.user": "User",
+    "label.week": "Week",
+    "label.day": "Day",
+    "label.routine": "Routines",
+    "label.exercise": "Exercise",
+    "label.muscleGroup": "Muscle group",
+    "label.variable": "Variable",
+    "label.date": "Date",
+    "label.exercises": "Exercises",
+    "label.sensGeneral": "Overall workout feel 0-10 (very bad - excellent)",
+    "label.sensTiredness": "Perceived fatigue 0-10",
+    "label.sensWeight": "Body weight (kg) - Optional",
+    "label.sensPain": "Pain in any muscle (yes/no)",
+    "label.painZone": "Pain area",
+    "label.painExercise": "Identify if any exercise might have caused it",
+    "placeholder.sensGeneral": "e.g. 8",
+    "placeholder.sensTiredness": "e.g. 6",
+    "placeholder.sensWeight": "e.g. 78.5",
+    "placeholder.painZone": "e.g. Right shoulder",
+    "placeholder.selectGroup": "Select group...",
+    "placeholder.selectExercise": "Select exercise...",
+    "stopwatch.placeholder": "Time in seconds (e.g. 60)",
+    "customExercise.namePlaceholder": "e.g. Barbell row",
+    "cardio.placeholderIntensity": "1-10",
+    "cardio.placeholderTime": "min",
+    "option.no": "No",
+    "option.yes": "Yes",
+    "option.notIdentified": "Not identified",
+    "week.1": "Week 1",
+    "week.2": "Week 2",
+    "week.3": "Week 3",
+    "week.4": "Week 4",
+    "week.5": "Week 5",
+    "day.1": "Day 1 – Upper body (pull)",
+    "day.2": "Day 2 – Upper body (push)",
+    "day.3": "Day 3 – Lower body + core",
+    "button.newUser": "Create new user",
+    "button.importMerge": "Import data (merge)",
+    "button.loadRoutine": "Load routine",
+    "button.deleteRoutine": "Delete routine",
+    "button.saveRoutine": "Save routine",
+    "button.loadPreviousSession": "Load previous session",
+    "button.saveSession": "Save user session",
+    "button.exportPng": "Full session image (📷)",
+    "button.selectExercises": "Select exercises",
+    "button.generateChart": "Generate chart",
+    "button.merge": "Merge",
+    "button.close": "Close",
+    "button.cancel": "Cancel",
+    "button.add": "Add",
+    "button.custom": "Custom",
+    "button.prev": "Previous",
+    "button.next": "Next",
+    "button.order": "Order",
+    "button.apply": "Apply",
+    "button.view": "View",
+    "button.edit": "Edit",
+    "footer.createdBy": "Website by",
+    "footer.licensePrefix": "Code licensed under",
+    "footer.licenseLink": "Creative Commons Attribution-ShareAlike 4.0 International License",
+    "import.title": "Select the user to merge",
+    "manage.title": "User management",
+    "manage.history": "Previous sessions",
+    "manage.rename": "Rename user",
+    "manage.exportJson": "Backup (JSON)",
+    "manage.exportCsv": "Export analysis data (CSV)",
+    "manage.delete": "Delete user",
+    "history.menuTitle": "Previous sessions",
+    "order.title": "Reorder exercises",
+    "order.empty": "No exercises to reorder.",
+    "history.viewTitle": "Selected session",
+    "postWorkout.title": "Post-workout questionnaire",
+    "customExercise.title": "Custom exercise",
+    "customExercise.nameLabel": "Exercise name",
+    "customExercise.isCardio": "Is cardio",
+    "charts.title": "User charts",
+    "charts.noData": "No data for this user yet. Save sessions or import data to see charts.",
+    "chart.variable.maxWeight": "Max weight",
+    "chart.variable.totalLoad": "Total load (weight x reps)",
+    "chart.variable.cardioIntensity": "Cardio - Max intensity",
+    "chart.variable.cardioTime": "Cardio - Total time (min)",
+    "chart.variable.sensGeneral": "Overall feel (0-10)",
+    "chart.variable.sensTiredness": "Perceived fatigue (0-10)",
+    "chart.variable.sensWeight": "Body weight (kg)",
+    "chart.variable.sensPain": "Pain in any muscle (Yes/No)",
+    "chart.generateLabel": "Generate chart",
+    "chart.alert.selectExercise": "Select at least one exercise.",
+    "chart.axis.date": "Date",
+    "chart.axis.weight": "Weight (kg)",
+    "chart.axis.load": "Load (kg*reps)",
+    "chart.axis.intensity": "Intensity (1-10)",
+    "chart.axis.time": "Time (min)",
+    "chart.axis.pain": "Pain (0=No, 1=Yes)",
+    "chart.axis.score": "Score (0-10)",
+    "chart.axis.sensations": "Feelings (0-10)",
+    "chart.axis.bodyWeight": "Body weight (kg)",
+    "chart.option.bodyWeight": "Body weight",
+    "exercise.counter.empty": "Exercise 0 of 0",
+    "exercise.counter.all": "Exercises: {total}",
+    "exercise.counter.current": "Exercise {current} of {total}",
+    "exercise.empty": "No exercises yet in this session. Use the orange button at the top right \"+\" to add the first exercise.",
+    "fastMode.basic": "+ info",
+    "fastMode.detailed": "- info",
+    "autoSave.now": "Saved just now",
+    "autoSave.ago": "Saved {seconds} s ago",
+    "session.noData": "No session data.",
+    "session.table.exercise": "Exercise",
+    "session.table.set": "Set",
+    "session.table.weightIntensity": "Weight/<br>Intensity",
+    "session.table.repsTime": "Reps/<br>Time",
+    "session.table.failure": "Failure",
+    "session.table.failureReps": "Failure reps",
+    "session.table.notes": "Notes",
+    "session.table.series": "Sets",
+    "session.table.maxWeightTime": "Max weight / Time",
+    "session.summary.header": "Summary:",
+    "session.summary.totalExercises": "- Total exercises: {count}",
+    "session.summary.totalSets": "- Total sets: {count}",
+    "session.metrics.title": "Subjective metrics:",
+    "session.metrics.general": "- Overall feel (0-10): {value}",
+    "session.metrics.tiredness": "- Perceived fatigue (0-10): {value}",
+    "session.metrics.pain": "- Pain in any muscle: {value}",
+    "session.footer": "Logged with GymTracker by Borja Aguado",
+    "session.failure.yes": "Yes",
+    "session.failure.no": "No",
+    "session.pain.zoneNA": "Area N/A",
+    "session.pain.exerciseNA": "Exercise: N/A",
+    "warning.overload": "Overload warning: last max {baseline} kg, now {current} kg.",
+    "history.view.date": "Date",
+    "history.view.week": "Week",
+    "history.view.day": "Day",
+    "history.view.exercises": "Exercises",
+    "history.view.exerciseDefault": "Exercise",
+    "history.view.sets": "sets",
+    "status.historyRenamed": "History renamed to {name}.",
+    "status.historyDeleted": "History deleted.",
+    "status.selectUser": "Select a user",
+    "status.noUsers": "No users yet. Create one to get started.",
+    "status.selectUserContinue": "Select a user to continue",
+    "status.selectDay": "Select a day.",
+    "status.noHistoryDay": "No sessions for that day.",
+    "status.noHistorySessions": "No previous sessions available.",
+    "status.loadedPreviousSession": "Previous session loaded.",
+    "status.userActive": "Active user: {name}",
+    "status.createdLoaded": "User created and loaded.",
+    "status.userExported": "User data exported.",
+    "status.userExportedCsv": "User CSV exported.",
+    "status.noUserDataExport": "No data for this user to export.",
+    "status.importMerged": "Data imported and merged successfully.",
+    "status.importError": "Error while merging data: {error}",
+    "prompt.newUserName": "New user name:",
+    "prompt.routineName": "Routine name:",
+    "alert.selectValidUser": "Select a valid user.",
+    "alert.userExists": "A user with that name already exists.",
+    "confirm.deleteUser": "Delete user \"{name}\"? This action cannot be undone.",
+    "alert.selectUserRename": "Select a user to rename.",
+    "alert.selectUserDelete": "Select a user to delete.",
+    "alert.selectUserExport": "Select a user to export.",
+    "alert.noDataToday": "No data recorded today.",
+    "alert.noUserInImport": "No user name found in imported data.",
+    "confirm.saveNewRoutine": "This routine isn't saved yet. Save it?",
+    "confirm.overwriteRoutine": "Routine \"{name}\" already exists. Overwrite it?",
+    "confirm.deleteRoutine": "Delete custom routine \"{name}\"?",
+    "status.selectUserBeforeSaveRoutine": "Select a user before saving custom routines.",
+    "status.noExercisesToSaveRoutine": "Add at least one exercise before saving the routine.",
+    "status.emptyRoutineName": "Routine name cannot be empty.",
+    "status.noValidExercises": "No valid exercises found.",
+    "status.routineAdded": "Added to preset routines.",
+    "status.postWorkoutExportError": "Complete the post-workout questionnaire before exporting.",
+    "status.postWorkoutSaveError": "Complete the post-workout questionnaire before saving.",
+    "status.sessionSavedLocal": "Session saved to local history.",
+    "status.saved": "Saved",
+    "status.loadedMemory": "Loaded from memory",
+    "status.loadedRoutine": "Loaded from base routine",
+    "status.noRoutine": "No routine defined",
+    "status.selectUserBeforeRoutineDelete": "Select a user before deleting routines.",
+    "status.selectRoutineToDelete": "Select a routine to delete.",
+    "status.onlyCustomRoutineDelete": "You can only delete custom routines.",
+    "status.routineDeleted": "Routine deleted.",
+    "status.timeFinished": "Time's up.",
+    "error.addExerciseToActivate": "Add at least one exercise to enable the post-workout questionnaire.",
+    "error.completeQuestionnaire": "Complete the post-workout questionnaire to enable the buttons.",
+    "error.requiredField": "Required field.",
+    "error.painZoneRequired": "Specify the pain area.",
+    "error.exerciseRequired": "Select an exercise.",
+    "error.completeQuestionnaireButtons": "Complete the questionnaire to enable the buttons.",
+    "message.sessionSavedTitle": "Session saved.",
+    "message.routineSavedTitle": "Routine saved.",
+    "message.errorTitle": "Error.",
+    "message.saveSessionRandom.0": "Well done! :)",
+    "message.saveSessionRandom.1": "You're a machine! 💪",
+    "message.saveSessionRandom.2": "Great work, keep it up! 😎",
+    "message.saveSessionRandom.3": "Good pace, on to the next one! 🚀",
+    "message.saveSessionRandom.4": "Solid pace, keep adding up! 🔥",
+    "message.saveSessionRandom.5": "Train today, show it tomorrow! 😄",
+    "message.saveSessionRandom.6": "You're doing great, nice work! ✅",
+    "message.saveSessionRandom.7": "Stronger every day! 🦾",
+    "message.saveSessionRandom.8": "Goal achieved, time to rest! 🧘",
+    "message.saveSessionRandom.9": "Keep stacking wins, champ! 🏆",
+    "message.saveSessionRandom.10": "On fire! 🔥",
+    "message.saveSessionRandom.11": "Real progress, keep it up! 📈",
+    "message.saveSessionRandom.12": "Beast mode activated! 🐺",
+    "message.saveSessionRandom.13": "Leaving your mark, legend! 👊",
+    "message.saveSessionRandom.14": "Llados level, all in! 💥",
+    "message.saveSessionRandom.15": "Croissant 🥐 with fake coffee?! Not you!",
+    "message.saveSessionRandom.16": "Belly? That's like foak, no way! 🔥",
+    "message.saveSessionRandom.17": "Clean training, strong mind! 🧠",
+    "exercise.history.none": "No history for this exercise.",
+    "exercise.table.cardio": "<th>Set</th><th>Intensity</th><th>Time (min)</th><th>Notes</th><th class=\"set-action-col\"></th>",
+    "exercise.table.strength": "<th>Set</th><th>Weight</th><th>Reps</th><th>Failure</th><th>Failure reps</th><th>Notes</th><th class=\"set-action-col\"></th>",
+    "exercise.addSet": "Add set",
+    "exercise.removeSet": "Remove set",
+    "exercise.remove": "Remove exercise",
+    "exercise.notes.title": "Technique notes",
+    "exercise.notes.how": "How to do it:",
+    "exercise.notes.avoid": "Avoid:",
+    "exercise.notes.tips": "Tips:",
+    "exercise.custom.noDescription": "Description not available for custom exercises.",
+    "exercise.lastSession": "Last session: {date} · {detail}",
+    "exercise.lastSession.cardio": "Cardio: {detail}",
+    "exercise.cardio.noData": "Cardio with no data",
+    "exercise.firstSet": "First set: {detail}",
+    "exercise.firstSet.noData": "First set with no data",
+    "exercise.detail.intensity": "Intensity {value}",
+    "exercise.detail.time": "{value} min",
+    "exercise.detail.weight": "{value} kg",
+    "exercise.detail.reps": "{value} reps",
+    "group.Pecho": "Chest",
+    "group.Espalda": "Back",
+    "group.Hombros": "Shoulders",
+    "group.Brazos": "Arms",
+    "group.Piernas": "Legs",
+    "group.Antebrazos": "Forearms",
+    "group.Cardio": "Cardio",
+    "group.Core": "Core",
+    "group.Otros": "Other",
+    "group.Personalizado": "Custom",
+    "file.sessionPrefix": "session",
+    "file.historyPrefix": "history",
+    "muscle.Pectoral": "Pectoral",
+    "muscle.Deltoides": "Deltoids",
+    "muscle.Bíceps": "Biceps",
+    "muscle.Tríceps": "Triceps",
+    "muscle.Espalda": "Back",
+    "muscle.Dorsal": "Lats",
+    "muscle.Cuádriceps": "Quadriceps",
+    "muscle.Femoral": "Hamstrings",
+    "muscle.Gemelos": "Calves",
+    "muscle.Glúteo": "Glutes",
+    "muscle.Cardio": "Cardio",
+    "muscle.Antebrazo": "Forearm",
+    "muscle.Trapecio": "Trapezius",
+    "muscle.Abdominales": "Abs",
+    "muscle.Oblicuos": "Obliques",
+    "muscle.Transverso": "Transverse",
+    "muscle.Inferior": "Lower",
+    "muscle.Lateral": "Lateral",
+    "csv.usuario": "user",
+    "csv.fecha": "date",
+    "csv.semana": "week",
+    "csv.dia": "day",
+    "csv.ejercicio": "exercise",
+    "csv.musculo": "muscle",
+    "csv.seccion": "section",
+    "csv.serie": "set",
+    "csv.peso": "weight",
+    "csv.reps": "reps",
+    "csv.fallo": "failure",
+    "csv.reps_fallo": "failure_reps",
+    "csv.intensidad": "intensity",
+    "csv.tiempo": "time",
+    "csv.notas": "notes",
+    "csv.sens_general": "sens_general",
+    "csv.sens_tiredness": "sens_tiredness",
+    "csv.sens_weight": "sens_weight",
+    "csv.sens_pain": "sens_pain",
+    "csv.sens_pain_zone": "sens_pain_zone",
+    "csv.sens_pain_exercise": "sens_pain_exercise"
+  },
+  es: {
+    "app.title": "Registro de rutinas de gimnasio",
+    "label.language": "Idioma",
+    "lang.ca": "CAT",
+    "lang.es": "ESP",
+    "lang.en": "ENG",
+    "header.backHome": "Volver al inicio",
+    "header.changeTheme": "Cambiar tema",
+    "header.appIconAlt": "Icono de la app",
+    "header.borjaAlt": "Logo de Borja Aguado",
+    "subheader.title": "Barra de opciones",
+    "textSize.decrease": "Reducir texto",
+    "textSize.increase": "Aumentar texto",
+    "aria.manageUser": "Gestionar usuario",
+    "aria.countdown": "Cuenta atrás",
+    "aria.exercises": "Ejercicios",
+    "aria.toggleMode": "Cambiar modo",
+    "stopwatch.start": "Iniciar",
+    "stopwatch.stop": "Detener",
+    "stopwatch.reset": "Reiniciar",
+    "welcome.start": "Iniciar sesión",
+    "welcome.info": "Información relevante",
+    "welcome.legal": "Avisos legales y médicos",
+    "welcome.info.privacy": "<b>Privacidad:</b> no se guardan datos en la nube. Todo se almacena localmente en el dispositivo.",
+    "welcome.info.sync": "<b>Sin sincronización:</b> los datos no se comparten entre dispositivos salvo que exportes e importes manualmente.",
+    "welcome.info.important": "<b>Importante:</b> si borras los datos del navegador o la app, se perderán. Exporta copias si quieres conservarlas.",
+    "welcome.info.shortcut": "<b>Acceso directo:</b> iOS → Compartir → “Añadir a pantalla de inicio”. Android → Menú → “Instalar app”.",
+    "welcome.legal.legal": "<b>Aviso legal:</b> GitHub Pages solo sirve archivos estáticos, sin base de datos ni servidor donde subir datos.",
+    "welcome.legal.medical": "<b>Aviso médico:</b> esta aplicación no ofrece asesoramiento médico ni deportivo. Consulta a un profesional antes de hacer cambios en tu entrenamiento, especialmente si tienes lesiones o condiciones previas.",
+    "welcome.legal.use": "<b>Uso y responsabilidad:</b> usas la web bajo tu cuenta y riesgo. No se garantiza la disponibilidad ni la conservación de los datos si cambias de dispositivo, navegador o modo privado.",
+    "welcome.legal.warranty": "<b>Sin garantías:</b> la aplicación se ofrece “tal cual”, sin garantías de disponibilidad, continuidad o ausencia de errores.",
+    "welcome.legal.limitation": "<b>Limitación de responsabilidad:</b> el creador no se hace responsable de daños indirectos, pérdidas de beneficios o decisiones tomadas a partir de la información registrada.",
+    "step0.title": "Inicio",
+    "step0.status": "Bienvenida",
+    "step1.summary": "Paso 1: Selección de usuarios",
+    "step1.hint": "Paso 1 · Selección de usuario",
+    "step1.statusText": "Empieza seleccionando un usuario para cargar sus datos.",
+    "step2.summary": "Paso 2: ¿Cómo quieres iniciar la sesión?",
+    "step2.hint": "Paso 2: Elige cómo quieres crear la sesión",
+    "step2.option.manual": "Crear la sesión manualmente",
+    "step2.option.previous": "Cargar una sesión previa",
+    "step2.option.predefined": "Usar una sesión predefinida",
+    "step2.manualHint": "Añade ejercicios en el paso 3.",
+    "step3.summary": "Paso 3: Ejercicios de la sesión",
+    "step3.hint": "Paso 3 · Ejercicios de la sesión",
+    "step4.summary": "Paso 4: Cuestionario post-entrenamiento",
+    "step4.hint": "Paso 4 · Cuestionario post-entrenamiento",
+    "step5.summary": "Paso 5: Resumen de la sesión",
+    "step5.hint": "Paso 5 · Resumen de la sesión",
+    "step6.summary": "Paso 6: Gráficos del usuario",
+    "step6.hint": "Paso 6 · Gráficos del usuario",
+    "step7.summary": "Paso 7: Editar sesión anterior",
+    "step7.hint": "Paso 7 · Editar sesión anterior",
+    "status.pending": "Pendiente",
+    "status.optional": "Opcional",
+    "status.inProgress": "En progreso",
+    "status.completed": "Completado",
+    "status.blocked": "Bloqueado",
+    "status.available": "Disponible",
+    "status.editing": "Edición",
+    "label.user": "Usuario",
+    "label.week": "Semana",
+    "label.day": "Día",
+    "label.routine": "Rutinas",
+    "label.exercise": "Ejercicio",
+    "label.muscleGroup": "Grupo muscular",
+    "label.variable": "Variable",
+    "label.date": "Fecha",
+    "label.exercises": "Ejercicios",
+    "label.sensGeneral": "Sensaciones generales del entrenamiento 0-10 (muy mal - excelente)",
+    "label.sensTiredness": "Cansancio percibido 0-10",
+    "label.sensWeight": "Peso corporal (kg) - Opcional",
+    "label.sensPain": "Dolor en algún músculo (sí/no)",
+    "label.painZone": "Zona del dolor",
+    "label.painExercise": "Identifica si algún ejercicio puede haber sido el responsable",
+    "placeholder.sensGeneral": "Ej: 8",
+    "placeholder.sensTiredness": "Ej: 6",
+    "placeholder.sensWeight": "Ej: 78.5",
+    "placeholder.painZone": "Ej: Hombro derecho",
+    "placeholder.selectGroup": "Seleccionar grupo...",
+    "placeholder.selectExercise": "Seleccionar ejercicio...",
+    "stopwatch.placeholder": "Tiempo en segundos (ej: 60)",
+    "customExercise.namePlaceholder": "Ej: Remo en barra",
+    "cardio.placeholderIntensity": "1-10",
+    "cardio.placeholderTime": "min",
+    "option.no": "No",
+    "option.yes": "Sí",
+    "option.notIdentified": "No identificado",
+    "week.1": "Semana 1",
+    "week.2": "Semana 2",
+    "week.3": "Semana 3",
+    "week.4": "Semana 4",
+    "week.5": "Semana 5",
+    "day.1": "Día 1 – Tren superior (tirón)",
+    "day.2": "Día 2 – Tren superior (empuje)",
+    "day.3": "Día 3 – Tren inferior + core",
+    "button.newUser": "Crear un usuario nuevo",
+    "button.importMerge": "Importar datos (fusionar)",
+    "button.loadRoutine": "Cargar rutina",
+    "button.deleteRoutine": "Borrar rutina",
+    "button.saveRoutine": "Guardar rutina",
+    "button.loadPreviousSession": "Cargar sesión previa",
+    "button.saveSession": "Guardar sesión del usuario",
+    "button.exportPng": "Imagen de sesión completa (📷)",
+    "button.selectExercises": "Seleccionar ejercicios",
+    "button.generateChart": "Generar gráfico",
+    "button.merge": "Fusionar",
+    "button.close": "Cerrar",
+    "button.cancel": "Cancelar",
+    "button.add": "Añadir",
+    "button.custom": "Personalizado",
+    "button.prev": "Anterior",
+    "button.next": "Siguiente",
+    "button.order": "Ordenar",
+    "button.apply": "Aplicar",
+    "button.view": "Ver",
+    "button.edit": "Editar",
+    "footer.createdBy": "Web creada por",
+    "footer.licensePrefix": "Código bajo",
+    "footer.licenseLink": "Licencia Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional",
+    "import.title": "Selecciona el usuario para fusionar",
+    "manage.title": "Gestión del usuario",
+    "manage.history": "Sesiones anteriores",
+    "manage.rename": "Cambiar el nombre del usuario",
+    "manage.exportJson": "Copia de seguridad (JSON)",
+    "manage.exportCsv": "Exportar datos de análisis (CSV)",
+    "manage.delete": "Eliminar usuario",
+    "history.menuTitle": "Sesiones anteriores",
+    "order.title": "Ordenar ejercicios",
+    "order.empty": "No hay ejercicios para ordenar.",
+    "history.viewTitle": "Sesión seleccionada",
+    "postWorkout.title": "Cuestionario de Post-Entrenamiento",
+    "customExercise.title": "Ejercicio personalizado",
+    "customExercise.nameLabel": "Nombre del ejercicio",
+    "customExercise.isCardio": "Es cardio",
+    "charts.title": "Gráficos del usuario",
+    "charts.noData": "Aún no hay datos de este usuario. Guarda sesiones o importa datos para ver los gráficos.",
+    "chart.variable.maxWeight": "Peso máximo",
+    "chart.variable.totalLoad": "Carga total (peso x reps)",
+    "chart.variable.cardioIntensity": "Cardio - Intensidad máxima",
+    "chart.variable.cardioTime": "Cardio - Tiempo total (min)",
+    "chart.variable.sensGeneral": "Sensaciones generales (0-10)",
+    "chart.variable.sensTiredness": "Cansancio percibido (0-10)",
+    "chart.variable.sensWeight": "Peso corporal (kg)",
+    "chart.variable.sensPain": "Dolor en algún músculo (Sí/No)",
+    "chart.generateLabel": "Generar gráfico",
+    "chart.alert.selectExercise": "Selecciona al menos un ejercicio.",
+    "chart.axis.date": "Fecha",
+    "chart.axis.weight": "Peso (kg)",
+    "chart.axis.load": "Carga (kg*reps)",
+    "chart.axis.intensity": "Intensidad (1-10)",
+    "chart.axis.time": "Tiempo (min)",
+    "chart.axis.pain": "Dolor (0=No, 1=Sí)",
+    "chart.axis.score": "Puntuación (0-10)",
+    "chart.axis.sensations": "Sensaciones (0-10)",
+    "chart.axis.bodyWeight": "Peso corporal (kg)",
+    "chart.option.bodyWeight": "Peso corporal",
+    "exercise.counter.empty": "Ejercicio 0 de 0",
+    "exercise.counter.all": "Ejercicios: {total}",
+    "exercise.counter.current": "Ejercicio {current} de {total}",
+    "exercise.empty": "Todavía no hay ejercicios en esta sesión. Usa el botón naranja arriba a la derecha \"+\" para añadir el primer ejercicio.",
+    "fastMode.basic": "+ info",
+    "fastMode.detailed": "- info",
+    "autoSave.now": "Guardado ahora",
+    "autoSave.ago": "Guardado hace {seconds} s",
+    "session.noData": "Sin datos de sesión.",
+    "session.table.exercise": "Ejercicio",
+    "session.table.set": "Serie",
+    "session.table.weightIntensity": "Peso/<br>Intensidad",
+    "session.table.repsTime": "Reps/<br>Tiempo",
+    "session.table.failure": "Fallo",
+    "session.table.failureReps": "Reps de fallo",
+    "session.table.notes": "Notas",
+    "session.table.series": "Series",
+    "session.table.maxWeightTime": "Peso máx / Tiempo",
+    "session.summary.header": "Resumen:",
+    "session.summary.totalExercises": "- Total ejercicios: {count}",
+    "session.summary.totalSets": "- Total series: {count}",
+    "session.metrics.title": "Métricas subjetivas:",
+    "session.metrics.general": "- Sensaciones generales (0-10): {value}",
+    "session.metrics.tiredness": "- Cansancio percibido (0-10): {value}",
+    "session.metrics.pain": "- Dolor en algún músculo: {value}",
+    "session.footer": "Registrado con GymTracker by Borja Aguado",
+    "session.failure.yes": "Sí",
+    "session.failure.no": "No",
+    "session.pain.zoneNA": "Zona N/A",
+    "session.pain.exerciseNA": "Ejercicio: N/A",
+    "warning.overload": "Aviso de sobrecarga: último máximo {baseline} kg, ahora {current} kg.",
+    "history.view.date": "Fecha",
+    "history.view.week": "Semana",
+    "history.view.day": "Día",
+    "history.view.exercises": "Ejercicios",
+    "history.view.exerciseDefault": "Ejercicio",
+    "history.view.sets": "series",
+    "status.historyRenamed": "Histórico renombrado a {name}.",
+    "status.historyDeleted": "Histórico eliminado.",
+    "status.selectUser": "Selecciona un usuario",
+    "status.noUsers": "No hay usuarios. Crea uno nuevo para empezar.",
+    "status.selectUserContinue": "Selecciona un usuario para continuar",
+    "status.selectDay": "Selecciona un día.",
+    "status.noHistoryDay": "No hay sesiones para ese día.",
+    "status.noHistorySessions": "No hay sesiones previas disponibles.",
+    "status.loadedPreviousSession": "Sesión previa cargada.",
+    "status.userActive": "Usuario activo: {name}",
+    "status.createdLoaded": "Usuario creado y cargado.",
+    "status.userExported": "Datos del usuario exportados.",
+    "status.userExportedCsv": "CSV del usuario exportado.",
+    "status.noUserDataExport": "No hay datos de este usuario para exportar.",
+    "status.importMerged": "Datos importados y fusionados correctamente.",
+    "status.importError": "Error al fusionar los datos: {error}",
+    "prompt.newUserName": "Nombre del nuevo usuario:",
+    "prompt.routineName": "Nombre de la rutina:",
+    "alert.selectValidUser": "Selecciona un usuario válido.",
+    "alert.userExists": "Ya existe un usuario con ese nombre.",
+    "confirm.deleteUser": "¿Eliminar el usuario \"{name}\"? Esta acción no se puede deshacer.",
+    "alert.selectUserRename": "Selecciona un usuario para renombrar.",
+    "alert.selectUserDelete": "Selecciona un usuario para eliminar.",
+    "alert.selectUserExport": "Selecciona un usuario para exportar.",
+    "alert.noDataToday": "No hay datos registrados hoy.",
+    "alert.noUserInImport": "No se ha encontrado un nombre de usuario en los datos importados.",
+    "confirm.saveNewRoutine": "Esta rutina no está guardada. ¿Quieres guardarla?",
+    "confirm.overwriteRoutine": "La rutina \"{name}\" ya existe. ¿Quieres sobrescribirla?",
+    "confirm.deleteRoutine": "¿Borrar la rutina personalizada \"{name}\"?",
+    "status.selectUserBeforeSaveRoutine": "Selecciona un usuario antes de guardar rutinas personalizadas.",
+    "status.noExercisesToSaveRoutine": "Añade al menos un ejercicio antes de guardar la rutina.",
+    "status.emptyRoutineName": "El nombre de la rutina no puede estar vacío.",
+    "status.noValidExercises": "No se han encontrado ejercicios válidos.",
+    "status.routineAdded": "Ya aparece en rutinas predefinidas.",
+    "status.postWorkoutExportError": "Completa todo el cuestionario de post-entrenamiento antes de exportar.",
+    "status.postWorkoutSaveError": "Completa todo el cuestionario de post-entrenamiento antes de guardar.",
+    "status.sessionSavedLocal": "Sesión guardada en el histórico local.",
+    "status.saved": "Guardado",
+    "status.loadedMemory": "Cargado desde memoria",
+    "status.loadedRoutine": "Cargado desde rutina base",
+    "status.noRoutine": "No hay rutina definida",
+    "status.selectUserBeforeRoutineDelete": "Selecciona un usuario antes de borrar rutinas.",
+    "status.selectRoutineToDelete": "Selecciona una rutina para borrar.",
+    "status.onlyCustomRoutineDelete": "Solo puedes borrar rutinas personalizadas.",
+    "status.routineDeleted": "Rutina borrada.",
+    "status.timeFinished": "Tiempo terminado.",
+    "error.addExerciseToActivate": "Añade al menos un ejercicio para activar el cuestionario post-entrenamiento.",
+    "error.completeQuestionnaire": "Completa el cuestionario de post-entrenamiento para activar los botones.",
+    "error.requiredField": "Campo obligatorio.",
+    "error.painZoneRequired": "Indica la zona del dolor.",
+    "error.exerciseRequired": "Selecciona un ejercicio.",
+    "error.completeQuestionnaireButtons": "Completa el cuestionario para activar los botones.",
+    "message.sessionSavedTitle": "Sesión guardada.",
+    "message.routineSavedTitle": "Rutina guardada.",
+    "message.errorTitle": "Error.",
+    "message.saveSessionRandom.0": "¡Bien hecho! :)",
+    "message.saveSessionRandom.1": "¡Eres una máquina! 💪",
+    "message.saveSessionRandom.2": "Gran trabajo, ¡sigue así! 😎",
+    "message.saveSessionRandom.3": "Buen ritmo, ¡a por la siguiente! 🚀",
+    "message.saveSessionRandom.4": "Ritmo sólido, ¡sigue sumando! 🔥",
+    "message.saveSessionRandom.5": "¡Hoy se entrena, mañana se presume! 😄",
+    "message.saveSessionRandom.6": "Vas fino, ¡muy buen trabajo! ✅",
+    "message.saveSessionRandom.7": "¡Cada día más fuerte! 🦾",
+    "message.saveSessionRandom.8": "Objetivo cumplido, ¡a descansar! 🧘",
+    "message.saveSessionRandom.9": "Suma y sigue, campeón! 🏆",
+    "message.saveSessionRandom.10": "¡En llamas! 🔥",
+    "message.saveSessionRandom.11": "Progreso real, ¡sigue así! 📈",
+    "message.saveSessionRandom.12": "¡Modo bestia activado! 🐺",
+    "message.saveSessionRandom.13": "Dejando huella, crack! 👊",
+    "message.saveSessionRandom.14": "Nivel Llados, ¡a tope! 💥",
+    "message.saveSessionRandom.15": "Croissant 🥐 con faking café?! ¡Tú no!",
+    "message.saveSessionRandom.16": "¿Barriga? Eso es como foak, ¡ni de coña! 🔥",
+    "message.saveSessionRandom.17": "Entrenamiento limpio, mente fuerte! 🧠",
+    "exercise.history.none": "Sin historial para este ejercicio.",
+    "exercise.table.cardio": "<th>Serie</th><th>Intensidad</th><th>Tiempo (min)</th><th>Notas</th><th class=\"set-action-col\"></th>",
+    "exercise.table.strength": "<th>Serie</th><th>Peso</th><th>Reps</th><th>Fallo</th><th>Reps de fallo</th><th>Notas</th><th class=\"set-action-col\"></th>",
+    "exercise.addSet": "Añadir serie",
+    "exercise.removeSet": "Eliminar serie",
+    "exercise.remove": "Eliminar ejercicio",
+    "exercise.notes.title": "Notas de técnica",
+    "exercise.notes.how": "Cómo hacerlo:",
+    "exercise.notes.avoid": "Evitar:",
+    "exercise.notes.tips": "Consejos:",
+    "exercise.custom.noDescription": "Descripción no disponible para ejercicios personalizados.",
+    "exercise.lastSession": "Última sesión: {date} · {detail}",
+    "exercise.lastSession.cardio": "Cardio: {detail}",
+    "exercise.cardio.noData": "Cardio sin datos",
+    "exercise.firstSet": "Primera serie: {detail}",
+    "exercise.firstSet.noData": "Primera serie sin datos",
+    "exercise.detail.intensity": "Intensidad {value}",
+    "exercise.detail.time": "{value} min",
+    "exercise.detail.weight": "{value} kg",
+    "exercise.detail.reps": "{value} reps",
+    "group.Pecho": "Pecho",
+    "group.Espalda": "Espalda",
+    "group.Hombros": "Hombros",
+    "group.Brazos": "Brazos",
+    "group.Piernas": "Piernas",
+    "group.Antebrazos": "Antebrazos",
+    "group.Cardio": "Cardio",
+    "group.Core": "Core",
+    "group.Otros": "Otros",
+    "group.Personalizado": "Personalizado",
+    "file.sessionPrefix": "sesion",
+    "file.historyPrefix": "historico",
+    "muscle.Pectoral": "Pectoral",
+    "muscle.Deltoides": "Deltoides",
+    "muscle.Bíceps": "Bíceps",
+    "muscle.Tríceps": "Tríceps",
+    "muscle.Espalda": "Espalda",
+    "muscle.Dorsal": "Dorsal",
+    "muscle.Cuádriceps": "Cuádriceps",
+    "muscle.Femoral": "Femoral",
+    "muscle.Gemelos": "Gemelos",
+    "muscle.Glúteo": "Glúteo",
+    "muscle.Cardio": "Cardio",
+    "muscle.Antebrazo": "Antebrazo",
+    "muscle.Trapecio": "Trapecio",
+    "muscle.Abdominales": "Abdominales",
+    "muscle.Oblicuos": "Oblicuos",
+    "muscle.Transverso": "Transverso",
+    "muscle.Inferior": "Inferior",
+    "muscle.Lateral": "Lateral",
+    "csv.usuario": "usuario",
+    "csv.fecha": "fecha",
+    "csv.semana": "semana",
+    "csv.dia": "dia",
+    "csv.ejercicio": "ejercicio",
+    "csv.musculo": "musculo",
+    "csv.seccion": "seccion",
+    "csv.serie": "serie",
+    "csv.peso": "peso",
+    "csv.reps": "reps",
+    "csv.fallo": "fallo",
+    "csv.reps_fallo": "reps_fallo",
+    "csv.intensidad": "intensidad",
+    "csv.tiempo": "tiempo",
+    "csv.notas": "notas",
+    "csv.sens_general": "sens_general",
+    "csv.sens_tiredness": "sens_tiredness",
+    "csv.sens_weight": "sens_weight",
+    "csv.sens_pain": "sens_pain",
+    "csv.sens_pain_zone": "sens_pain_zone",
+    "csv.sens_pain_exercise": "sens_pain_exercise"
+  }
+};
+
+let currentLanguage = DEFAULT_LANG;
+const languageListeners = new Set();
+const FLAG_SVGS = {
+  es: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" viewBox="0 0 24 16">
+  <rect width="24" height="16" fill="#AA151B"/>
+  <rect y="4" width="24" height="8" fill="#F1BF00"/>
+  </svg>`,
+  ca: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" viewBox="0 0 24 16">
+  <rect width="24" height="16" fill="#F1BF00"/>
+  <rect y="0" width="24" height="2" fill="#D52B1E"/>
+  <rect y="4" width="24" height="2" fill="#D52B1E"/>
+  <rect y="8" width="24" height="2" fill="#D52B1E"/>
+  <rect y="12" width="24" height="2" fill="#D52B1E"/>
+  </svg>`,
+  en: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" viewBox="0 0 24 16">
+  <rect width="24" height="16" fill="#FFFFFF"/>
+  <rect width="24" height="2" y="0" fill="#B22234"/>
+  <rect width="24" height="2" y="4" fill="#B22234"/>
+  <rect width="24" height="2" y="8" fill="#B22234"/>
+  <rect width="24" height="2" y="12" fill="#B22234"/>
+  <rect width="10" height="7" fill="#3C3B6E"/>
+  <circle cx="2" cy="2" r="0.6" fill="#FFFFFF"/>
+  <circle cx="5" cy="2" r="0.6" fill="#FFFFFF"/>
+  <circle cx="8" cy="2" r="0.6" fill="#FFFFFF"/>
+  <circle cx="3.5" cy="4" r="0.6" fill="#FFFFFF"/>
+  <circle cx="6.5" cy="4" r="0.6" fill="#FFFFFF"/>
+  <circle cx="2" cy="6" r="0.6" fill="#FFFFFF"/>
+  <circle cx="5" cy="6" r="0.6" fill="#FFFFFF"/>
+  <circle cx="8" cy="6" r="0.6" fill="#FFFFFF"/>
+  </svg>`
+};
+const FLAG_DATA_URIS = Object.keys(FLAG_SVGS).reduce((acc, key) => {
+  const svg = FLAG_SVGS[key].replace(/\s+/g, " ").trim();
+  acc[key] = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  return acc;
+}, {});
+
+function getLanguage() {
+  const stored = storage.getItem(LANG_KEY);
+  if (stored && I18N_STRINGS[stored]) return stored;
+  return DEFAULT_LANG;
+}
+
+function clampNumber(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getFontScale() {
+  const stored = parseFloat(storage.getItem(FONT_SCALE_KEY));
+  if (!Number.isNaN(stored)) {
+    return clampNumber(stored, FONT_SCALE_MIN, FONT_SCALE_MAX);
+  }
+  return 1;
+}
+
+function getLocale() {
+  if (currentLanguage === "en") return "en-GB";
+  if (currentLanguage === "es") return "es-ES";
+  return "ca-ES";
+}
+
+function t(key, vars = {}) {
+  const dict = I18N_STRINGS[currentLanguage] || I18N_STRINGS[DEFAULT_LANG];
+  const fallback = I18N_STRINGS[DEFAULT_LANG] || {};
+  let text = dict[key] || fallback[key] || key;
+  Object.keys(vars).forEach(varKey => {
+    text = text.replace(new RegExp(`\\{${varKey}\\}`, "g"), String(vars[varKey]));
+  });
+  return text;
+}
+
+function applyTranslations(root = document) {
+  if (!root) return;
+  root.querySelectorAll("[data-i18n]").forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  root.querySelectorAll("[data-i18n-html]").forEach(el => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  root.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder));
+  });
+  root.querySelectorAll("[data-i18n-aria]").forEach(el => {
+    el.setAttribute("aria-label", t(el.dataset.i18nAria));
+  });
+  root.querySelectorAll("[data-i18n-title]").forEach(el => {
+    el.setAttribute("title", t(el.dataset.i18nTitle));
+  });
+  root.querySelectorAll("[data-i18n-alt]").forEach(el => {
+    el.setAttribute("alt", t(el.dataset.i18nAlt));
+  });
+}
+
+function getSessionMode() {
+  const stored = storage.getItem(SESSION_MODE_KEY);
+  if (stored === "manual" || stored === "previous" || stored === "predefined") return stored;
+  return SESSION_MODE_DEFAULT;
+}
+
+function updateStep2ModeUI(mode) {
+  if (step2ManualSection) step2ManualSection.classList.toggle("is-active", mode === "manual");
+  if (step2PreviousSection) step2PreviousSection.classList.toggle("is-active", mode === "previous");
+  if (step2PredefinedSection) step2PredefinedSection.classList.toggle("is-active", mode === "predefined");
+  if (step2ModeInputs && step2ModeInputs.length) {
+    step2ModeInputs.forEach(input => {
+      input.checked = input.value === mode;
+    });
+  }
+}
+
+function setSessionMode(mode) {
+  const next = (mode === "manual" || mode === "previous" || mode === "predefined")
+    ? mode
+    : SESSION_MODE_DEFAULT;
+  storage.setItem(SESSION_MODE_KEY, next);
+  updateStep2ModeUI(next);
+  if (next === "previous") {
+    populateHistoryDaySelect();
+  }
+}
+
+function updateFontSizeButtons(scale) {
+  const decreaseBtn = document.getElementById("text-size-decrease");
+  const increaseBtn = document.getElementById("text-size-increase");
+  if (decreaseBtn) decreaseBtn.disabled = scale <= FONT_SCALE_MIN + 0.001;
+  if (increaseBtn) increaseBtn.disabled = scale >= FONT_SCALE_MAX - 0.001;
+}
+
+function setFontScale(scale) {
+  const next = clampNumber(scale, FONT_SCALE_MIN, FONT_SCALE_MAX);
+  document.documentElement.style.setProperty("--font-scale", next.toString());
+  storage.setItem(FONT_SCALE_KEY, next.toFixed(2));
+  updateFontSizeButtons(next);
+}
+
+function updateLanguageSelectIcon(lang = currentLanguage) {
+  const languageSelect = document.getElementById("language-select");
+  if (!languageSelect) return;
+  const dataUri = FLAG_DATA_URIS[lang] || FLAG_DATA_URIS[DEFAULT_LANG];
+  if (dataUri) {
+    languageSelect.style.setProperty("--flag-icon", `url("${dataUri}")`);
+  }
+}
+
+function notifyLanguageChange() {
+  languageListeners.forEach(listener => listener(currentLanguage));
+}
+
+function onLanguageChange(listener) {
+  if (typeof listener !== "function") return;
+  languageListeners.add(listener);
+}
+
+function setLanguage(lang) {
+  const next = I18N_STRINGS[lang] ? lang : DEFAULT_LANG;
+  currentLanguage = next;
+  storage.setItem(LANG_KEY, next);
+  document.documentElement.lang = next;
+  const languageSelect = document.getElementById("language-select");
+  if (languageSelect && languageSelect.value !== next) {
+    languageSelect.value = next;
+  }
+  updateLanguageSelectIcon(next);
+  applyTranslations();
+  refreshLanguageSensitiveUI();
+  notifyLanguageChange();
+}
+
+function refreshLanguageSensitiveUI() {
+  updateStepStatus();
+  updateExercisePagination(false);
+  updateAutoSaveLabel();
+  updateSessionSummary();
+  refreshHistoryUI();
+  setFastMode(isFastMode, { skipPersist: true });
+  refreshRoutineSelectLabels();
+  populateHistoryDaySelect();
+  if (exercisesContainer && exercisesContainer.children.length > 0) {
+    loadSession({ silent: true, preserveAutoSave: true });
+  }
+  const quickGroupSelect = document.getElementById("quick-add-group");
+  if (quickGroupSelect) {
+    populateGroupSelect(quickGroupSelect);
+    if (quickGroupSelect.value) {
+      populateQuickAddExercises(quickGroupSelect.value);
+    }
+  }
+}
+
+currentLanguage = getLanguage();
+document.documentElement.lang = currentLanguage;
+window.gymI18n = { t, setLanguage, getLanguage, getLocale, applyTranslations, onLanguageChange };
 
 let currentUserName = "";
 let currentUserKey = "";
@@ -202,7 +1435,7 @@ function saveUserList(list) {
 }
 
 function promptForNewUserName(defaultValue) {
-  const input = prompt("Nombre del nuevo usuario:", defaultValue || "");
+  const input = prompt(t("prompt.newUserName"), defaultValue || "");
   if (input == null) return "";
   return input.trim();
 }
@@ -219,16 +1452,16 @@ function refreshCharts() {
   }
 }
 
-function setFastMode(enabled) {
+function setFastMode(enabled, options = {}) {
   isFastMode = enabled;
   document.body.classList.toggle("fast-mode", enabled);
   if (toggleFastModeBtn) {
     toggleFastModeBtn.setAttribute("aria-pressed", enabled ? "true" : "false");
   }
   if (fastModeLabel) {
-    fastModeLabel.textContent = enabled ? "Básico" : "Avanzado";
+    fastModeLabel.textContent = enabled ? t("fastMode.basic") : t("fastMode.detailed");
   }
-  storage.setItem("gym_fast_mode", enabled ? "1" : "0");
+  if (!options.skipPersist) storage.setItem("gym_fast_mode", enabled ? "1" : "0");
 }
 
 function refreshHistoryUI() {
@@ -266,14 +1499,14 @@ function openHistoryViewOverlay(session) {
   if (!historyViewOverlay || !historyViewContent || !session) return;
   const exercises = Array.isArray(session.exercises) ? session.exercises : [];
   const lines = [
-    `Fecha: ${session.date || "-"}`,
-    `Semana: ${session.week || "-"}`,
-    `Dia: ${session.day || "-"}`,
-    `Ejercicios: ${exercises.length}`
+    `${t("history.view.date")}: ${session.date || "-"}`,
+    `${t("history.view.week")}: ${session.week || "-"}`,
+    `${t("history.view.day")}: ${session.day || "-"}`,
+    `${t("history.view.exercises")}: ${exercises.length}`
   ];
   exercises.forEach(ex => {
     const sets = Array.isArray(ex.sets) ? ex.sets.length : 0;
-    lines.push(`- ${ex.nombre || "Ejercicio"} (${sets} series)`);
+    lines.push(`- ${ex.nombre || t("history.view.exerciseDefault")} (${sets} ${t("history.view.sets")})`);
   });
   historyViewContent.textContent = lines.join("\n");
   historyViewOverlay.style.display = "flex";
@@ -302,14 +1535,14 @@ function renameUserHistory(userKey, newName) {
   const userList = loadUserList();
   const entry = userList.find(u => u.key === userKey);
   if (!entry) {
-    alert("Selecciona un usuario válido.");
+    alert(t("alert.selectValidUser"));
     return;
   }
   const trimmed = newName.trim();
   if (!trimmed) return;
   const newKey = normalizeUserName(trimmed);
   if (newKey !== userKey && userList.some(u => u.key === newKey)) {
-    alert("Ya existe un usuario con ese nombre.");
+    alert(t("alert.userExists"));
     return;
   }
 
@@ -335,7 +1568,7 @@ function renameUserHistory(userKey, newName) {
 
   refreshUserSelect();
   if (userHistorySelect) userHistorySelect.value = newKey;
-  setUserHistoryStatus(`Histórico renombrado a ${trimmed}.`);
+  setUserHistoryStatus(t("status.historyRenamed", { name: trimmed }));
 }
 
 function resolveUserEntry(selectedKey) {
@@ -354,10 +1587,10 @@ function deleteUserHistory(userKey) {
   const entry = resolveUserEntry(userKey);
   const entryIndex = entry ? userList.findIndex(u => u.key === entry.key) : -1;
   if (entryIndex === -1) {
-    alert("Selecciona un usuario válido.");
+    alert(t("alert.selectValidUser"));
     return;
   }
-  const ok = confirm(`Eliminar el usuario "${entry.name}"? Esta acción no se puede deshacer.`);
+  const ok = confirm(t("confirm.deleteUser", { name: entry.name }));
   if (!ok) return;
 
   storage.removeItem(getHistoryStorageKeyForUser(entry.key));
@@ -412,7 +1645,7 @@ function deleteUserHistory(userKey) {
   }
 
   refreshUserSelect();
-  setUserHistoryStatus("Histórico eliminado.");
+  setUserHistoryStatus(t("status.historyDeleted"));
 }
 
 function setUserHistoryStatus(msg) {
@@ -426,14 +1659,14 @@ function refreshUserSelect() {
 
   const placeholder = document.createElement("option");
   placeholder.value = "";
-  placeholder.textContent = "Selecciona un usuario";
+  placeholder.textContent = t("status.selectUser");
   placeholder.disabled = true;
   placeholder.selected = true;
   userHistorySelect.appendChild(placeholder);
 
   if (!userList.length) {
     userHistorySelect.disabled = true;
-    setUserHistoryStatus("No hay usuarios. Crea uno nuevo para empezar.");
+    setUserHistoryStatus(t("status.noUsers"));
     return userList;
   }
 
@@ -444,7 +1677,7 @@ function refreshUserSelect() {
     userHistorySelect.appendChild(opt);
   });
   userHistorySelect.disabled = false;
-  setUserHistoryStatus("Selecciona un usuario para continuar");
+  setUserHistoryStatus(t("status.selectUserContinue"));
   return userList;
 }
 
@@ -480,7 +1713,7 @@ function activateSelectedUser(userKey) {
   const userList = loadUserList();
   const selected = userList.find(u => u.key === userKey);
   if (!selected) {
-    alert("Selecciona un usuario válido.");
+    alert(t("alert.selectValidUser"));
     return;
   }
   setCurrentUser(selected.name, selected.key);
@@ -490,9 +1723,12 @@ function activateSelectedUser(userKey) {
   setAppVisible(true);
   populateRoutineSelectors();
   checkSensationsForm();
-  setUserHistoryStatus(`Usuario activo: ${selected.name}`);
+  setUserHistoryStatus(t("status.userActive", { name: selected.name }));
   updateStepStatus();
   scheduleExercisePagination(true);
+  if (typeof window.loadChartExercises === "function") {
+    window.loadChartExercises();
+  }
   if (pendingStartStepIndex != null) {
     const targetIndex = pendingStartStepIndex;
     pendingStartStepIndex = null;
@@ -505,22 +1741,22 @@ function updateStepStatus() {
   const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
   const postWorkoutComplete = isPostWorkoutComplete();
 
-  if (step1Status) step1Status.textContent = hasUser ? "Completado" : "Pendiente";
-  if (step2Status) step2Status.textContent = hasExercises ? "Completado" : "Opcional";
-  if (step3Status) step3Status.textContent = hasExercises ? "En progreso" : "Pendiente";
+  if (step1Status) step1Status.textContent = hasUser ? t("status.completed") : t("status.pending");
+  if (step2Status) step2Status.textContent = hasExercises ? t("status.completed") : t("status.optional");
+  if (step3Status) step3Status.textContent = hasExercises ? t("status.inProgress") : t("status.pending");
   if (step4Status) {
     step4Status.textContent = postWorkoutComplete
-      ? "Completado"
+      ? t("status.completed")
       : hasExercises
-        ? "En progreso"
-        : "Bloqueado";
+        ? t("status.inProgress")
+        : t("status.blocked");
   }
   if (step5Status) {
     step5Status.textContent = postWorkoutComplete && isSessionSavedToHistory()
-      ? "Disponible"
-      : "Bloqueado";
+      ? t("status.available")
+      : t("status.blocked");
   }
-  if (step6Status) step6Status.textContent = hasUser ? "Opcional" : "Pendiente";
+  if (step6Status) step6Status.textContent = hasUser ? t("status.optional") : t("status.pending");
   if (toggleUserManageBtn) toggleUserManageBtn.disabled = !hasUser;
   if (postWorkoutSection) {
     postWorkoutSection.classList.toggle("post-workout-locked", !hasExercises);
@@ -535,16 +1771,22 @@ function updateExercisePagination(resetIndex = false) {
     cards = Array.from(exercisesContainer.children).filter(node => node.nodeType === 1);
     cards.forEach(card => card.classList.add("exercise-card"));
   }
+  const fastModeBtn = document.getElementById("toggle-fast-mode");
+  const navActionsFallback = document.querySelector(".exercise-nav-actions");
   const total = cards.length;
   if (resetIndex) {
     activeExerciseIndex = 0;
   }
   if (total === 0) {
-    if (exerciseCounter) exerciseCounter.textContent = "Ejercicio 0 de 0";
+    if (exerciseCounter) exerciseCounter.textContent = t("exercise.counter.empty");
     if (exercisePrevBtn) exercisePrevBtn.disabled = true;
     if (exerciseNextBtn) exerciseNextBtn.disabled = true;
     if (saveRoutineControls) saveRoutineControls.style.display = "none";
     if (exerciseEmptyState) exerciseEmptyState.style.display = "block";
+    if (fastModeBtn && navActionsFallback && fastModeBtn.parentElement !== navActionsFallback) {
+      navActionsFallback.prepend(fastModeBtn);
+    }
+    if (removeExerciseBtn) removeExerciseBtn.disabled = true;
     return;
   }
   if (exerciseEmptyState) exerciseEmptyState.style.display = "none";
@@ -553,7 +1795,13 @@ function updateExercisePagination(resetIndex = false) {
     cards.forEach(card => {
       card.style.display = "block";
     });
-    if (exerciseCounter) exerciseCounter.textContent = `Ejercicios: ${total}`;
+    const firstCard = cards[0];
+    const firstHeaderActions = firstCard?.querySelector(".exercise-header-actions");
+    if (fastModeBtn && firstHeaderActions && fastModeBtn.parentElement !== firstHeaderActions) {
+      firstHeaderActions.appendChild(fastModeBtn);
+    }
+    if (removeExerciseBtn) removeExerciseBtn.disabled = false;
+    if (exerciseCounter) exerciseCounter.textContent = t("exercise.counter.all", { total });
     if (exercisePrevBtn) exercisePrevBtn.disabled = true;
     if (exerciseNextBtn) exerciseNextBtn.disabled = true;
     if (saveRoutineControls) saveRoutineControls.style.display = "none";
@@ -564,8 +1812,14 @@ function updateExercisePagination(resetIndex = false) {
   cards.forEach((card, idx) => {
     card.style.display = idx === activeExerciseIndex ? "block" : "none";
   });
+  const activeCard = cards[activeExerciseIndex];
+  const activeHeaderActions = activeCard?.querySelector(".exercise-header-actions");
+  if (fastModeBtn && activeHeaderActions && fastModeBtn.parentElement !== activeHeaderActions) {
+    activeHeaderActions.appendChild(fastModeBtn);
+  }
+  if (removeExerciseBtn) removeExerciseBtn.disabled = !activeCard;
   if (exerciseCounter) {
-    exerciseCounter.textContent = `Ejercicio ${activeExerciseIndex + 1} de ${total}`;
+    exerciseCounter.textContent = t("exercise.counter.current", { current: activeExerciseIndex + 1, total });
   }
   if (exercisePrevBtn) exercisePrevBtn.disabled = activeExerciseIndex === 0;
   if (exerciseNextBtn) exerciseNextBtn.disabled = activeExerciseIndex >= total - 1;
@@ -688,16 +1942,7 @@ function updateHeaderOffsets() {
 
 function updateAutoSaveLabel() {
   if (!autoSaveStatus) return;
-  if (!lastAutoSaveTime) {
-    autoSaveStatus.textContent = "";
-    return;
-  }
-  const diffSeconds = Math.floor((Date.now() - lastAutoSaveTime) / 1000);
-  if (diffSeconds < 2) {
-    autoSaveStatus.textContent = "Guardado ahora";
-    return;
-  }
-  autoSaveStatus.textContent = `Guardado hace ${diffSeconds} s`;
+  autoSaveStatus.textContent = "";
 }
 
 function markAutoSaved() {
@@ -714,7 +1959,7 @@ function updateSessionSummary() {
   const key = sessionKey();
   const saved = JSON.parse(storage.getItem(key) || "null");
   if (!saved) {
-    sessionSummary.textContent = "Sin datos de sesión.";
+    sessionSummary.textContent = t("session.noData");
     return;
   }
   sessionSummary.innerHTML = "";
@@ -741,10 +1986,10 @@ function buildExportContent(saved, options = {}) {
   const dateObj = new Date(saved.date);
   const isValidDate = !isNaN(dateObj);
   const formattedDate = isValidDate
-    ? dateObj.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
+    ? dateObj.toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit", year: "numeric" })
     : saved.date;
   const weekday = isValidDate
-    ? dateObj.toLocaleDateString("es-ES", { weekday: "long" })
+    ? dateObj.toLocaleDateString(getLocale(), { weekday: "long" })
     : "";
   const weekdayText = weekday ? ` (${weekday})` : "";
   title.textContent = `${formattedDate}${weekdayText}`;
@@ -765,23 +2010,23 @@ function buildExportContent(saved, options = {}) {
     table.style.color = "#000";
     table.innerHTML = `
       <tr style="background:${headerBg}; font-weight:bold;">
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">Ejercicio</th>
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">Serie</th>
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">Peso/<br>Intensidad</th>
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">Reps/<br>Tiempo</th>
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">Fallo</th>
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">Reps fallo</th>
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">Notas</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.exercise")}</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.set")}</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.weightIntensity")}</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.repsTime")}</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.failure")}</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.failureReps")}</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.notes")}</th>
       </tr>
     `;
   } else {
     table.className = "session-summary-mini-table";
     table.innerHTML = `
       <tr class="session-summary-head">
-        <th>Ejercicio</th>
-        <th>Series</th>
-        <th>Peso máx / Tiempo</th>
-        <th>Fallo</th>
+        <th>${t("session.table.exercise")}</th>
+        <th>${t("session.table.series")}</th>
+        <th>${t("session.table.maxWeightTime")}</th>
+        <th>${t("session.table.failure")}</th>
       </tr>
     `;
   }
@@ -809,13 +2054,13 @@ function buildExportContent(saved, options = {}) {
       const maxTime = isCardio ? (times.length ? Math.max(...times) : "-") : "-";
       const hasFailure = isCardio
         ? "-"
-        : sets.some(set => set.fallo === true) ? "Sí" : "No";
+        : sets.some(set => set.fallo === true) ? t("session.failure.yes") : t("session.failure.no");
       const weightOrTime = isCardio
-        ? (maxTime !== "-" ? `${maxTime} min` : "-")
-        : (maxWeight !== "-" ? `${maxWeight} kg` : "-");
+        ? (maxTime !== "-" ? t("exercise.detail.time", { value: maxTime }) : "-")
+        : (maxWeight !== "-" ? t("exercise.detail.weight", { value: maxWeight }) : "-");
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${ex.nombre || "Ejercicio"}</td>
+        <td>${ex.nombre || t("history.view.exerciseDefault")}</td>
         <td>${seriesCount}</td>
         <td>${weightOrTime}</td>
         <td>${hasFailure}</td>
@@ -828,7 +2073,7 @@ function buildExportContent(saved, options = {}) {
       totalSets += 1;
       const displayPeso = isCardio ? (set.intensidad ?? set.peso ?? "") : (set.peso ?? "");
       const displayReps = isCardio ? (set.tiempo ?? set.reps ?? "") : (set.reps ?? "");
-      const displayFallo = isCardio ? "" : (set.fallo ? "Sí" : "No");
+      const displayFallo = isCardio ? "" : (set.fallo ? t("session.failure.yes") : t("session.failure.no"));
       const displayRepsFallo = isCardio ? "" : (set.repsFallo ?? "");
 
       const tr = document.createElement("tr");
@@ -895,9 +2140,9 @@ function buildExportContent(saved, options = {}) {
     summary.style.fontSize = "12px";
     summary.style.color = "#000";
     summary.innerHTML = `
-      <p style="margin: 3px 0; font-weight:bold; color:#000;">Resumen:</p>
-      <p style="margin: 3px 0; color:#000;">- Total ejercicios: ${totalExercises}</p>
-      <p style="margin: 3px 0; color:#000;">- Total series: ${totalSets}</p>
+      <p style="margin: 3px 0; font-weight:bold; color:#000;">${t("session.summary.header")}</p>
+      <p style="margin: 3px 0; color:#000;">${t("session.summary.totalExercises", { count: totalExercises })}</p>
+      <p style="margin: 3px 0; color:#000;">${t("session.summary.totalSets", { count: totalSets })}</p>
     `;
     exportDiv.appendChild(summary);
 
@@ -910,21 +2155,23 @@ function buildExportContent(saved, options = {}) {
 
     let painText = "";
     if (sensations.pain === "si") {
-      painText = `Sí (${sensations.painZone || "Zona N/A"} - Ejercicio: ${sensations.painExercise || "N/A"})`;
+      const zoneText = sensations.painZone || t("session.pain.zoneNA");
+      const exerciseText = sensations.painExercise || t("session.pain.exerciseNA");
+      painText = `${t("session.failure.yes")} (${zoneText} - ${exerciseText})`;
     } else {
-      painText = "No";
+      painText = t("session.failure.no");
     }
 
     sensDiv.innerHTML = `
-        <p style="font-weight:bold; margin: 3px 0; color:#000; font-size:14px;">Métricas Subjetivas:</p>
-        <p style="margin: 3px 0; color:#000; font-size:12px;">- Sensaciones generales (0-10): ${sensations.general || "N/A"}</p>
-        <p style="margin: 3px 0; color:#000; font-size:12px;">- Cansancio percibido (0-10): ${sensations.tiredness || "N/A"}</p>
-        <p style="margin: 3px 0; color:#000; font-size:12px;">- Dolor en algún músculo: ${painText}</p>
+        <p style="font-weight:bold; margin: 3px 0; color:#000; font-size:14px;">${t("session.metrics.title")}</p>
+        <p style="margin: 3px 0; color:#000; font-size:12px;">${t("session.metrics.general", { value: sensations.general || "N/A" })}</p>
+        <p style="margin: 3px 0; color:#000; font-size:12px;">${t("session.metrics.tiredness", { value: sensations.tiredness || "N/A" })}</p>
+        <p style="margin: 3px 0; color:#000; font-size:12px;">${t("session.metrics.pain", { value: painText })}</p>
     `;
     exportDiv.appendChild(sensDiv);
 
     const footer = document.createElement("p");
-    footer.textContent = "Registrado con GymTracker by Borja Aguado";
+    footer.textContent = t("session.footer");
     footer.style.fontSize = "10px";
     footer.style.textAlign = "right";
     footer.style.marginTop = "15px";
@@ -939,10 +2186,15 @@ function setActiveStep(index, options = {}) {
   if (!stepPages.length) return;
   const maxIndex = getMaxStepIndex();
   let nextIndex = Math.max(0, Math.min(index, maxIndex));
+  const prevIndex = activeStepIndex;
 
   const step7Index = stepPages.indexOf(step7);
+  const step6Index = stepPages.indexOf(step6);
+  const step3Index = stepPages.indexOf(step3);
+  const step4Index = stepPages.indexOf(step4);
   const enteringStep7 = step7Index >= 0 && nextIndex === step7Index;
   const leavingStep7 = step7Index >= 0 && activeStepIndex === step7Index && nextIndex !== step7Index;
+  const enteringStep4FromStep3 = step4Index >= 0 && step3Index >= 0 && prevIndex === step3Index && nextIndex === step4Index;
   if (enteringStep7 && editExercisesContainer) {
     exercisesContainer = editExercisesContainer;
     showAllExercises = true;
@@ -961,6 +2213,9 @@ function setActiveStep(index, options = {}) {
         ensureSelectValue(daySelect, editingSessionContext.day || "");
       }
       loadSession();
+      if (typeof window.loadChartExercises === "function") {
+        window.loadChartExercises();
+      }
       editingSessionContext = null;
     }
   }
@@ -975,6 +2230,18 @@ function setActiveStep(index, options = {}) {
     }
   });
 
+  if (step6Index >= 0 && nextIndex === step6Index) {
+    if (typeof window.loadChartExercises === "function") {
+      window.loadChartExercises();
+    }
+  }
+
+  if (step3Index >= 0 && nextIndex === step3Index) {
+    lastRoutinePromptSignature = "";
+  }
+  if (enteringStep4FromStep3) {
+    maybePromptSaveRoutine();
+  }
   updateStepNavigation();
 }
 
@@ -1061,6 +2328,153 @@ function getLocalHistory() {
   }
 }
 
+function getLegacyHistoryForCurrentUser() {
+  const raw = storage.getItem(LOCAL_HISTORY_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    if (!currentUserName) return parsed;
+    return parsed.filter(session => {
+      if (!session || typeof session !== "object") return false;
+      if (!session.user) return true;
+      return session.user === currentUserName;
+    });
+  } catch (err) {
+    return [];
+  }
+}
+
+function getHistorySessionsForCharts() {
+  const sources = [];
+  const stored = getLocalHistory();
+  if (stored.length) sources.push(stored);
+  const fromKeys = collectSessionsFromSessionKeys(currentUserKey);
+  if (fromKeys.length) sources.push(fromKeys);
+  const localKeys = collectSessionsFromSessionKeys("local");
+  if (localKeys.length) sources.push(localKeys);
+  const legacy = getLegacyHistoryForCurrentUser();
+  if (legacy.length) sources.push(legacy);
+  const merged = new Map();
+  sources.flat().forEach(session => {
+    if (!session || typeof session !== "object") return;
+    const key = session.key
+      || buildSessionKey(session)
+      || `${session.date || ""}|${session.week || ""}|${session.day || ""}|${session.user || ""}`;
+    if (!merged.has(key)) merged.set(key, session);
+  });
+  if (!merged.size) {
+    const scanned = collectSessionsFromStorage();
+    scanned.forEach(session => {
+      const key = session.key
+        || buildSessionKey(session)
+        || `${session.date || ""}|${session.week || ""}|${session.day || ""}|${session.user || ""}`;
+      if (!merged.has(key)) merged.set(key, session);
+    });
+  }
+  return Array.from(merged.values());
+}
+
+function collectSessionsFromStorage() {
+  const sessions = [];
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
+    if (!key.startsWith("gym_")) continue;
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") continue;
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          if (!item || typeof item !== "object") return;
+          const hasExercises = Array.isArray(item.exercises) || Array.isArray(item.ejercicios);
+          if (!hasExercises) return;
+          sessions.push({ ...item, key: item.key || key });
+        });
+        continue;
+      }
+      const hasExercises = Array.isArray(parsed.exercises) || Array.isArray(parsed.ejercicios);
+      if (!hasExercises) continue;
+      sessions.push({ ...parsed, key: parsed.key || key });
+    } catch (err) {
+      // Ignore malformed entries.
+    }
+  }
+  return sessions;
+}
+
+window.getGymHistorySessions = () => getHistorySessionsForCharts();
+
+function getExerciseNameFromEntry(entry) {
+  if (!entry || typeof entry !== "object") return "";
+  return entry.nombre || entry.name || entry.exercise || entry.ejercicio || "";
+}
+
+function getExercisesArrayFromSession(session) {
+  if (!session || typeof session !== "object") return [];
+  if (Array.isArray(session.exercises)) return session.exercises;
+  if (Array.isArray(session.ejercicios)) return session.ejercicios;
+  if (Array.isArray(session.data?.exercises)) return session.data.exercises;
+  if (Array.isArray(session.data?.ejercicios)) return session.data.ejercicios;
+  if (Array.isArray(session.session?.exercises)) return session.session.exercises;
+  if (Array.isArray(session.session?.ejercicios)) return session.session.ejercicios;
+  return [];
+}
+
+function getGymHistoryExerciseNames() {
+  const sessions = getHistorySessionsForCharts();
+  const names = new Set();
+  const collectFromSession = (session) => {
+    getExercisesArrayFromSession(session).forEach(entry => {
+      const name = getExerciseNameFromEntry(entry);
+      if (name) names.add(name);
+    });
+  };
+  sessions.forEach(collectFromSession);
+  if (names.size) return Array.from(names);
+  const fromStorage = collectExerciseNamesFromStorage();
+  return fromStorage.length ? fromStorage : Array.from(names);
+}
+
+window.getGymHistoryExerciseNames = getGymHistoryExerciseNames;
+
+function collectExerciseNamesFromStorage() {
+  const names = new Set();
+  const seen = new WeakSet();
+  const visit = (value, depth = 0) => {
+    if (depth > 4 || value == null) return;
+    if (Array.isArray(value)) {
+      value.forEach(item => visit(item, depth + 1));
+      return;
+    }
+    if (typeof value !== "object") return;
+    if (seen.has(value)) return;
+    seen.add(value);
+    const exercises = value.exercises || value.ejercicios || value.data?.exercises || value.data?.ejercicios || value.session?.exercises || value.session?.ejercicios;
+    if (Array.isArray(exercises)) {
+      exercises.forEach(entry => {
+        const name = getExerciseNameFromEntry(entry);
+        if (name) names.add(name);
+      });
+    }
+    Object.values(value).forEach(child => visit(child, depth + 1));
+  };
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
+    if (!key.includes("gym") && !key.includes("history")) continue;
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      visit(parsed, 0);
+    } catch (err) {
+      // Ignore malformed entries.
+    }
+  }
+  return Array.from(names);
+}
+
 function getLocalHistoryForUser(userKey) {
   const raw = storage.getItem(getHistoryStorageKeyForUser(userKey));
   if (!raw) return [];
@@ -1129,6 +2543,9 @@ function hydrateHistoryFromSessionKeys() {
   window.uploadedHistory = sessions;
   rebuildHistoryData(sessions);
   refreshCharts();
+  if (typeof window.loadChartExercises === "function") {
+    window.loadChartExercises();
+  }
 }
 
 function rebuildHistoryData(sessions) {
@@ -1155,6 +2572,10 @@ function loadLocalHistory() {
   rebuildHistoryData(sessions);
   refreshCharts();
   refreshHistoryUI();
+  populateHistoryDaySelect();
+  if (typeof window.loadChartExercises === "function") {
+    window.loadChartExercises();
+  }
 }
 
 function upsertLocalHistory(session) {
@@ -1314,18 +2735,20 @@ function getLastExerciseSummary(exerciseName) {
     const tiempo = firstSet.tiempo ?? firstSet.reps ?? "";
     const intensidad = firstSet.intensidad ?? firstSet.peso ?? "";
     const parts = [];
-    if (intensidad !== "") parts.push(`Intensidad ${intensidad}`);
-    if (tiempo !== "") parts.push(`${tiempo} min`);
-    const cardioText = parts.length ? `Cardio: ${parts.join(" · ")}` : "Cardio sin datos";
-    return `Última sesión: ${lastSession.date} · ${cardioText}`;
+    if (intensidad !== "") parts.push(t("exercise.detail.intensity", { value: intensidad }));
+    if (tiempo !== "") parts.push(t("exercise.detail.time", { value: tiempo }));
+    const cardioDetail = parts.length
+      ? t("exercise.lastSession.cardio", { detail: parts.join(" · ") })
+      : t("exercise.cardio.noData");
+    return t("exercise.lastSession", { date: lastSession.date, detail: cardioDetail });
   }
   const peso = firstSet.peso ?? "";
   const reps = firstSet.reps ?? "";
   const parts = [];
-  if (peso !== "") parts.push(`${peso} kg`);
-  if (reps !== "") parts.push(`${reps} reps`);
-  const firstSetText = parts.length ? `Primera serie: ${parts.join(" x ")}` : "Primera serie sin datos";
-  return `Última sesión: ${lastSession.date} · ${firstSetText}`;
+  if (peso !== "") parts.push(t("exercise.detail.weight", { value: peso }));
+  if (reps !== "") parts.push(t("exercise.detail.reps", { value: reps }));
+  const firstSetDetail = parts.length ? t("exercise.firstSet", { detail: parts.join(" x ") }) : t("exercise.firstSet.noData");
+  return t("exercise.lastSession", { date: lastSession.date, detail: firstSetDetail });
 }
 
 function updateOverloadWarning(card) {
@@ -1352,7 +2775,7 @@ function updateOverloadWarning(card) {
   });
 
   if (currentMax != null && currentMax > baseline * 1.1) {
-    warningEl.textContent = `Aviso de sobrecarga: último máximo ${baseline} kg, ahora ${currentMax} kg.`;
+    warningEl.textContent = t("warning.overload", { baseline, current: currentMax });
     warningEl.style.display = "block";
   } else {
     warningEl.style.display = "none";
@@ -1376,8 +2799,9 @@ function setStatus(msg) {
 }
 
 function loadCustomRoutines() {
+  if (!currentUserKey) return {};
   try {
-    const key = currentUserKey ? `${CUSTOM_ROUTINES_KEY}_${currentUserKey}` : CUSTOM_ROUTINES_KEY;
+    const key = `${CUSTOM_ROUTINES_KEY}_${currentUserKey}`;
     const raw = storage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : {};
     return parsed && typeof parsed === "object" ? parsed : {};
@@ -1387,7 +2811,8 @@ function loadCustomRoutines() {
 }
 
 function saveCustomRoutines(data) {
-  const key = currentUserKey ? `${CUSTOM_ROUTINES_KEY}_${currentUserKey}` : CUSTOM_ROUTINES_KEY;
+  if (!currentUserKey) return;
+  const key = `${CUSTOM_ROUTINES_KEY}_${currentUserKey}`;
   storage.setItem(key, JSON.stringify(data));
 }
 
@@ -1397,37 +2822,157 @@ function getAllRoutines() {
   return { ...base, ...custom };
 }
 
+function buildRoutineValue(week, day) {
+  return `${week}${ROUTINE_VALUE_SEP}${day}`;
+}
+
+function parseRoutineValue(value) {
+  const [week, day] = String(value || "").split(ROUTINE_VALUE_SEP);
+  return { week: week || "", day: day || "" };
+}
+
+function getSelectedRoutineKeys() {
+  if (routineSelect?.value) {
+    const parsed = parseRoutineValue(routineSelect.value);
+    if (parsed.week && parsed.day) return parsed;
+  }
+  return { week: weekSelect?.value || "", day: daySelect?.value || "" };
+}
+
+function syncRoutineSelectFromWeekDay() {
+  if (!routineSelect || !weekSelect || !daySelect) return;
+  const value = buildRoutineValue(weekSelect.value, daySelect.value);
+  const hasOption = Array.from(routineSelect.options).some(opt => opt.value === value);
+  if (hasOption) routineSelect.value = value;
+}
+
+function getRoutineEntries() {
+  const routines = getAllRoutines();
+  const entries = [];
+  Object.keys(routines).forEach(week => {
+    const days = routines[week] || {};
+    const dayKeys = Object.keys(days);
+    dayKeys.forEach(day => {
+      const isSingleCustom = dayKeys.length === 1 && day === "Día 1 - Sesión guardada";
+      const label = isSingleCustom
+        ? translateRoutineLabel(week)
+        : `${translateRoutineLabel(week)} · ${translateRoutineLabel(day)}`;
+      entries.push({
+        week,
+        day,
+        label,
+        value: buildRoutineValue(week, day)
+      });
+    });
+  });
+  entries.sort((a, b) => a.label.localeCompare(b.label, getLocale()));
+  return entries;
+}
+
+function normalizeRoutineExerciseName(name) {
+  return String(name || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getRoutineSignature(exercises) {
+  if (!Array.isArray(exercises) || exercises.length === 0) return "";
+  return exercises
+    .map(normalizeRoutineExerciseName)
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, getLocale()))
+    .join("|");
+}
+
+function getSavedRoutineSignatures() {
+  const routines = getAllRoutines();
+  const signatures = new Set();
+  Object.values(routines).forEach(days => {
+    if (!days || typeof days !== "object") return;
+    Object.values(days).forEach(exercises => {
+      if (!Array.isArray(exercises)) return;
+      const signature = getRoutineSignature(exercises);
+      if (signature) signatures.add(signature);
+    });
+  });
+  return signatures;
+}
+
+function getCurrentRoutineExercises() {
+  return Array.from(document.querySelectorAll(".exercise-card .exercise-title"))
+    .map(card => card.textContent.trim())
+    .filter(Boolean);
+}
+
+function notifyRoutineError(message) {
+  if (saveRoutineError) {
+    showSaveRoutineError(message);
+    return;
+  }
+  alert(message);
+}
+
+function saveCurrentRoutineAs(name, exercises) {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    notifyRoutineError(t("status.emptyRoutineName"));
+    return false;
+  }
+  const routineExercises = Array.isArray(exercises) ? exercises : [];
+  if (routineExercises.length === 0) {
+    notifyRoutineError(t("status.noExercisesToSaveRoutine"));
+    return false;
+  }
+  const allCustom = loadCustomRoutines();
+  const exists = Boolean(allCustom[trimmed]);
+  if (exists && !confirm(t("confirm.overwriteRoutine", { name: trimmed }))) {
+    return false;
+  }
+  allCustom[trimmed] = {
+    "Día 1 - Sesión guardada": routineExercises
+  };
+  saveCustomRoutines(allCustom);
+  populateRoutineSelectors();
+  if (weekSelect) {
+    weekSelect.value = trimmed;
+    populateDaySelect(trimmed);
+  }
+  syncRoutineSelectFromWeekDay();
+  setStatus(t("status.routineAdded"));
+  return true;
+}
+
+function maybePromptSaveRoutine() {
+  if (!currentUserKey) return;
+  const exercises = getCurrentRoutineExercises();
+  if (!exercises.length) return;
+  const signature = getRoutineSignature(exercises);
+  if (!signature) return;
+  const savedSignatures = getSavedRoutineSignatures();
+  if (savedSignatures.has(signature)) return;
+  if (lastRoutinePromptSignature === signature) return;
+  lastRoutinePromptSignature = signature;
+
+  if (!confirm(t("confirm.saveNewRoutine"))) return;
+  const routineName = prompt(t("prompt.routineName"));
+  if (!routineName) return;
+  saveCurrentRoutineAs(routineName, exercises);
+}
+
 function showSaveSessionMessage() {
   if (!saveSessionMessage) return;
-  const messages = [
-    "Bien hecho! :)",
-    "Eres un maquina! 💪",
-    "Gran trabajo, sigue asi! 😎",
-    "Buen ritmo, a por la siguiente! 🚀",
-    "Ritmo solido, sigue sumando! 🔥",
-    "Hoy se entrena, manana se presume! 😄",
-    "Vas fino, muy buen curro! ✅",
-    "Cada dia mas fuerte! 🦾",
-    "Objetivo cumplido, a descansar! 🧘",
-    "Suma y sigue, campeon! 🏆",
-    "On fire! 🔥",
-    "Progreso real, sigue asi! 📈",
-    "Modo bestia activado! 🐺",
-    "Dejando huella, crack! 👊",
-    "Nivel Llados, a tope! 💥",
-    "Cruasán 🥐 con faking cafe?! Tú no!",
-    "Panza? Es como foak, ni de coña! 🔥",
-    "Entreno limpio, mente fuerte! 🧠"
-  ];
+  const messages = Array.from({ length: 18 }, (_, index) => t(`message.saveSessionRandom.${index}`));
   const message = messages[Math.floor(Math.random() * messages.length)];
-  saveSessionMessage.innerHTML = `<strong>Sesión guardada.</strong> ${message}`;
+  saveSessionMessage.innerHTML = `<strong>${t("message.sessionSavedTitle")}</strong> ${message}`;
   saveSessionMessage.style.display = "block";
   clearSaveSessionError();
 }
 
 function showSaveSessionError(message) {
   if (!saveSessionError) return;
-  saveSessionError.innerHTML = `<strong>Error.</strong> ${message}`;
+  saveSessionError.innerHTML = `<strong>${t("message.errorTitle")}</strong> ${message}`;
   saveSessionError.style.display = "block";
 }
 
@@ -1439,7 +2984,7 @@ function clearSaveSessionError() {
 
 function showSaveRoutineMessage(message) {
   if (!saveRoutineMessage) return;
-  saveRoutineMessage.innerHTML = `<strong>Rutina guardada.</strong> ${message || ""}`.trim();
+  saveRoutineMessage.innerHTML = `<strong>${t("message.routineSavedTitle")}</strong> ${message || ""}`.trim();
   saveRoutineMessage.style.display = "block";
   if (saveRoutineError) {
     saveRoutineError.textContent = "";
@@ -1449,7 +2994,7 @@ function showSaveRoutineMessage(message) {
 
 function showSaveRoutineError(message) {
   if (!saveRoutineError) return;
-  saveRoutineError.innerHTML = `<strong>Error.</strong> ${message}`;
+  saveRoutineError.innerHTML = `<strong>${t("message.errorTitle")}</strong> ${message}`;
   saveRoutineError.style.display = "block";
   if (saveRoutineMessage) {
     saveRoutineMessage.textContent = "";
@@ -1508,21 +3053,21 @@ function checkSensationsForm(shouldFocus = false) {
 
     if (!hasExercises) {
         isValid = false;
-        errorMessage = "Añade al menos un ejercicio para activar el cuestionario post entreno.";
+        errorMessage = t("error.addExerciseToActivate");
     }
     
     // 1. Sensaciones generales y cansancio
     if (hasExercises) {
         if (!senseGeneralInput.value || senseGeneralInput.value.trim() === '') {
             isValid = false;
-            errorMessage = "Completa el cuestionario post entreno para activar los botones.";
-            setFieldError("sense-general", "Campo obligatorio.");
+            errorMessage = t("error.completeQuestionnaire");
+            setFieldError("sense-general", t("error.requiredField"));
             if (!firstInvalid) firstInvalid = senseGeneralInput;
         }
         if (!senseTirednessInput.value || senseTirednessInput.value.trim() === '') {
             isValid = false;
-            errorMessage = "Completa el cuestionario post entreno para activar los botones.";
-            setFieldError("sense-tiredness", "Campo obligatorio.");
+            errorMessage = t("error.completeQuestionnaire");
+            setFieldError("sense-tiredness", t("error.requiredField"));
             if (!firstInvalid) firstInvalid = senseTirednessInput;
         }
     }
@@ -1531,14 +3076,14 @@ function checkSensationsForm(shouldFocus = false) {
     if (hasExercises && sensePainSelect.value === 'si') {
         if (!painZoneInput.value || painZoneInput.value.trim() === '') {
             isValid = false;
-            errorMessage = "Completa el cuestionario post entreno para activar los botones.";
-            setFieldError("pain-zone", "Indica la zona del dolor.");
+            errorMessage = t("error.completeQuestionnaire");
+            setFieldError("pain-zone", t("error.painZoneRequired"));
             if (!firstInvalid) firstInvalid = painZoneInput;
         }
         if (!painExerciseSelect.value || painExerciseSelect.value.trim() === '') {
             isValid = false;
-            errorMessage = "Completa el cuestionario post entreno para activar los botones.";
-            setFieldError("pain-exercise", "Selecciona un ejercicio.");
+            errorMessage = t("error.completeQuestionnaire");
+            setFieldError("pain-exercise", t("error.exerciseRequired"));
             if (!firstInvalid) firstInvalid = painExerciseSelect;
         }
     }
@@ -1552,7 +3097,7 @@ function checkSensationsForm(shouldFocus = false) {
     if (isValid) {
         clearSaveSessionError();
     } else {
-        showSaveSessionError(errorMessage || "Completa el cuestionario para activar los botones.");
+        showSaveSessionError(errorMessage || t("error.completeQuestionnaireButtons"));
     }
 
     if (shouldFocus && firstInvalid) {
@@ -1578,10 +3123,19 @@ const strengthSetFields = [
 
 const cardioSetFields = [
   { key: "serie", type: "static" },
-  { key: "intensidad", type: "number", placeholder: "1-10" },
-  { key: "tiempo", type: "number", placeholder: "min" },
+  { key: "intensidad", type: "number", placeholderKey: "cardio.placeholderIntensity" },
+  { key: "tiempo", type: "number", placeholderKey: "cardio.placeholderTime" },
   { key: "obs", type: "text" }
 ];
+
+function updateSetNumbers(tbody) {
+  if (!tbody) return;
+  Array.from(tbody.children).forEach((row, index) => {
+    const cell = row.querySelector("td");
+    const label = cell?.querySelector("span");
+    if (label) label.textContent = String(index + 1);
+  });
+}
 
 function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetFields) {
   const tr = document.createElement("tr");
@@ -1632,7 +3186,7 @@ function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetField
       input.value = resolvedSetData[f.key] ?? "";
     }
     input.dataset.key = f.key;
-    if (f.placeholder) input.placeholder = f.placeholder;
+    if (f.placeholderKey) input.placeholder = t(f.placeholderKey);
 
     input.addEventListener("input", () => {
       saveSession();
@@ -1646,6 +3200,22 @@ function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetField
     td.appendChild(input);
     tr.appendChild(td);
   });
+
+  const actionTd = document.createElement("td");
+  actionTd.className = "set-action-cell";
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "remove-set-btn";
+  removeBtn.textContent = "−";
+  removeBtn.setAttribute("aria-label", t("exercise.removeSet"));
+  removeBtn.addEventListener("click", () => {
+    tr.remove();
+    updateSetNumbers(tbody);
+    saveSession();
+    if (onInputChange) onInputChange();
+  });
+  actionTd.appendChild(removeBtn);
+  tr.appendChild(actionTd);
 
   tbody.appendChild(tr);
 }
@@ -1675,7 +3245,7 @@ function buildExerciseCard(exData) {
   // Nota: Si el ejercicio es personalizado, exData.hacer/noHacer/trucos serán vacíos
   const musculoDisplay = exData.musculo || "N/A";
   const seccionDisplay = exData.seccion || "N/A";
-  const hacerDisplay = exData.hacer || "Descripción no disponible para ejercicios personalizados.";
+  const hacerDisplay = exData.hacer || t("exercise.custom.noDescription");
   const noHacerDisplay = exData.noHacer || "N/A";
   const trucosDisplay = exData.trucos || "N/A";
 
@@ -1689,15 +3259,13 @@ function buildExerciseCard(exData) {
          data-musculo="${musculoDisplay}"
          data-seccion="${seccionDisplay}"
          style="font-size:0.8rem; color:var(--meta-text); margin-top:2px;">
-      ${musculoDisplay} – ${seccionDisplay}
+      ${translateGroupLabel(musculoDisplay)} – ${seccionDisplay}
     </div>
   `;
 
 
   const headerActions = document.createElement("div");
-  headerActions.style.display = "flex";
-  headerActions.style.gap = "6px";
-  headerActions.style.alignItems = "center";
+  headerActions.className = "exercise-header-actions";
 
   header.appendChild(left);
   header.appendChild(headerActions);
@@ -1706,10 +3274,10 @@ function buildExerciseCard(exData) {
   // ====== HISTORIAL RAPIDO ======
   const historyInfo = document.createElement("div");
   historyInfo.className = "exercise-history";
-  historyInfo.style.fontSize = "0.75rem";
+  historyInfo.style.fontSize = "0.65rem";
   historyInfo.style.color = "var(--meta-text)";
   historyInfo.style.margin = "6px 0 4px";
-  historyInfo.textContent = getLastExerciseSummary(exData.nombre) || "Sin historial para este ejercicio.";
+  historyInfo.textContent = getLastExerciseSummary(exData.nombre) || t("exercise.history.none");
   card.appendChild(historyInfo);
 
   // ====== AVISO SOBRECARGA ======
@@ -1729,14 +3297,14 @@ function buildExerciseCard(exData) {
   table.innerHTML = isCardio ? `
     <thead>
       <tr>
-        <th>Serie</th><th>Intensidad</th><th>Tiempo (min)</th><th>Notas</th>
+        ${t("exercise.table.cardio")}
       </tr>
     </thead>
     <tbody></tbody>
   ` : `
     <thead>
       <tr>
-        <th>Serie</th><th>Peso</th><th>Reps</th><th>Fallo</th><th>Reps fallo</th><th>Notas</th>
+        ${t("exercise.table.strength")}
       </tr>
     </thead>
     <tbody></tbody>
@@ -1781,54 +3349,36 @@ function buildExerciseCard(exData) {
   }
 
   const addBtn = document.createElement("button");
-  addBtn.textContent = "Añadir serie";
-  addBtn.className = "btn-primary add-set-btn";
+  addBtn.textContent = "+";
+  addBtn.className = "add-set-btn";
+  addBtn.setAttribute("aria-label", t("exercise.addSet"));
   addBtn.onclick = () => {
     addSetRow(tbody, {}, () => updateOverloadWarning(card), isCardio ? cardioSetFields : strengthSetFields);
     saveSession();
     updateOverloadWarning(card);
   };
 
+  const headerRow = table.querySelector("thead tr");
+  const actionHeader = headerRow?.querySelector(".set-action-col") || headerRow?.lastElementChild;
+  if (actionHeader) {
+    actionHeader.innerHTML = "";
+    actionHeader.appendChild(addBtn);
+  }
+
   updateOverloadWarning(card);
-
-  const removeBtn = document.createElement("button");
-  removeBtn.textContent = "Eliminar ejercicio";
-  removeBtn.className = "btn-danger";
-  removeBtn.onclick = () => {
-    card.remove();
-    saveSession();
-    loadSession(); // Necesario para refrescar el painExerciseSelect
-    scheduleExercisePagination();
-  };
-
-  const actions = document.createElement("div");
-  actions.className = "exercise-actions";
-  actions.appendChild(addBtn);
-  actions.appendChild(removeBtn);
-  card.appendChild(actions);
 
   // ====== NOTAS TÉCNICAS ======
   const notes = document.createElement("div");
   notes.className = "exercise-notes";
   notes.innerHTML = `
     <details>
-      <summary><b>Notas de técnica</b></summary>
-      <p><b>Cómo hacerlo:</b> ${hacerDisplay}</p>
-      <p><b>Evitar:</b> ${noHacerDisplay}</p>
-      <p><b>Trucos:</b> ${trucosDisplay}</p>
+      <summary><b>${t("exercise.notes.title")}</b></summary>
+      <p><b>${t("exercise.notes.how")}</b> ${hacerDisplay}</p>
+      <p><b>${t("exercise.notes.avoid")}</b> ${noHacerDisplay}</p>
+      <p><b>${t("exercise.notes.tips")}</b> ${trucosDisplay}</p>
     </details>
   `;
   card.appendChild(notes);
-
-  // Hacer la tarjeta draggable
-  card.draggable = true;
-  card.addEventListener('dragstart', (e) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.target.style.opacity = '0.5';
-  });
-  card.addEventListener('dragend', (e) => {
-    e.target.style.opacity = '';
-  });
 
   return card;
 }
@@ -1852,6 +3402,9 @@ function addExerciseFromTemplate(name) {
   const total = exercisesContainer.querySelectorAll(".exercise-card").length;
   activeExerciseIndex = Math.max(0, total - 1);
   scheduleExercisePagination();
+  if (typeof window.loadChartExercises === "function") {
+    window.loadChartExercises();
+  }
 }
 
 
@@ -1955,7 +3508,7 @@ function saveSession() {
   });
 
   storage.setItem(key, JSON.stringify(data));
-  setStatus("Guardado");
+  setStatus(t("status.saved"));
   markAutoSaved();
   updateSessionSummary();
   
@@ -1981,6 +3534,16 @@ function resolveExerciseGroup(tpl) {
   return muscleGroupMap[tpl.musculo] || tpl.grupo || "Otros";
 }
 
+function translateGroupLabel(label) {
+  const groupKey = `group.${label}`;
+  const translatedGroup = t(groupKey);
+  if (translatedGroup !== groupKey) return translatedGroup;
+  const muscleKey = `muscle.${label}`;
+  const translatedMuscle = t(muscleKey);
+  if (translatedMuscle !== muscleKey) return translatedMuscle;
+  return label;
+}
+
 function getExerciseGroups() {
   const groups = new Set();
   Object.values(exerciseTemplates).forEach(tpl => {
@@ -1998,17 +3561,19 @@ function getExerciseGroups() {
     "Otros"
   ];
   const ordered = preferredOrder.filter(group => groups.has(group));
-  const rest = [...groups].filter(group => !preferredOrder.includes(group)).sort();
+  const rest = [...groups]
+    .filter(group => !preferredOrder.includes(group))
+    .sort((a, b) => a.localeCompare(b, getLocale()));
   return ordered.concat(rest);
 }
 
 function populateGroupSelect(selectEl) {
   if (!selectEl) return;
-  selectEl.innerHTML = '<option value="">Seleccionar grupo...</option>';
+  selectEl.innerHTML = `<option value="">${t("placeholder.selectGroup")}</option>`;
   getExerciseGroups().forEach(group => {
     const opt = document.createElement("option");
     opt.value = group;
-    opt.textContent = group;
+    opt.textContent = translateGroupLabel(group);
     selectEl.appendChild(opt);
   });
 }
@@ -2016,6 +3581,22 @@ function populateGroupSelect(selectEl) {
 function extractRoutineNumber(label) {
   const match = String(label).match(/\d+/);
   return match ? parseInt(match[0], 10) : NaN;
+}
+
+const routineLabelMap = {
+  "Semana 1": "week.1",
+  "Semana 2": "week.2",
+  "Semana 3": "week.3",
+  "Semana 4": "week.4",
+  "Semana 5": "week.5",
+  "Día 1 – Tren superior (tirón + pecho secundario)": "day.1",
+  "Día 2 – Tren superior (empuje + hombro y brazos)": "day.2",
+  "Día 3 – Tren inferior + core": "day.3"
+};
+
+function translateRoutineLabel(label) {
+  const key = routineLabelMap[label];
+  return key ? t(key) : label;
 }
 
 function sortRoutineLabels(a, b) {
@@ -2026,7 +3607,7 @@ function sortRoutineLabels(a, b) {
   }
   if (!Number.isNaN(numA) && Number.isNaN(numB)) return -1;
   if (Number.isNaN(numA) && !Number.isNaN(numB)) return 1;
-  return String(a).localeCompare(String(b), "es");
+  return String(a).localeCompare(String(b), getLocale());
 }
 
 function populateDaySelect(week) {
@@ -2037,7 +3618,7 @@ function populateDaySelect(week) {
   days.forEach(day => {
     const opt = document.createElement("option");
     opt.value = day;
-    opt.textContent = day;
+    opt.textContent = translateRoutineLabel(day);
     daySelect.appendChild(opt);
   });
   if (days.length > 0) daySelect.value = days[0];
@@ -2045,21 +3626,100 @@ function populateDaySelect(week) {
 
 function populateRoutineSelectors() {
   if (!weekSelect || !daySelect) return;
-  weekSelect.innerHTML = "";
-  const allRoutines = getAllRoutines();
-  const weeks = Object.keys(allRoutines || {}).sort(sortRoutineLabels);
-  weeks.forEach(week => {
-    const opt = document.createElement("option");
-    opt.value = week;
-    opt.textContent = week;
-    weekSelect.appendChild(opt);
-  });
-  if (weeks.length > 0) {
-    weekSelect.value = weeks[0];
-    populateDaySelect(weeks[0]);
-  } else {
-    daySelect.innerHTML = "";
+  const entries = getRoutineEntries();
+  const currentValue = routineSelect?.value || buildRoutineValue(weekSelect.value, daySelect.value);
+
+  if (routineSelect) {
+    routineSelect.innerHTML = "";
+    entries.forEach(entry => {
+      const opt = document.createElement("option");
+      opt.value = entry.value;
+      opt.textContent = entry.label;
+      routineSelect.appendChild(opt);
+    });
   }
+
+  const selectedValue = entries.some(entry => entry.value === currentValue)
+    ? currentValue
+    : entries[0]?.value || "";
+
+  if (selectedValue) {
+    const selected = parseRoutineValue(selectedValue);
+    weekSelect.value = selected.week;
+    populateDaySelect(selected.week);
+    daySelect.value = selected.day;
+    if (routineSelect) routineSelect.value = selectedValue;
+  } else {
+    weekSelect.innerHTML = "";
+    daySelect.innerHTML = "";
+    if (routineSelect) routineSelect.innerHTML = "";
+  }
+}
+
+function refreshRoutineSelectLabels() {
+  if (routineSelect) {
+    const currentValue = routineSelect.value;
+    const entries = getRoutineEntries();
+    routineSelect.innerHTML = "";
+    entries.forEach(entry => {
+      const opt = document.createElement("option");
+      opt.value = entry.value;
+      opt.textContent = entry.label;
+      routineSelect.appendChild(opt);
+    });
+    if (entries.some(entry => entry.value === currentValue)) {
+      routineSelect.value = currentValue;
+    }
+    syncRoutineSelectFromWeekDay();
+    return;
+  }
+  if (weekSelect) {
+    Array.from(weekSelect.options).forEach(opt => {
+      opt.textContent = translateRoutineLabel(opt.value);
+    });
+  }
+  if (daySelect) {
+    Array.from(daySelect.options).forEach(opt => {
+      opt.textContent = translateRoutineLabel(opt.value);
+    });
+  }
+}
+
+function populateHistoryDaySelect() {
+  if (!historyDaySelect) return;
+  const sessions = (window.uploadedHistory || [])
+    .slice()
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  historyDaySelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  placeholder.textContent = sessions.length ? t("status.selectDay") : t("status.noHistorySessions");
+  historyDaySelect.appendChild(placeholder);
+  if (!sessions.length) {
+    historyDaySelect.disabled = true;
+    if (loadPreviousSessionBtn) loadPreviousSessionBtn.disabled = true;
+    return;
+  }
+  sessions.forEach(session => {
+    const opt = document.createElement("option");
+    opt.value = session.key || buildSessionKey(session) || "";
+    const dayLabel = session.day ? translateRoutineLabel(session.day) : "-";
+    const dateLabel = session.date || "-";
+    opt.textContent = `${dateLabel} · ${dayLabel}`;
+    historyDaySelect.appendChild(opt);
+  });
+  historyDaySelect.disabled = false;
+  if (loadPreviousSessionBtn) loadPreviousSessionBtn.disabled = false;
+}
+
+function getHistorySessionByKey(sessionKey) {
+  if (!sessionKey) return null;
+  return (window.uploadedHistory || []).find(session => {
+    const key = session.key || buildSessionKey(session) || "";
+    return key === sessionKey;
+  }) || null;
 }
 
 
@@ -2068,7 +3728,7 @@ function populateRoutineSelectors() {
 // -------------------------
 
 function populatePainExerciseSelect(exerciseNames) {
-    painExerciseSelect.innerHTML = `<option value="">Seleccionar ejercicio...</option>`;
+    painExerciseSelect.innerHTML = `<option value="">${t("placeholder.selectExercise")}</option>`;
     
     // Usa un Set para asegurar nombres únicos
     const uniqueNames = [...new Set(exerciseNames)];
@@ -2076,16 +3736,16 @@ function populatePainExerciseSelect(exerciseNames) {
     // NUEVO: Añadir opción "No identificado"
     const noSeOpt = document.createElement("option");
     noSeOpt.value = "No identificado";
-    noSeOpt.textContent = "No identificado";
+    noSeOpt.textContent = t("option.notIdentified");
     painExerciseSelect.appendChild(noSeOpt);
     
     // Ordena los nombres de los ejercicios
-    uniqueNames.sort().forEach(name => {
+    uniqueNames.sort((a, b) => a.localeCompare(b, getLocale())).forEach(name => {
         const opt = document.createElement("option");
         opt.value = name;
         opt.textContent = name;
-        painExerciseSelect.appendChild(opt);
-    });
+    painExerciseSelect.appendChild(opt);
+  });
 }
 
 
@@ -2093,11 +3753,114 @@ function populatePainExerciseSelect(exerciseNames) {
 // CARGAR SESIÓN O RUTINA BASE (Y SENSACIONES)
 // -------------------------
 
-function loadSession() {
+function pickLastNonEmptySet(sets, keys) {
+  if (!Array.isArray(sets) || sets.length === 0) return null;
+  for (let i = sets.length - 1; i >= 0; i -= 1) {
+    const set = sets[i] || {};
+    const hasValue = keys.some(key => {
+      const value = set[key];
+      return value !== null && value !== undefined && String(value).trim() !== "";
+    });
+    if (hasValue) return set;
+  }
+  return sets[sets.length - 1] || null;
+}
+
+function applyHistorySession(session, options = {}) {
+  if (!session) return;
+  const silent = options.silent === true;
+  const preserveAutoSave = options.preserveAutoSave === true;
+  const onlyFirstSet = options.onlyFirstSet === true;
+  if (!preserveAutoSave) {
+    lastAutoSaveTime = null;
+    updateAutoSaveLabel();
+  }
+  exercisesContainer.innerHTML = "";
+  senseGeneralInput.value = "";
+  senseTirednessInput.value = "";
+  senseWeightInput.value = "";
+  sensePainSelect.value = "no";
+  painZoneInput.value = "";
+  painDetailsDiv.style.display = "none";
+
+  let currentExercises = [];
+  let savedPainExercise = "";
+  const pickValue = (primary, fallback) => {
+    if (primary === null || primary === undefined) return fallback;
+    const str = String(primary).trim();
+    if (str === "" || str.toLowerCase() === "n/a") return fallback;
+    return primary;
+  };
+
+  if (session.exercises?.length) {
+    session.exercises.forEach(ex => {
+      const tpl = exerciseTemplates[ex.nombre] || {};
+      let sets = ex.sets ?? [];
+      if (onlyFirstSet && sets.length) {
+        const isCardio = String(ex.musculo || ex.seccion || "").toLowerCase() === "cardio";
+        const lastSet = isCardio
+          ? pickLastNonEmptySet(sets, ["intensidad", "tiempo", "peso", "reps"])
+          : pickLastNonEmptySet(sets, ["peso", "reps"]);
+        const first = lastSet || sets[0] || {};
+        if (String(ex.musculo || ex.seccion || "").toLowerCase() === "cardio") {
+          sets = [{
+            intensidad: first.intensidad ?? first.peso ?? null,
+            tiempo: first.tiempo ?? first.reps ?? null
+          }];
+        } else {
+          sets = [{
+            peso: first.peso ?? null,
+            reps: first.reps ?? null
+          }];
+        }
+      }
+      exercisesContainer.appendChild(buildExerciseCard({
+        nombre: ex.nombre,
+        musculo: pickValue(ex.musculo, tpl.musculo ?? "N/A"),
+        seccion: pickValue(ex.seccion, tpl.seccion ?? "N/A"),
+        hacer: pickValue(ex.hacer, tpl.hacer ?? ""),
+        noHacer: pickValue(ex.noHacer, tpl.noHacer ?? ""),
+        trucos: pickValue(ex.trucos, tpl.trucos ?? ""),
+        sets
+      }));
+    });
+    currentExercises = session.exercises.map(ex => ex.nombre);
+  }
+
+  if (session.sensations) {
+    senseGeneralInput.value = session.sensations.general ?? "";
+    senseTirednessInput.value = session.sensations.tiredness ?? "";
+    senseWeightInput.value = session.sensations.weight ?? "";
+    sensePainSelect.value = session.sensations.pain ?? "no";
+    painZoneInput.value = session.sensations.painZone ?? "";
+    savedPainExercise = session.sensations.painExercise ?? "";
+    if (sensePainSelect.value === "si") {
+      painDetailsDiv.style.display = "flex";
+    }
+  }
+
+  populatePainExerciseSelect(currentExercises);
+  painExerciseSelect.value = savedPainExercise;
+
+  checkSensationsForm();
+  updateStepStatus();
+  updateSessionSummary();
+  scheduleExercisePagination(true);
+  if (typeof window.loadChartExercises === "function") {
+    window.loadChartExercises();
+  }
+  if (!silent) setStatus(t("status.loadedPreviousSession"));
+}
+
+function loadSession(options = {}) {
+  const silent = options.silent === true;
+  const preserveAutoSave = options.preserveAutoSave === true;
   const key = sessionKey();
   const saved = JSON.parse(storage.getItem(key) || "null");
-  lastAutoSaveTime = null;
-  updateAutoSaveLabel();
+  if (!preserveAutoSave) {
+    lastAutoSaveTime = null;
+    updateAutoSaveLabel();
+  }
 
   const week = weekSelect.value;
   const day = daySelect.value;
@@ -2152,7 +3915,7 @@ function loadSession() {
           painDetailsDiv.style.display = 'flex'; 
       }
     }
-    setStatus("Cargado desde memoria");
+    if (!silent) setStatus(t("status.loadedMemory"));
   }
 
   // *Si no hay guardados pero sí rutina definida*
@@ -2171,12 +3934,12 @@ function loadSession() {
     });
     
     currentExercises = routine; 
-    setStatus("Cargado desde rutina base");
+    if (!silent) setStatus(t("status.loadedRoutine"));
   }
 
   // *Si no hay nada*
   else {
-    setStatus("No hay rutina definida");
+    if (!silent) setStatus(t("status.noRoutine"));
   }
   
   // 2. Llenar el selector de dolor (incluye "No identificado")
@@ -2189,53 +3952,23 @@ function loadSession() {
   updateStepStatus();
   updateSessionSummary();
   scheduleExercisePagination(true);
+  if (typeof window.loadChartExercises === "function") {
+    window.loadChartExercises();
+  }
 }
 
 
 if (saveRoutineBtn) {
   saveRoutineBtn.onclick = () => {
     if (!currentUserKey) {
-      showSaveRoutineError("Selecciona un usuario antes de guardar rutinas personalizadas.");
+      notifyRoutineError(t("status.selectUserBeforeSaveRoutine"));
       return;
     }
-    const cards = Array.from(document.querySelectorAll(".exercise-card"));
-    if (cards.length === 0) {
-      showSaveRoutineError("Añade al menos un ejercicio antes de guardar la rutina.");
-      return;
-    }
-    const routineName = prompt("Nombre de la rutina:");
+    const routineName = prompt(t("prompt.routineName"));
     if (!routineName) return;
-
-    const trimmed = routineName.trim();
-    if (!trimmed) {
-      showSaveRoutineError("El nombre de la rutina no puede estar vacío.");
-      return;
-    }
-
-    const exercises = cards
-      .map(card => card.querySelector(".exercise-title")?.textContent.trim())
-      .filter(Boolean);
-    if (exercises.length === 0) {
-      showSaveRoutineError("No se encontraron ejercicios válidos.");
-      return;
-    }
-
-    const allCustom = loadCustomRoutines();
-    const exists = Boolean(allCustom[trimmed]);
-    if (exists && !confirm(`La rutina "${trimmed}" ya existe. ¿Quieres sobrescribirla?`)) {
-      return;
-    }
-
-    allCustom[trimmed] = {
-      "Día 1 - Sesión guardada": exercises
-    };
-    saveCustomRoutines(allCustom);
-    populateRoutineSelectors();
-    if (weekSelect) {
-      weekSelect.value = trimmed;
-      populateDaySelect(trimmed);
-    }
-    showSaveRoutineMessage("Ya aparece en rutinas predefinidas.");
+    const exercises = getCurrentRoutineExercises();
+    const saved = saveCurrentRoutineAs(routineName, exercises);
+    if (saved) showSaveRoutineMessage(t("status.routineAdded"));
   };
 }
 
@@ -2246,7 +3979,7 @@ if (saveRoutineBtn) {
 exportBtn.onclick = () => {
   // Doble verificación de validación
   if (!checkSensationsForm(true)) {
-    showSaveSessionError("Completa todo el cuestionario de Post-Entrenamiento antes de exportar.");
+    showSaveSessionError(t("status.postWorkoutExportError"));
     return;
   }
 
@@ -2254,7 +3987,7 @@ exportBtn.onclick = () => {
 
   const key = sessionKey();
   const saved = JSON.parse(storage.getItem(key) || "null");
-  if (!saved) return alert("No hay datos registrados hoy.");
+  if (!saved) return alert(t("alert.noDataToday"));
 
   const exportDiv = buildExportContent(saved, { variant: "png" });
   document.body.appendChild(exportDiv);
@@ -2262,7 +3995,7 @@ exportBtn.onclick = () => {
   // Exportar a PNG
   html2canvas(exportDiv, { scale: 2 }).then(canvas => {
     const link = document.createElement("a");
-    link.download = `sesion_${saved.date}_${saved.week}_${saved.day}.png`;
+    link.download = `${t("file.sessionPrefix")}_${saved.date}_${saved.week}_${saved.day}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
     exportDiv.remove();
@@ -2272,16 +4005,16 @@ exportBtn.onclick = () => {
 if (saveSessionBtn) {
   saveSessionBtn.onclick = () => {
     if (!checkSensationsForm(true)) {
-      showSaveSessionError("Completa todo el cuestionario de Post-Entrenamiento antes de guardar.");
+      showSaveSessionError(t("status.postWorkoutSaveError"));
       return;
     }
     saveSession();
     const key = sessionKey();
     const saved = JSON.parse(storage.getItem(key) || "null");
-    if (!saved) return alert("No hay datos registrados hoy.");
+    if (!saved) return alert(t("alert.noDataToday"));
     upsertLocalHistory(saved);
     updateStepStatus();
-    setStatus("Sesion guardada en historico local.");
+    setStatus(t("status.sessionSavedLocal"));
     showSaveSessionMessage();
   };
 }
@@ -2325,20 +4058,21 @@ loadBtn.addEventListener("click", loadSession);
 if (deleteRoutineBtn) {
   deleteRoutineBtn.addEventListener("click", () => {
     if (!currentUserKey) {
-      setStatus("Selecciona un usuario antes de borrar rutinas.");
+      setStatus(t("status.selectUserBeforeRoutineDelete"));
       return;
     }
-    const routineName = weekSelect?.value || "";
+    const selected = getSelectedRoutineKeys();
+    const routineName = selected.week || "";
     if (!routineName) {
-      setStatus("Selecciona una rutina para borrar.");
+      setStatus(t("status.selectRoutineToDelete"));
       return;
     }
     const custom = loadCustomRoutines();
     if (!custom[routineName]) {
-      setStatus("Solo puedes borrar rutinas personalizadas.");
+      setStatus(t("status.onlyCustomRoutineDelete"));
       return;
     }
-    if (!confirm(`Borrar la rutina personalizada "${routineName}"?`)) return;
+    if (!confirm(t("confirm.deleteRoutine", { name: routineName }))) return;
     delete custom[routineName];
     saveCustomRoutines(custom);
     populateRoutineSelectors();
@@ -2346,7 +4080,8 @@ if (deleteRoutineBtn) {
       weekSelect.value = "Semana 1";
       populateDaySelect(weekSelect.value);
     }
-    setStatus("Rutina borrada.");
+    syncRoutineSelectFromWeekDay();
+    setStatus(t("status.routineDeleted"));
   });
 }
 
@@ -2359,10 +4094,84 @@ function onReady(callback) {
 }
 
 onReady(() => {
+  setLanguage(currentLanguage);
+  const languageSelect = document.getElementById("language-select");
+  if (languageSelect) {
+    languageSelect.addEventListener("change", (event) => {
+      setLanguage(event.target.value);
+    });
+  }
+  const savedMode = getSessionMode();
+  setSessionMode(savedMode);
+  if (step2ModeInputs && step2ModeInputs.length) {
+    step2ModeInputs.forEach(input => {
+      input.addEventListener("change", () => {
+        setSessionMode(input.value);
+      });
+    });
+  }
+  if (loadPreviousSessionBtn) {
+    loadPreviousSessionBtn.addEventListener("click", () => {
+      const selectedKey = historyDaySelect?.value || "";
+      if (!selectedKey) {
+        setStatus(t("status.selectDay"));
+        return;
+      }
+      const session = getHistorySessionByKey(selectedKey);
+      if (!session) {
+        setStatus(t("status.noHistoryDay"));
+        return;
+      }
+      if (session.week && weekSelect) {
+        ensureSelectValue(weekSelect, session.week);
+        populateDaySelect(weekSelect.value);
+      }
+      if (session.day && daySelect) {
+        if (weekSelect) populateDaySelect(weekSelect.value);
+        ensureSelectValue(daySelect, session.day);
+      }
+      syncRoutineSelectFromWeekDay();
+      applyHistorySession(session, { onlyFirstSet: true });
+    });
+  }
+  const initialFontScale = getFontScale();
+  setFontScale(initialFontScale);
+  const decreaseTextBtn = document.getElementById("text-size-decrease");
+  const increaseTextBtn = document.getElementById("text-size-increase");
+  if (decreaseTextBtn) {
+    decreaseTextBtn.addEventListener("click", () => {
+      const currentScale = getFontScale();
+      setFontScale(currentScale - FONT_SCALE_STEP);
+    });
+  }
+  if (increaseTextBtn) {
+    increaseTextBtn.addEventListener("click", () => {
+      const currentScale = getFontScale();
+      setFontScale(currentScale + FONT_SCALE_STEP);
+    });
+  }
   // Restablecer selectores y cargar
   populateRoutineSelectors();
   if (weekSelect) {
-    weekSelect.addEventListener("change", () => populateDaySelect(weekSelect.value));
+    weekSelect.addEventListener("change", () => {
+      populateDaySelect(weekSelect.value);
+      syncRoutineSelectFromWeekDay();
+    });
+  }
+  if (daySelect) {
+    daySelect.addEventListener("change", syncRoutineSelectFromWeekDay);
+  }
+  if (routineSelect) {
+    routineSelect.addEventListener("change", () => {
+      const selected = parseRoutineValue(routineSelect.value);
+      if (weekSelect) {
+        ensureSelectValue(weekSelect, selected.week);
+        populateDaySelect(weekSelect.value);
+      }
+      if (daySelect) {
+        ensureSelectValue(daySelect, selected.day);
+      }
+    });
   }
 
   initializeForUserSelection();
@@ -2463,6 +4272,10 @@ const customExerciseName = document.getElementById('custom-exercise-name');
 const customExerciseIsCardio = document.getElementById('custom-exercise-is-cardio');
 const customExerciseCancel = document.getElementById('custom-exercise-cancel');
 const customExerciseConfirm = document.getElementById('custom-exercise-confirm');
+const orderOverlay = document.getElementById('order-overlay');
+const orderList = document.getElementById('order-list');
+const orderCancel = document.getElementById('order-cancel');
+const orderConfirm = document.getElementById('order-confirm');
 
 function updateDisplay() {
   const minutes = Math.floor(stopwatchTime / 60);
@@ -2524,6 +4337,67 @@ function closeQuickAddOverlay() {
   quickAddOverlay.setAttribute("aria-hidden", "true");
 }
 
+function openOrderOverlay(items) {
+  if (!orderOverlay) return;
+  orderOverlay.style.display = "flex";
+  orderOverlay.setAttribute("aria-hidden", "false");
+  renderOrderList(items);
+}
+
+function closeOrderOverlay() {
+  if (!orderOverlay) return;
+  orderOverlay.style.display = "none";
+  orderOverlay.setAttribute("aria-hidden", "true");
+}
+
+function renderOrderList(items) {
+  if (!orderList) return;
+  orderList.innerHTML = "";
+  if (!items.length) {
+    const empty = document.createElement("div");
+    empty.className = "hint-text";
+    empty.textContent = t("order.empty");
+    orderList.appendChild(empty);
+    return;
+  }
+  items.forEach((entry, index) => {
+    const row = document.createElement("div");
+    row.className = "order-item";
+    const title = document.createElement("div");
+    title.className = "order-title";
+    title.textContent = entry.name;
+    const actions = document.createElement("div");
+    actions.className = "order-actions";
+    const upBtn = document.createElement("button");
+    upBtn.type = "button";
+    upBtn.textContent = "↑";
+    upBtn.disabled = index === 0;
+    upBtn.addEventListener("click", () => {
+      if (index === 0) return;
+      const swapped = items[index - 1];
+      items[index - 1] = items[index];
+      items[index] = swapped;
+      renderOrderList(items);
+    });
+    const downBtn = document.createElement("button");
+    downBtn.type = "button";
+    downBtn.textContent = "↓";
+    downBtn.disabled = index === items.length - 1;
+    downBtn.addEventListener("click", () => {
+      if (index >= items.length - 1) return;
+      const swapped = items[index + 1];
+      items[index + 1] = items[index];
+      items[index] = swapped;
+      renderOrderList(items);
+    });
+    actions.appendChild(upBtn);
+    actions.appendChild(downBtn);
+    row.appendChild(title);
+    row.appendChild(actions);
+    orderList.appendChild(row);
+  });
+}
+
 function openCustomExerciseOverlay() {
   if (!customExerciseOverlay) return;
   customExerciseOverlay.style.display = "flex";
@@ -2555,7 +4429,7 @@ startBtn.addEventListener('click', () => {
         isRunning = false;
         startBtn.style.display = 'inline-block'; // Mostrar botón iniciar
         startBeepLoop();
-        setStatus('Tiempo terminado.');
+        setStatus(t("status.timeFinished"));
       }
     }, 1000);
   }
@@ -2601,23 +4475,24 @@ function populateQuickAddGroups() {
 }
 
 function populateQuickAddExercises(selectedGroup) {
-  if (!quickAddExerciseSelect) return;
-  quickAddExerciseSelect.innerHTML = '<option value="">Seleccionar ejercicio...</option>';
+  const quickExerciseSelect = document.getElementById("quick-add-exercise");
+  if (!quickExerciseSelect) return;
+  quickExerciseSelect.innerHTML = `<option value="">${t("placeholder.selectExercise")}</option>`;
   if (!selectedGroup) {
-    quickAddExerciseSelect.disabled = true;
+    quickExerciseSelect.disabled = true;
     return;
   }
   const exercisesInGroup = Object.keys(exerciseTemplates).filter(name => {
     const tpl = exerciseTemplates[name];
     return resolveExerciseGroup(tpl) === selectedGroup;
-  }).sort();
+  }).sort((a, b) => a.localeCompare(b, getLocale()));
   exercisesInGroup.forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
-    quickAddExerciseSelect.appendChild(opt);
+    quickExerciseSelect.appendChild(opt);
   });
-  quickAddExerciseSelect.disabled = false;
+  quickExerciseSelect.disabled = false;
 }
 
 if (quickAddGroupSelect) {
@@ -2653,12 +4528,48 @@ if (quickAddToggleBtn) {
   });
 }
 
+if (toggleOrderModeBtn) {
+  toggleOrderModeBtn.addEventListener("click", () => {
+    if (!exercisesContainer) return;
+    const cards = Array.from(exercisesContainer.querySelectorAll(".exercise-card"));
+    const items = cards.map(card => ({
+      node: card,
+      name: card.querySelector(".exercise-title")?.textContent.trim() || t("history.view.exerciseDefault")
+    }));
+    openOrderOverlay(items);
+    if (orderConfirm) {
+      orderConfirm.onclick = () => {
+        if (!items.length) {
+          closeOrderOverlay();
+          return;
+        }
+        items.forEach(item => {
+          exercisesContainer.appendChild(item.node);
+        });
+        saveSession();
+        scheduleExercisePagination(true);
+        closeOrderOverlay();
+      };
+    }
+  });
+}
+
 if (stopwatchCloseBtn) {
   stopwatchCloseBtn.addEventListener("click", closeStopwatchOverlay);
 }
 
 if (quickAddCloseBtn) {
   quickAddCloseBtn.addEventListener("click", closeQuickAddOverlay);
+}
+
+if (orderCancel) {
+  orderCancel.addEventListener("click", closeOrderOverlay);
+}
+
+if (orderOverlay) {
+  orderOverlay.addEventListener("click", (e) => {
+    if (e.target === orderOverlay) closeOrderOverlay();
+  });
 }
 
 if (customExerciseCancel) {
@@ -2700,6 +4611,21 @@ if (exercisePrevBtn) {
 if (exerciseNextBtn) {
   exerciseNextBtn.addEventListener("click", () => {
     activeExerciseIndex += 1;
+    scheduleExercisePagination();
+  });
+}
+
+if (removeExerciseBtn) {
+  removeExerciseBtn.addEventListener("click", () => {
+    if (!exercisesContainer) return;
+    const cards = Array.from(exercisesContainer.querySelectorAll(".exercise-card"));
+    if (!cards.length) return;
+    const index = Math.max(0, Math.min(activeExerciseIndex, cards.length - 1));
+    const card = cards[index];
+    if (!card) return;
+    card.remove();
+    saveSession();
+    loadSession(); // Necesario para refrescar el painExerciseSelect
     scheduleExercisePagination();
   });
 }
@@ -2804,7 +4730,7 @@ if (newUserHistoryBtn) {
     refreshUserSelect();
     if (userHistorySelect) userHistorySelect.value = key;
     activateSelectedUser(key);
-    setUserHistoryStatus("Usuario creado y cargado.");
+    setUserHistoryStatus(t("status.createdLoaded"));
   });
 }
 
@@ -2812,7 +4738,7 @@ if (renameUserHistoryBtn) {
   renameUserHistoryBtn.addEventListener("click", () => {
     const selectedKey = userHistorySelect?.value || "";
     if (!selectedKey) {
-      alert("Selecciona un usuario para renombrar.");
+      alert(t("alert.selectUserRename"));
       return;
     }
     const userList = loadUserList();
@@ -2828,7 +4754,7 @@ if (deleteUserHistoryBtn) {
   deleteUserHistoryBtn.addEventListener("click", () => {
     const selectedKey = userHistorySelect?.value || "";
     if (!selectedKey) {
-      alert("Selecciona un usuario para eliminar.");
+      alert(t("alert.selectUserDelete"));
       return;
     }
     deleteUserHistory(selectedKey);
@@ -2839,14 +4765,14 @@ if (exportUserHistoryBtn) {
   exportUserHistoryBtn.addEventListener("click", () => {
     const selectedKey = userHistorySelect?.value || "";
     if (!selectedKey) {
-      alert("Selecciona un usuario para exportar.");
+      alert(t("alert.selectUserExport"));
       return;
     }
     const userList = loadUserList();
     const entry = userList.find(u => u.key === selectedKey);
     const data = getExportHistoryForUser(selectedKey);
     if (!data.length) {
-      setUserHistoryStatus("No hay datos de este usuario para exportar.");
+      setUserHistoryStatus(t("status.noUserDataExport"));
       return;
     }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -2854,10 +4780,10 @@ if (exportUserHistoryBtn) {
     const a = document.createElement("a");
     a.href = url;
     const safeName = entry?.name ? normalizeUserName(entry.name) : selectedKey;
-    a.download = `historico_${safeName}.json`;
+    a.download = `${t("file.historyPrefix")}_${safeName}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setUserHistoryStatus("Datos del usuario exportados.");
+    setUserHistoryStatus(t("status.userExported"));
   });
 }
 
@@ -2872,27 +4798,27 @@ function escapeCsvCell(value) {
 
 function buildCsvForUser(sessions) {
   const header = [
-    "usuario",
-    "fecha",
-    "semana",
-    "dia",
-    "ejercicio",
-    "musculo",
-    "seccion",
-    "serie",
-    "peso",
-    "reps",
-    "fallo",
-    "reps_fallo",
-    "intensidad",
-    "tiempo",
-    "notas",
-    "sens_general",
-    "sens_tiredness",
-    "sens_weight",
-    "sens_pain",
-    "sens_pain_zone",
-    "sens_pain_exercise"
+    t("csv.usuario"),
+    t("csv.fecha"),
+    t("csv.semana"),
+    t("csv.dia"),
+    t("csv.ejercicio"),
+    t("csv.musculo"),
+    t("csv.seccion"),
+    t("csv.serie"),
+    t("csv.peso"),
+    t("csv.reps"),
+    t("csv.fallo"),
+    t("csv.reps_fallo"),
+    t("csv.intensidad"),
+    t("csv.tiempo"),
+    t("csv.notas"),
+    t("csv.sens_general"),
+    t("csv.sens_tiredness"),
+    t("csv.sens_weight"),
+    t("csv.sens_pain"),
+    t("csv.sens_pain_zone"),
+    t("csv.sens_pain_exercise")
   ];
   const rows = [header.map(escapeCsvCell).join(",")];
 
@@ -2981,7 +4907,7 @@ function buildCsvForUser(sessions) {
           set.serie ?? "",
           set.peso ?? "",
           set.reps ?? "",
-          set.fallo === true ? "si" : set.fallo === false ? "no" : "",
+          set.fallo === true ? t("option.yes") : set.fallo === false ? t("option.no") : "",
           set.repsFallo ?? "",
           set.intensidad ?? "",
           set.tiempo ?? "",
@@ -3005,14 +4931,14 @@ if (exportUserHistoryCsvBtn) {
   exportUserHistoryCsvBtn.addEventListener("click", () => {
     const selectedKey = userHistorySelect?.value || "";
     if (!selectedKey) {
-      alert("Selecciona un usuario para exportar.");
+      alert(t("alert.selectUserExport"));
       return;
     }
     const userList = loadUserList();
     const entry = userList.find(u => u.key === selectedKey);
     const data = getExportHistoryForUser(selectedKey);
     if (!data.length) {
-      setUserHistoryStatus("No hay datos de este usuario para exportar.");
+      setUserHistoryStatus(t("status.noUserDataExport"));
       return;
     }
     const csv = buildCsvForUser(data);
@@ -3021,10 +4947,10 @@ if (exportUserHistoryCsvBtn) {
     const a = document.createElement("a");
     a.href = url;
     const safeName = entry?.name ? normalizeUserName(entry.name) : selectedKey;
-    a.download = `historico_${safeName}.csv`;
+    a.download = `${t("file.historyPrefix")}_${safeName}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    setUserHistoryStatus("CSV del usuario exportado.");
+    setUserHistoryStatus(t("status.userExportedCsv"));
   });
 }
 
@@ -3056,6 +4982,9 @@ function closeImportOverlay() {
 
 function openManageUserOverlay() {
   if (!manageUserOverlay) return;
+  if (manageUserNameLabel) {
+    manageUserNameLabel.textContent = currentUserName || t("status.selectUser");
+  }
   manageUserOverlay.style.display = "flex";
   manageUserOverlay.setAttribute("aria-hidden", "false");
 }
@@ -3191,7 +5120,7 @@ if (importMergeHistoryInput) {
 
         if (!entry) {
           if (!trimmedName) {
-            alert("No se ha encontrado un nombre de usuario en los datos importados.");
+            alert(t("alert.noUserInImport"));
             return;
           }
           entry = { name: trimmedName, key: normalizedKey };
@@ -3204,9 +5133,9 @@ if (importMergeHistoryInput) {
         refreshUserSelect();
         if (userHistorySelect) userHistorySelect.value = entry.key;
         activateSelectedUser(entry.key);
-        setUserHistoryStatus("Datos importados y fusionados correctamente.");
+        setUserHistoryStatus(t("status.importMerged"));
       } catch (err) {
-        setUserHistoryStatus("Error al fusionar los datos: " + err.message);
+        setUserHistoryStatus(t("status.importError", { error: err.message }));
       }
     };
     reader.readAsText(file);
