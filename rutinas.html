@@ -1364,7 +1364,7 @@
       </button>
     </div>
     <div class="language-switcher">
-      <select id="language-select" class="language-select" aria-label="Idioma" data-i18n-aria="label.language">
+      <select id="language-select" class="language-select" aria-label="Idioma" data-i18n-aria="label.language" onchange="window.gymI18n && window.gymI18n.setLanguage(this.value)" oninput="window.gymI18n && window.gymI18n.setLanguage(this.value)">
         <option value="es" data-i18n="lang.es">ESP</option>
         <option value="ca" data-i18n="lang.ca">CAT</option>
         <option value="en" data-i18n="lang.en">ENG</option>
@@ -1414,7 +1414,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text" style="text-align:center;">v0.2.1</div>
+        <div class="hint-text" style="text-align:center;">v0.2.2</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary" data-i18n="welcome.start">Inicia sessió</button>
