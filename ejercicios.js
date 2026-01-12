@@ -177,6 +177,51 @@ const exerciseTemplates = {
     trucos: "<b>Juega con la altura del asiento</b>: si el tirón es más vertical (agarre bajo), enfocas más en el dorsal. Si el tirón es más horizontal (agarre alto), enfocas más en los romboides y trapecio medio."
   },
 
+  "Remo en máquina guiada": {
+    musculo: "Dorsal",
+    grupo: "Espalda",
+    seccion: "Media (Grosor)",
+    hacer: "Ajusta el asiento para que el agarre quede a la altura del abdomen. <b>Inicia con la retracción escapular</b> y tira llevando los codos hacia atrás de forma controlada.",
+    noHacer: "<b>No redondees la espalda</b>. Evita usar impulso con el torso.",
+    trucos: "Mantén el pecho abierto y <b>pausa 1 segundo</b> en la contracción para sentir la espalda media."
+  },
+
+  "Remo bajo en máquina": {
+    musculo: "Dorsal",
+    grupo: "Espalda",
+    seccion: "Inferior (Grosor)",
+    hacer: "Siéntate con el pecho estable y tira del agarre <b>hacia el abdomen bajo</b>, manteniendo los codos cerca del cuerpo.",
+    noHacer: "<b>No te eches hacia atrás</b> en exceso al tirar. Evita encoger los hombros.",
+    trucos: "Piensa en llevar los <b>codos a los bolsillos</b> para activar más el dorsal."
+  },
+
+  "Jalón en máquina convergente": {
+    musculo: "Dorsal",
+    grupo: "Espalda",
+    seccion: "Ancho",
+    hacer: "Ajusta el asiento y sujeta los agarres. <b>Tira hacia el pecho</b> con un movimiento convergente, manteniendo el pecho elevado.",
+    noHacer: "<b>No uses impulso</b> ni balanceo. Evita llevar los codos demasiado hacia atrás.",
+    trucos: "Mantén una ligera inclinación hacia atrás y <b>deprime las escápulas</b> al iniciar el tirón."
+  },
+
+  "Jalón unilateral en máquina": {
+    musculo: "Dorsal",
+    grupo: "Espalda",
+    seccion: "Ancho (Unilateral)",
+    hacer: "Sujeta un agarre y tira con un solo brazo hacia el costado del pecho, <b>manteniendo el torso estable</b>.",
+    noHacer: "<b>No gires el tronco</b> para ayudar al tirón. Evita encoger el hombro.",
+    trucos: "Concéntrate en <b>llevar el codo hacia abajo</b> y pausa en la contracción para igualar ambos lados."
+  },
+
+  "Pullover en máquina": {
+    musculo: "Dorsal",
+    grupo: "Espalda",
+    seccion: "Estiramiento",
+    hacer: "Ajusta el respaldo y sujeta los agarres. Con <b>codos ligeramente flexionados</b>, lleva los brazos hacia abajo en arco hasta la cadera.",
+    noHacer: "<b>No flexiones los codos</b> en exceso. Evita arquear la espalda.",
+    trucos: "Mantén el pecho alto y busca un <b>estiramiento profundo</b> del dorsal en la parte alta."
+  },
+
   "Remo polea alta ancho": {
     musculo: "Espalda media",
     grupo: "Espalda",
@@ -556,6 +601,42 @@ const exerciseTemplates = {
     trucos: "Enfócate en <b>contraer los extensores</b> al final del movimiento. Mantén los antebrazos inmóviles. Ideal para equilibrar con curls de muñeca."
   },
 
+  "Curl inverso con barra": {
+    grupo: "Antebrazos",
+    musculo: "Antebrazo",
+    seccion: "Braquiorradial",
+    hacer: "<b>De pie con agarre prono</b> (palmas hacia abajo), codos pegados al torso. Flexiona los codos elevando la barra hasta el antebrazo sin mover los hombros.",
+    noHacer: "<b>No balancees el torso</b> para subir el peso. Evita abrir los codos hacia los lados.",
+    trucos: "Usa un <b>peso moderado</b> y controla la bajada para maximizar el trabajo del braquiorradial."
+  },
+
+  "Curl inverso con mancuernas": {
+    grupo: "Antebrazos",
+    musculo: "Antebrazo",
+    seccion: "Braquiorradial",
+    hacer: "<b>De pie con mancuernas</b> y agarre prono, codos pegados al cuerpo. Flexiona los codos elevando las mancuernas sin mover los hombros.",
+    noHacer: "<b>No uses impulso</b> del torso. Evita doblar las muñecas.",
+    trucos: "Controla la bajada y mantén los <b>codos fijos</b> para aislar el antebrazo."
+  },
+
+  "Pronación y supinación con mancuerna": {
+    grupo: "Antebrazos",
+    musculo: "Antebrazo",
+    seccion: "Rotadores",
+    hacer: "<b>Siéntate con el antebrazo apoyado</b> en un banco, mano fuera del borde. Sujeta una mancuerna por el extremo y rota lentamente la muñeca hacia adentro (pronación) y hacia afuera (supinación).",
+    noHacer: "<b>No muevas el codo ni el hombro</b>. Evita giros bruscos o demasiado rápidos.",
+    trucos: "Recorre todo el rango de movimiento con <b>control total</b>. Ideal para equilibrar la fuerza de muñeca y codo."
+  },
+
+  "Farmer's walk (Paseo del granjero)": {
+    grupo: "Antebrazos",
+    musculo: "Antebrazo",
+    seccion: "Agarre",
+    hacer: "<b>Camina con mancuernas pesadas</b> a los lados, espalda recta y core activo. Mantén los hombros abajo y el paso controlado.",
+    noHacer: "<b>No encorves la espalda</b>. Evita pasos cortos y acelerados que comprometan la postura.",
+    trucos: "Aprieta fuerte las mancuernas y mantén la <b>mirada al frente</b>. Gran ejercicio para fuerza de agarre."
+  },
+
   // Isquiotibiales (ya tenemos algunos, agregar más)
   "Peso muerto rumano": {
     grupo: "Piernas",
@@ -632,6 +713,24 @@ const exerciseTemplates = {
     trucos: "Mantén la <b>mirada siempre hacia adelante</b> (al frente), no hacia el techo. Esto ayuda a mantener la columna en una posición segura y maximiza la contracción del glúteo."
   },
 
+  "Extensión de cadera en máquina": {
+    grupo: "Piernas",
+    musculo: "Glúteo",
+    seccion: "Glúteo Mayor (Aislamiento)",
+    hacer: "Ajusta el apoyo para el pecho y coloca el pie en la plataforma o rodillo. <b>Empuja la cadera hacia atrás y luego extiéndela</b> llevando la pierna hacia atrás de forma controlada.",
+    noHacer: "<b>No arquees la espalda</b> para ganar recorrido. Evita usar impulso o balanceo del torso.",
+    trucos: "Mantén el <b>core activado</b> y enfócate en apretar el glúteo al final del recorrido. Controla la fase negativa."
+  },
+
+  "Extensión de hombros en máquina": {
+    grupo: "Hombros",
+    musculo: "Deltoides",
+    seccion: "Posterior",
+    hacer: "Ajusta el asiento para que los brazos queden alineados con el hombro. <b>Empuja los brazos hacia atrás</b> (extensión del hombro) con un recorrido controlado.",
+    noHacer: "<b>No encorves la espalda</b> ni adelantes los hombros al final del movimiento. Evita hiperextender el brazo.",
+    trucos: "Piensa en <b>llevar los codos hacia atrás</b> y mantener el pecho abierto. Pausa 1 segundo en la contracción."
+  },
+
   "Remo al mentón (Upright Row)": {
     grupo: "Hombros",
     musculo: "Deltoides/Trapecio",
@@ -675,6 +774,69 @@ const exerciseTemplates = {
     hacer: "Apoya los antebrazos y las puntas de los pies en el suelo, manteniendo el cuerpo en línea recta desde la cabeza hasta los talones. Contrae los abdominales y mantén la posición.",
     noHacer: "No arquees la espalda ni dejes caer las caderas. Evita contener la respiración.",
     trucos: "Mantén la mirada hacia el suelo para alinear el cuello. Empieza con tiempos cortos y aumenta gradualmente."
+  },
+
+  "Pallof press": {
+    grupo: "Core",
+    musculo: "Oblicuos",
+    seccion: "Antirotación",
+    hacer: "Con una polea o banda a la altura del pecho, <b>aléjate para crear tensión</b>. Sostén el agarre frente al pecho y extiende los brazos al frente sin dejar que el torso rote.",
+    noHacer: "<b>No gires el tronco</b> hacia la resistencia. Evita encoger los hombros o arquear la espalda.",
+    trucos: "Mantén las <b>costillas abajo</b> y el core firme. Pausa 1-2 segundos con los brazos extendidos."
+  },
+
+  "Plancha lateral": {
+    grupo: "Core",
+    musculo: "Oblicuos",
+    seccion: "Lateral",
+    hacer: "Apoya un antebrazo y el costado del pie en el suelo, alineando cabeza, tronco y piernas. Eleva la cadera y mantén la posición.",
+    noHacer: "<b>No dejes caer la cadera</b> ni gires el torso hacia adelante.",
+    trucos: "Aprieta glúteos y abdomen para una línea recta. Puedes elevar el brazo libre para estabilidad."
+  },
+
+  "Hollow hold": {
+    grupo: "Core",
+    musculo: "Abdominales",
+    seccion: "Estabilidad",
+    hacer: "Túmbate boca arriba, pega la zona lumbar al suelo y eleva <b>hombros y piernas</b> manteniendo la forma de 'banana'.",
+    noHacer: "<b>No arquees la espalda baja</b>. Evita subir las piernas demasiado si pierdes la posición lumbar.",
+    trucos: "Mantén las costillas <b>hacia abajo</b> y respira corto y controlado."
+  },
+
+  "Bird-dog": {
+    grupo: "Core",
+    musculo: "Estabilizadores",
+    seccion: "Antirotación",
+    hacer: "En cuadrupedia, <b>extiende brazo y pierna contrarios</b> manteniendo la pelvis estable.",
+    noHacer: "<b>No gires la cadera</b> ni arquees la espalda.",
+    trucos: "Haz una pausa breve al extender y vuelve lento para controlar la estabilidad."
+  },
+
+  "Ab wheel (rueda abdominal)": {
+    grupo: "Core",
+    musculo: "Abdominales",
+    seccion: "Extensión",
+    hacer: "De rodillas con la rueda, <b>rueda hacia delante</b> manteniendo el core firme y la espalda neutra.",
+    noHacer: "<b>No arquees la zona lumbar</b> al estirar. Evita bajar más de lo que controlas.",
+    trucos: "Empieza con recorridos cortos y <b>exhala</b> al volver."
+  },
+
+  "Dead bug": {
+    grupo: "Core",
+    musculo: "Abdominales",
+    seccion: "Estabilidad",
+    hacer: "Túmbate boca arriba, brazos al techo y rodillas a 90°. <b>Extiende brazo y pierna contrarios</b> sin despegar la zona lumbar del suelo.",
+    noHacer: "<b>No arquees la espalda baja</b>. Evita mover la pelvis.",
+    trucos: "Exhala al extender y mantén la espalda pegada al suelo. Movimiento lento y controlado."
+  },
+
+  "Crunch en polea": {
+    grupo: "Core",
+    musculo: "Abdominales",
+    seccion: "Recto",
+    hacer: "De rodillas frente a la polea alta, sujeta la cuerda y flexiona el tronco <b>llevando las costillas hacia la pelvis</b>.",
+    noHacer: "<b>No tires con los brazos</b>. Evita mover la cadera hacia atrás.",
+    trucos: "Mantén los codos fijos y enfócate en la contracción del abdomen. Controla la subida."
   },
 
   "Correr en cinta": {
