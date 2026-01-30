@@ -363,7 +363,8 @@
       display: flex;
     }
 
-    #step-3 .add-set-btn {
+    #step-3 .add-set-btn,
+    #step-7 .add-set-btn {
       background: #16a34a !important;
       color: white;
       border: 2px solid var(--card-border);
@@ -1138,6 +1139,14 @@
       border: 1px solid var(--card-border);
     }
 
+    #step-3 .exercise-table td input[type="checkbox"],
+    #step-7 .exercise-table td input[type="checkbox"] {
+      width: auto;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
+
     button:focus-visible,
     input:focus-visible,
     select:focus-visible,
@@ -1192,6 +1201,20 @@
     .exercise-history {
       font-size: 0.62rem !important;
       letter-spacing: 0.1px;
+    }
+
+    .exercise-suggestion {
+      font-size: 0.62rem !important;
+      letter-spacing: 0.1px;
+    }
+
+    #step-7 .exercise-notes {
+      display: none;
+    }
+
+    #step-3 .exercise-table th:first-child,
+    #step-3 .exercise-table td:first-child {
+      text-align: center;
     }
 
     /* ===========================
@@ -1437,7 +1460,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text" style="text-align:center;">v0.2.5</div>
+        <div class="hint-text" style="text-align:center;">v0.3.0</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary" data-i18n="welcome.start">Inicia sessió</button>
@@ -1603,9 +1626,6 @@
       <div class="step-3-header">
         <div class="hint-text" data-i18n="step3.hint">Pas 3 · Exercicis de la sessió</div>
         <div class="step-3-header-actions">
-          <button id="toggle-fast-mode" class="btn-secondary" aria-label="Canviar mode" data-i18n-aria="aria.toggleMode" aria-pressed="false">
-            <span id="fast-mode-label" data-i18n="fastMode.detailed">Detallat</span>
-          </button>
         </div>
       </div>
 
@@ -1796,6 +1816,10 @@
     <div class="step-body" id="step-7-body">
       <div class="hint-text" data-i18n="step7.hint">Pas 7 · Edita sessió anterior</div>
       <div id="edit-exercises-container"></div>
+      <div class="controls-row" id="edit-session-actions" style="justify-content:center;">
+        <button id="overwrite-history-btn" class="btn-accent" style="background:#f97316; border-color:#f97316; color:#fff; width:100%;" data-i18n="button.overwriteSession">Sobreescriu sessió</button>
+      </div>
+      <div id="edit-session-status" class="hint-text" style="display:none; text-align:left; color:#16a34a; margin-top:6px;"></div>
     </div>
   </details>
   </div>
@@ -1985,14 +2009,12 @@
       const values = sortedDates.map(date => dateMap.get(date));
       const maxValue = Math.max(...values);
       const minValue = Math.min(...values);
-      const padding = Math.abs(maxValue) * 0.1;
-      let yMin = minValue + padding;
-      let yMax = maxValue + padding;
+      let yMin = minValue;
+      let yMax = maxValue;
+      const padding = yMax * 0.1;
+      yMin = yMin - padding;
+      yMax = yMax + padding;
       if (!Number.isFinite(yMin) || !Number.isFinite(yMax) || yMin >= yMax) {
-        yMin = minValue - padding;
-        yMax = maxValue + padding;
-      }
-      if (yMin >= yMax) {
         yMin = minValue - 1;
         yMax = maxValue + 1;
       }

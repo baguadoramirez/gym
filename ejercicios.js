@@ -28,6 +28,15 @@ const exerciseTemplates = {
     trucos: "Piensa en empujar las mancuernas <b>'hacia arriba y ligeramente hacia el centro'</b>. Mantén el <b>pecho 'mirando' al techo</b> durante todo el set, esto asegura la activación del pectoral superior y una buena retracción escapular."
   },
 
+  "Press inclinado barra": {
+    grupo: "Pecho",
+    musculo: "Pectoral",
+    seccion: "Superior (Clavicular)",
+    hacer: "Banco inclinado a 30°–45°. <b>Escápulas retraídas</b> y pies firmes. Baja la barra hacia la parte alta del pecho y empuja en línea vertical.",
+    noHacer: "<b>No abras los codos</b> en exceso ni rebotes la barra. Evita perder la retracción escapular.",
+    trucos: "Usa un <b>agarre medio</b> y controla la excéntrica 2–3 segundos para maximizar el trabajo del pectoral superior."
+  },
+
   "Aperturas en máquina/polea": {
     grupo: "Pecho",
     musculo: "Pectoral",
@@ -44,6 +53,15 @@ const exerciseTemplates = {
     hacer: "Asegura bien los pies en el soporte. <b>Controla la bajada</b> de las mancuernas hacia la parte más baja del pecho o superior del abdomen. Mantén una <b>retracción escapular muy estricta</b> para proteger los hombros.",
     noHacer: "No dejes caer las mancuernas rápidamente. Evita un exceso de 'rebote' o impulso al final de la fase excéntrica.",
     trucos: "Para una máxima estabilidad, <b>piensa en empujar 'hacia arriba y ligeramente hacia atrás'</b> (en la dirección de la cabeza) y mantén las muñecas completamente firmes y alineadas con los antebrazos."
+  },
+
+  "Press declinado barra": {
+    grupo: "Pecho",
+    musculo: "Pectoral",
+    seccion: "Inferior (Abdominal)",
+    hacer: "Asegura los pies en el soporte. Baja la barra hacia la parte baja del pecho con <b>control total</b> y empuja en vertical.",
+    noHacer: "<b>No rebotes la barra</b> ni pierdas la retracción escapular. Evita abrir los codos demasiado.",
+    trucos: "Un <b>agarre ligeramente más cerrado</b> puede proteger los hombros y mantener la tensión en el pectoral inferior."
   },
 
   "Cruces desde abajo": {
@@ -94,6 +112,15 @@ const exerciseTemplates = {
     trucos: "Al subir, realiza una <b>ligera rotación externa</b> (como si quisieras acercar las palmas entre sí) para asegurar un mejor 'empaquetamiento' del hombro y mayor seguridad articular."
   },
 
+  "Press militar barra": {
+    musculo: "Deltoides",
+    grupo: "Hombros",
+    seccion: "Anterior",
+    hacer: "De pie o sentado, agarre ligeramente más ancho que hombros. Inicia con la barra a la altura del mentón y <b>empuja verticalmente</b> manteniendo el core firme.",
+    noHacer: "<b>No arquees la zona lumbar</b>. Evita empujar la barra muy delante de la cabeza.",
+    trucos: "Piensa en <b>meter la cabeza entre los brazos</b> al final para alinear hombro y codo."
+  },
+
   "Press Arnold": {
     musculo: "Deltoides",
     grupo: "Hombros",
@@ -110,6 +137,15 @@ const exerciseTemplates = {
     hacer: "Mantén una ligera flexión de codo constante. <b>Eleva con el codo</b>, detente cuando el brazo esté paralelo al suelo (a la altura del hombro). La <b>muñeca debe estar relajada</b>. Baja de forma controlada (fase excéntrica lenta).",
     noHacer: "<b>No uses impulso o balanceo del torso</b>. Evita elevar el trapecio (encogimiento de hombros) para iniciar o completar el movimiento. No superes la altura del hombro.",
     trucos: "Piensa en <b>verter agua de un jarro</b>: la parte del <b>codo debe estar 'más alta' que la mano</b>. Esto asegura que el deltoides lateral, y no el anterior, sea el motor principal."
+  },
+
+  "Elevaciones laterales a una mano": {
+    musculo: "Deltoides",
+    grupo: "Hombros",
+    seccion: "Lateral (Unilateral)",
+    hacer: "De pie con una mancuerna, <b>eleva el brazo en el plano del hombro</b> hasta quedar paralelo al suelo. Controla la bajada.",
+    noHacer: "<b>No balancees el tronco</b> ni subas por encima del hombro.",
+    trucos: "Apoya la mano libre en una superficie para <b>estabilizar el torso</b> y aislar mejor el deltoide."
   },
 
   "Elevaciones frontales": {
@@ -288,6 +324,24 @@ const exerciseTemplates = {
     trucos: "<b>Aprieta el bíceps fuerte arriba durante dos segundos</b>; esto maximiza la activación y la conexión mente-músculo. Al bajar, resiste el peso lentamente para enfatizar la fase excéntrica."
   },
 
+  "Curl alterno con mancuernas": {
+    musculo: "Bíceps",
+    grupo: "Brazos",
+    seccion: "General (Unilateral)",
+    hacer: "De pie con una mancuerna en cada mano. Alterna el curl, <b>supinando</b> la muñeca al subir y manteniendo el codo pegado al costado.",
+    noHacer: "<b>No gires el torso</b> ni te balances para ayudar el movimiento.",
+    trucos: "Pausa 1 segundo arriba en cada repetición para mejorar la contracción."
+  },
+
+  "Curl Inclinado con mancuernas": {
+    musculo: "Bíceps",
+    grupo: "Brazos",
+    seccion: "Cabeza larga (Estiramiento)",
+    hacer: "Siéntate en un banco inclinado (45°-60°) con la espalda bien apoyada. Deja los brazos colgar y realiza el curl con <b>supinación controlada</b> al subir, manteniendo los codos ligeramente por detrás del torso.",
+    noHacer: "<b>No adelantes los hombros</b> ni levantes los codos para ayudar. Evita balancearte o despegar la espalda del banco.",
+    trucos: "Piensa en <b>estirar el bíceps abajo</b> antes de cada repetición. Pausa 1 segundo en la parte baja y aprieta arriba sin perder el control."
+  },
+
   "Curl concentrado": {
     musculo: "Bíceps",
     grupo: "Brazos",
@@ -322,6 +376,15 @@ const exerciseTemplates = {
     hacer: "<b>Codos pegados al cuerpo</b> y hombros 'bloqueados' hacia atrás y abajo. La extensión debe ser <b>estricta y completa</b>, de arriba hacia abajo. Solo se mueve el antebrazo.",
     noHacer: "<b>No separes los codos</b> del torso. Evita flexionar la muñeca (muñeca 'rota').",
     trucos: "<b>Inclínate ligeramente hacia adelante</b> (como un esquí) y bloquea los hombros y codos firmemente hacia atrás. Esto aísla el tríceps y permite una extensión más potente."
+  },
+
+  "Tríceps en polea unilateral": {
+    musculo: "Tríceps",
+    grupo: "Brazos",
+    seccion: "Aislamiento (Unilateral)",
+    hacer: "Usa un agarre de una mano en polea. <b>Codo fijo</b> pegado al costado y extensión completa del codo.",
+    noHacer: "<b>No gires el tronco</b> ni eleves el hombro para ayudar.",
+    trucos: "Mantén la muñeca neutra y <b>aprieta 1 segundo</b> abajo para más control."
   },
 
   "Tríceps cuerda 1 mano": {
@@ -360,6 +423,15 @@ const exerciseTemplates = {
     hacer: "<b>Alinea la rodilla con el eje de rotación de la máquina</b>. Realiza la extensión de la rodilla de forma controlada hasta la máxima contracción. Mantén la cadera pegada al asiento.",
     noHacer: "<b>No hagas tirones rápidos</b> en la parte superior. Evita levantar el cuerpo del asiento.",
     trucos: "<b>Pausa de 1–2 segundos en la máxima extensión</b> para crear una contracción isométrica. Piensa en activar el <b>vasto interno</b> (la forma de lágrima sobre la rodilla) al apretar la pierna."
+  },
+
+  "Extensión cuádriceps unilateral": {
+    musculo: "Cuádriceps",
+    grupo: "Piernas",
+    seccion: "Aislamiento (Unilateral)",
+    hacer: "Trabaja una pierna cada vez con <b>control total</b>. Ajusta la máquina para alinear la rodilla con el eje y extiende de forma lenta.",
+    noHacer: "<b>No gires la pelvis</b> ni te apoyes con la pierna libre.",
+    trucos: "Usa un rango completo y <b>mantén 1 segundo arriba</b> para igualar fuerza entre piernas."
   },
 
   "Extensión cuádriceps isométrica": {
@@ -470,6 +542,15 @@ const exerciseTemplates = {
     trucos: "Piensa en <b>empujar el banco con la espalda</b> para mayor estabilidad."
   },
 
+  "Press banca mancuernas": {
+    musculo: "Pectoral",
+    grupo: "Pecho",
+    seccion: "Media (Esternal)",
+    hacer: "Acostado en el banco, <b>escápulas retraídas</b> y pies firmes. Baja las mancuernas a la línea del pecho con control y empuja hacia arriba.",
+    noHacer: "<b>No choques las mancuernas</b> arriba ni abras los codos demasiado.",
+    trucos: "Permite un <b>ligero arco</b> en la bajada para ganar rango y estiramiento del pectoral."
+  },
+
   "Dominadas asistidas máquina": {
     musculo: "Dorsal",
     grupo: "Espalda",
@@ -578,6 +659,15 @@ const exerciseTemplates = {
     hacer: "<b>De pie con los pies al ancho de hombros</b>, eleva los talones lentamente hasta ponerte de puntillas, luego baja controladamente.",
     noHacer: "<b>No uses impulso</b>. Evita doblar las rodillas. No bajes completamente los talones al suelo entre repeticiones.",
     trucos: "Mantén el <b>core activado</b> para estabilidad. Haz el movimiento lentamente para maximizar la contracción. Puedes hacerlo en una máquina para mayor resistencia."
+  },
+
+  "Elevación de talones a una pierna": {
+    grupo: "Piernas",
+    musculo: "Gemelos",
+    seccion: "Gastrocnemio (Unilateral)",
+    hacer: "Apoya el peso en una sola pierna y eleva el talón de forma controlada. Mantén el <b>tobillo estable</b> y baja lentamente.",
+    noHacer: "<b>No rebotes</b> ni colapses el tobillo hacia dentro.",
+    trucos: "Sujétate a un apoyo para equilibrarte y priorizar el rango completo."
   },
 
   // ======= EJERCICIOS ADICIONALES =======
@@ -774,6 +864,15 @@ const exerciseTemplates = {
     hacer: "Apoya los antebrazos y las puntas de los pies en el suelo, manteniendo el cuerpo en línea recta desde la cabeza hasta los talones. Contrae los abdominales y mantén la posición.",
     noHacer: "No arquees la espalda ni dejes caer las caderas. Evita contener la respiración.",
     trucos: "Mantén la mirada hacia el suelo para alinear el cuello. Empieza con tiempos cortos y aumenta gradualmente."
+  },
+
+  "Plancha Abdominal Centrada": {
+    grupo: "Core",
+    musculo: "Abdominales",
+    seccion: "Estabilidad central",
+    hacer: "Coloca los antebrazos paralelos, codos debajo de los hombros y el cuerpo en línea recta. <b>Activa abdomen y glúteos</b> para mantener la pelvis neutra.",
+    noHacer: "<b>No hundas la zona lumbar</b> ni eleves las caderas. Evita abrir los codos hacia afuera.",
+    trucos: "Empuja el suelo con los antebrazos y <b>acerca ligeramente el ombligo a la columna</b>. Respira corto y estable para mantener la tensión."
   },
 
   "Pallof press": {

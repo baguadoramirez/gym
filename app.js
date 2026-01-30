@@ -1,5 +1,5 @@
 /* ==========================================================
-   app.js — versión limpia y corregida (v5: Reseteo en Recarga + Persistencia de Dolor)
+   app.js — versión limpia y corregida (v6: mejoras edición/sugerencias/notas)
    Requiere: ejercicios.js + html2canvas + rutinas.html
    ========================================================== */
 
@@ -86,6 +86,8 @@ const homeLogoBtn = document.getElementById("home-logo-btn");
 const historyDateInput = document.getElementById("history-date-input");
 const historyViewBtn = document.getElementById("history-view-btn");
 const historyEditBtn = document.getElementById("history-edit-btn");
+const overwriteHistoryBtn = document.getElementById("overwrite-history-btn");
+const editSessionStatus = document.getElementById("edit-session-status");
 const historyViewOverlay = document.getElementById("history-view-overlay");
 const historyViewContent = document.getElementById("history-view-content");
 const historyViewClose = document.getElementById("history-view-close");
@@ -256,6 +258,8 @@ const I18N_STRINGS = {
     "button.apply": "Aplicar",
     "button.view": "Veure",
     "button.edit": "Edita",
+    "button.overwriteSession": "Sobreescriu sessió",
+    "status.sessionOverwritten": "Sessió sobreescrita correctament.",
     "footer.createdBy": "Web creada per",
     "footer.licensePrefix": "Codi sota",
     "footer.licenseLink": "Llicència Creative Commons Reconeixement-CompartirIgual 4.0 Internacional",
@@ -326,7 +330,6 @@ const I18N_STRINGS = {
     "session.failure.no": "No",
     "session.pain.zoneNA": "Zona N/A",
     "session.pain.exerciseNA": "Exercici: N/A",
-    "warning.overload": "Avís de sobrecàrrega: últim màxim {baseline} kg, ara {current} kg.",
     "history.view.date": "Data",
     "history.view.week": "Setmana",
     "history.view.day": "Dia",
@@ -407,8 +410,13 @@ const I18N_STRINGS = {
     "message.saveSessionRandom.16": "Panxa? Això és com foak, ni de conya! 🔥",
     "message.saveSessionRandom.17": "Entrenament net, ment forta! 🧠",
     "exercise.history.none": "Sense historial per a aquest exercici.",
-    "exercise.table.cardio": "<th>Sèrie</th><th>Intensitat</th><th>Temps (min)</th><th>Notes</th><th class=\"set-action-col\"></th>",
-    "exercise.table.strength": "<th>Sèrie</th><th>Pes</th><th>Reps</th><th>Fallada</th><th>Reps de fallada</th><th>Notes</th><th class=\"set-action-col\"></th>",
+    "exercise.suggestionNone": "Sense suggeriment disponible.",
+    "exercise.suggestion.keep": "Mantén el pes i busca 12 reps 💪",
+    "exercise.suggestion.down": "Ajust suau: baixa una mica per assegurar tècnica ✅",
+    "exercise.suggestion.up": "Bona feina: puja un pas i apunta a 10 reps 🔥",
+    "exercise.table.cardio": "<th>Sèrie</th><th>Intensitat</th><th>Temps (min)</th><th class=\"set-action-col\"></th>",
+    "exercise.table.strength": "<th>Sèrie</th><th>Pes</th><th>Reps</th><th>Fallada</th><th class=\"set-action-col\"></th>",
+    "exercise.notes.general": "Notes generals de l'exercici",
     "exercise.addSet": "Afegir sèrie",
     "exercise.removeSet": "Eliminar sèrie",
     "exercise.remove": "Eliminar exercici",
@@ -420,7 +428,7 @@ const I18N_STRINGS = {
     "exercise.lastSession": "Última sessió: {date} · {detail}",
     "exercise.lastSession.cardio": "Cardio: {detail}",
     "exercise.cardio.noData": "Cardio sense dades",
-    "exercise.firstSet": "Primera sèrie: {detail}",
+    "exercise.firstSet": "Últim set vàlid: {detail}",
     "exercise.firstSet.noData": "Primera sèrie sense dades",
     "exercise.detail.intensity": "Intensitat {value}",
     "exercise.detail.time": "{value} min",
@@ -595,6 +603,8 @@ const I18N_STRINGS = {
     "button.apply": "Apply",
     "button.view": "View",
     "button.edit": "Edit",
+    "button.overwriteSession": "Overwrite session",
+    "status.sessionOverwritten": "Session overwritten successfully.",
     "footer.createdBy": "Website by",
     "footer.licensePrefix": "Code licensed under",
     "footer.licenseLink": "Creative Commons Attribution-ShareAlike 4.0 International License",
@@ -665,7 +675,6 @@ const I18N_STRINGS = {
     "session.failure.no": "No",
     "session.pain.zoneNA": "Area N/A",
     "session.pain.exerciseNA": "Exercise: N/A",
-    "warning.overload": "Overload warning: last max {baseline} kg, now {current} kg.",
     "history.view.date": "Date",
     "history.view.week": "Week",
     "history.view.day": "Day",
@@ -746,8 +755,13 @@ const I18N_STRINGS = {
     "message.saveSessionRandom.16": "Belly? That's like foak, no way! 🔥",
     "message.saveSessionRandom.17": "Clean training, strong mind! 🧠",
     "exercise.history.none": "No history for this exercise.",
-    "exercise.table.cardio": "<th>Set</th><th>Intensity</th><th>Time (min)</th><th>Notes</th><th class=\"set-action-col\"></th>",
-    "exercise.table.strength": "<th>Set</th><th>Weight</th><th>Reps</th><th>Failure</th><th>Failure reps</th><th>Notes</th><th class=\"set-action-col\"></th>",
+    "exercise.suggestionNone": "No suggestion available.",
+    "exercise.suggestion.keep": "Keep the weight and aim for 12 reps 💪",
+    "exercise.suggestion.down": "Gentle adjustment: lower a bit to keep form ✅",
+    "exercise.suggestion.up": "Nice work: go up a step and aim for 10 reps 🔥",
+    "exercise.table.cardio": "<th>Set</th><th>Intensity</th><th>Time (min)</th><th class=\"set-action-col\"></th>",
+    "exercise.table.strength": "<th>Set</th><th>Weight</th><th>Reps</th><th>Failure</th><th class=\"set-action-col\"></th>",
+    "exercise.notes.general": "Exercise notes",
     "exercise.addSet": "Add set",
     "exercise.removeSet": "Remove set",
     "exercise.remove": "Remove exercise",
@@ -759,7 +773,7 @@ const I18N_STRINGS = {
     "exercise.lastSession": "Last session: {date} · {detail}",
     "exercise.lastSession.cardio": "Cardio: {detail}",
     "exercise.cardio.noData": "Cardio with no data",
-    "exercise.firstSet": "First set: {detail}",
+    "exercise.firstSet": "Last valid set: {detail}",
     "exercise.firstSet.noData": "First set with no data",
     "exercise.detail.intensity": "Intensity {value}",
     "exercise.detail.time": "{value} min",
@@ -934,6 +948,8 @@ const I18N_STRINGS = {
     "button.apply": "Aplicar",
     "button.view": "Ver",
     "button.edit": "Editar",
+    "button.overwriteSession": "Sobrescribir sesión",
+    "status.sessionOverwritten": "Sesión sobrescrita correctamente.",
     "footer.createdBy": "Web creada por",
     "footer.licensePrefix": "Código bajo",
     "footer.licenseLink": "Licencia Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional",
@@ -1004,7 +1020,6 @@ const I18N_STRINGS = {
     "session.failure.no": "No",
     "session.pain.zoneNA": "Zona N/A",
     "session.pain.exerciseNA": "Ejercicio: N/A",
-    "warning.overload": "Aviso de sobrecarga: último máximo {baseline} kg, ahora {current} kg.",
     "history.view.date": "Fecha",
     "history.view.week": "Semana",
     "history.view.day": "Día",
@@ -1085,8 +1100,13 @@ const I18N_STRINGS = {
     "message.saveSessionRandom.16": "¿Barriga? Eso es como foak, ¡ni de coña! 🔥",
     "message.saveSessionRandom.17": "Entrenamiento limpio, mente fuerte! 🧠",
     "exercise.history.none": "Sin historial para este ejercicio.",
-    "exercise.table.cardio": "<th>Serie</th><th>Intensidad</th><th>Tiempo (min)</th><th>Notas</th><th class=\"set-action-col\"></th>",
-    "exercise.table.strength": "<th>Serie</th><th>Peso</th><th>Reps</th><th>Fallo</th><th>Reps de fallo</th><th>Notas</th><th class=\"set-action-col\"></th>",
+    "exercise.suggestionNone": "Sin sugerencia disponible.",
+    "exercise.suggestion.keep": "Mantén el peso y busca 12 reps 💪",
+    "exercise.suggestion.down": "Ajuste suave: baja un poco para asegurar técnica ✅",
+    "exercise.suggestion.up": "Buen trabajo: sube un paso y apunta a 10 reps 🔥",
+    "exercise.table.cardio": "<th>Serie</th><th>Intensidad</th><th>Tiempo (min)</th><th class=\"set-action-col\"></th>",
+    "exercise.table.strength": "<th>Serie</th><th>Peso</th><th>Reps</th><th>Fallo</th><th class=\"set-action-col\"></th>",
+    "exercise.notes.general": "Notas generales del ejercicio",
     "exercise.addSet": "Añadir serie",
     "exercise.removeSet": "Eliminar serie",
     "exercise.remove": "Eliminar ejercicio",
@@ -1098,7 +1118,7 @@ const I18N_STRINGS = {
     "exercise.lastSession": "Última sesión: {date} · {detail}",
     "exercise.lastSession.cardio": "Cardio: {detail}",
     "exercise.cardio.noData": "Cardio sin datos",
-    "exercise.firstSet": "Primera serie: {detail}",
+    "exercise.firstSet": "Último set válido: {detail}",
     "exercise.firstSet.noData": "Primera serie sin datos",
     "exercise.detail.intensity": "Intensidad {value}",
     "exercise.detail.time": "{value} min",
@@ -1363,6 +1383,7 @@ let lastAutoSaveTime = null;
 let autoSaveTimer = null;
 let editingSessionContext = null;
 let isFastMode = false;
+let isEditingHistory = false;
 
 function normalizeUserName(name) {
   return name.trim().replace(/\s+/g, "_");
@@ -1484,6 +1505,7 @@ function updateHistoryButtons() {
   );
   if (historyViewBtn) historyViewBtn.disabled = !hasSession;
   if (historyEditBtn) historyEditBtn.disabled = !hasSession;
+  if (overwriteHistoryBtn) overwriteHistoryBtn.disabled = !hasSession;
 }
 
 function getSelectedHistorySession() {
@@ -2015,8 +2037,6 @@ function buildExportContent(saved, options = {}) {
         <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.weightIntensity")}</th>
         <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.repsTime")}</th>
         <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.failure")}</th>
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.failureReps")}</th>
-        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.notes")}</th>
       </tr>
     `;
   } else {
@@ -2069,12 +2089,12 @@ function buildExportContent(saved, options = {}) {
       return;
     }
 
+    const exerciseNote = (ex.notes ?? Array.from(new Set((ex.sets || []).map(s => (s.obs ?? "").trim()).filter(Boolean))).join(" / ")).trim();
     ex.sets.forEach((set, setIndex) => {
       totalSets += 1;
       const displayPeso = isCardio ? (set.intensidad ?? set.peso ?? "") : (set.peso ?? "");
       const displayReps = isCardio ? (set.tiempo ?? set.reps ?? "") : (set.reps ?? "");
       const displayFallo = isCardio ? "" : (set.fallo ? t("session.failure.yes") : t("session.failure.no"));
-      const displayRepsFallo = isCardio ? "" : (set.repsFallo ?? "");
 
       const tr = document.createElement("tr");
       tr.style.background = groupBg;
@@ -2088,8 +2108,6 @@ function buildExportContent(saved, options = {}) {
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${displayPeso}</td>
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${displayReps}</td>
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${displayFallo}</td>
-          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${displayRepsFallo}</td>
-          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${set.obs ?? ""}</td>
         `;
       } else {
         tr.innerHTML = `
@@ -2098,18 +2116,26 @@ function buildExportContent(saved, options = {}) {
           <td style="background:${groupBg}; text-align:right;">${displayPeso}</td>
           <td style="background:${groupBg}; text-align:right;">${displayReps}</td>
           <td style="background:${groupBg};">${displayFallo}</td>
-          <td style="background:${groupBg};">${displayRepsFallo}</td>
-          <td style="background:${groupBg};">${set.obs ?? ""}</td>
         `;
       }
       table.appendChild(tr);
     });
 
+    if (usePngStyles && exerciseNote) {
+      const noteRow = document.createElement("tr");
+      noteRow.innerHTML = `
+        <td colspan="5" style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-style: italic;">
+          ${t("session.table.notes")}: ${exerciseNote}
+        </td>
+      `;
+      table.appendChild(noteRow);
+    }
+
     if (usePngStyles && exIndex < saved.exercises.length - 1) {
       const separator = document.createElement("tr");
       if (usePngStyles) {
         separator.innerHTML = `
-          <td colspan="7" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #777; padding:0; height:6px; background:#fff;"></td>
+          <td colspan="5" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #777; padding:0; height:6px; background:#fff;"></td>
         `;
       }
       table.appendChild(separator);
@@ -2203,7 +2229,7 @@ function setActiveStep(index, options = {}) {
     exercisesContainer = mainExercisesContainer;
     showAllExercises = false;
     if (editExercisesContainer) editExercisesContainer.innerHTML = "";
-    if (editingSessionContext) {
+    if (editingSessionContext?.restoreOnExit) {
       if (dateInput) dateInput.value = editingSessionContext.date || "";
       if (weekSelect) {
         ensureSelectValue(weekSelect, editingSessionContext.week || "");
@@ -2216,8 +2242,9 @@ function setActiveStep(index, options = {}) {
       if (typeof window.loadChartExercises === "function") {
         window.loadChartExercises();
       }
-      editingSessionContext = null;
     }
+    editingSessionContext = null;
+    isEditingHistory = false;
   }
 
   activeStepIndex = nextIndex;
@@ -2249,7 +2276,15 @@ function initializeStepper() {
   if (!stepPages.length) return;
 
   if (stepperPrevBtn) {
-    stepperPrevBtn.addEventListener("click", () => setActiveStep(activeStepIndex - 1));
+    stepperPrevBtn.addEventListener("click", () => {
+      const step7Index = stepPages.indexOf(step7);
+      const step2Index = stepPages.indexOf(step2);
+      if (step7Index >= 0 && step2Index >= 0 && activeStepIndex === step7Index && isEditingHistory) {
+        setActiveStep(step2Index);
+        return;
+      }
+      setActiveStep(activeStepIndex - 1);
+    });
   }
   if (stepperNextBtn) {
     stepperNextBtn.addEventListener("click", () => setActiveStep(activeStepIndex + 1));
@@ -2660,6 +2695,37 @@ function getMaxWeight(exerciseName) {
   return Math.max(...historyData[exerciseName]);
 }
 
+function getExerciseWeightsFromHistory(exerciseName) {
+  const sessions = Array.isArray(window.uploadedHistory) ? window.uploadedHistory : [];
+  const weights = [];
+  sessions.forEach(session => {
+    const ex = session?.exercises?.find(e => e.nombre === exerciseName);
+    if (!ex?.sets?.length) return;
+    ex.sets.forEach(set => {
+      const peso = parseFloat(set?.peso);
+      if (Number.isFinite(peso) && peso > 0) weights.push(peso);
+    });
+  });
+  return weights;
+}
+
+function getMedian(values) {
+  if (!values.length) return null;
+  const sorted = values.slice().sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function getRobustMaxWeight(exerciseName) {
+  const weights = getExerciseWeightsFromHistory(exerciseName);
+  if (weights.length === 0) return null;
+  const median = getMedian(weights);
+  if (!Number.isFinite(median) || median <= 0) return Math.max(...weights);
+  const cutoff = median * 2.5;
+  const filtered = weights.filter(w => w <= cutoff);
+  return filtered.length ? Math.max(...filtered) : Math.max(...weights);
+}
+
 function getLastExerciseSession(exerciseName) {
   const sessions = window.uploadedHistory || [];
   let lastSession = null;
@@ -2684,18 +2750,33 @@ function getLastExerciseSession(exerciseName) {
   return lastSession;
 }
 
+function isValidStrengthSet(exerciseName, set) {
+  const peso = parseFloat(set?.peso);
+  const reps = parseFloat(set?.reps);
+  if (!Number.isFinite(peso) || !Number.isFinite(reps)) return false;
+  if (reps < 1 || reps > 20) return false;
+  const maxHist = getRobustMaxWeight(exerciseName);
+  if (Number.isFinite(maxHist) && maxHist > 0 && peso > maxHist * 2.5) return false;
+  return true;
+}
+
 function getLastExerciseSet(exerciseName) {
   const lastSession = getLastExerciseSession(exerciseName);
   if (!lastSession) return null;
   const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
   if (!ex?.sets?.length) return null;
 
-  const firstSet = ex.sets[0] || {};
-  const peso = firstSet.peso ?? null;
-  const reps = firstSet.reps ?? null;
+  const hasTenPlus = ex.sets.some(set => {
+    const repsValue = parseFloat(set?.reps);
+    return isValidStrengthSet(exerciseName, set) && Number.isFinite(repsValue) && repsValue >= 10;
+  });
 
-  if (peso == null && reps == null) return null;
-  return { peso, reps };
+  for (let i = ex.sets.length - 1; i >= 0; i -= 1) {
+    const set = ex.sets[i];
+    if (!isValidStrengthSet(exerciseName, set)) continue;
+    return { peso: set.peso ?? null, reps: set.reps ?? null, hasTenPlus };
+  }
+  return null;
 }
 
 function getLastCardioSet(exerciseName) {
@@ -2742,44 +2823,20 @@ function getLastExerciseSummary(exerciseName) {
       : t("exercise.cardio.noData");
     return t("exercise.lastSession", { date: lastSession.date, detail: cardioDetail });
   }
-  const peso = firstSet.peso ?? "";
-  const reps = firstSet.reps ?? "";
+  let peso = "";
+  let reps = "";
+  for (let i = ex.sets.length - 1; i >= 0; i -= 1) {
+    const set = ex.sets[i];
+    if (!isValidStrengthSet(exerciseName, set)) continue;
+    peso = set.peso ?? "";
+    reps = set.reps ?? "";
+    break;
+  }
   const parts = [];
   if (peso !== "") parts.push(t("exercise.detail.weight", { value: peso }));
   if (reps !== "") parts.push(t("exercise.detail.reps", { value: reps }));
   const firstSetDetail = parts.length ? t("exercise.firstSet", { detail: parts.join(" x ") }) : t("exercise.firstSet.noData");
   return t("exercise.lastSession", { date: lastSession.date, detail: firstSetDetail });
-}
-
-function updateOverloadWarning(card) {
-  const warningEl = card.querySelector(".overload-warning");
-  if (!warningEl) return;
-  if (card.dataset.exerciseType === "cardio") {
-    warningEl.style.display = "none";
-    return;
-  }
-  const baseline = parseFloat(warningEl.dataset.baseline);
-  if (Number.isNaN(baseline) || baseline <= 0) {
-    warningEl.style.display = "none";
-    return;
-  }
-
-  const rows = card.querySelectorAll("tbody tr");
-  let currentMax = null;
-  rows.forEach(row => {
-    const weightInput = row.querySelector('input[data-key="peso"]');
-    const peso = parseFloat(weightInput?.value);
-    if (!Number.isNaN(peso)) {
-      if (currentMax === null || peso > currentMax) currentMax = peso;
-    }
-  });
-
-  if (currentMax != null && currentMax > baseline * 1.1) {
-    warningEl.textContent = t("warning.overload", { baseline, current: currentMax });
-    warningEl.style.display = "block";
-  } else {
-    warningEl.style.display = "none";
-  }
 }
 
 // -------------------------
@@ -3155,18 +3212,15 @@ function checkSensationsForm(shouldFocus = false) {
 
 const strengthSetFields = [
   { key: "serie", type: "static" },
-  { key: "peso", type: "number" },
-  { key: "reps", type: "number" },
-  { key: "fallo", type: "checkbox" },
-  { key: "repsFallo", type: "number" },
-  { key: "obs", type: "text" }
+  { key: "peso", type: "number", step: "0.5" },
+  { key: "reps", type: "number", step: "1" },
+  { key: "fallo", type: "checkbox" }
 ];
 
 const cardioSetFields = [
   { key: "serie", type: "static" },
-  { key: "intensidad", type: "number", placeholderKey: "cardio.placeholderIntensity" },
-  { key: "tiempo", type: "number", placeholderKey: "cardio.placeholderTime" },
-  { key: "obs", type: "text" }
+  { key: "intensidad", type: "number", step: "0.5", placeholderKey: "cardio.placeholderIntensity" },
+  { key: "tiempo", type: "number", step: "0.25", placeholderKey: "cardio.placeholderTime" }
 ];
 
 function updateSetNumbers(tbody) {
@@ -3180,8 +3234,13 @@ function updateSetNumbers(tbody) {
 
 function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetFields) {
   const tr = document.createElement("tr");
+  const isSuggested = !!setData._suggested;
   const shouldCopyFromPrev = Object.keys(setData).length === 0;
   let resolvedSetData = setData;
+
+  if (setData.repsFallo != null && setData.repsFallo !== "") {
+    tr.dataset.repsFallo = String(setData.repsFallo);
+  }
 
   if (shouldCopyFromPrev) {
     const prevRow = tbody.lastElementChild;
@@ -3226,6 +3285,13 @@ function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetField
       input.type = f.type;
       input.value = resolvedSetData[f.key] ?? "";
     }
+    if (f.step && f.type === "number") input.step = f.step;
+    if (isSuggested) {
+      input.title = t("exercise.suggestionApplied", {
+        weight: resolvedSetData.peso ?? "-",
+        reps: resolvedSetData.reps ?? "-"
+      });
+    }
     input.dataset.key = f.key;
     if (f.placeholderKey) input.placeholder = t(f.placeholderKey);
 
@@ -3259,6 +3325,7 @@ function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetField
   tr.appendChild(actionTd);
 
   tbody.appendChild(tr);
+  return tr;
 }
 
 
@@ -3321,16 +3388,12 @@ function buildExerciseCard(exData) {
   historyInfo.textContent = getLastExerciseSummary(exData.nombre) || t("exercise.history.none");
   card.appendChild(historyInfo);
 
-  // ====== AVISO SOBRECARGA ======
-  const overloadWarning = document.createElement("div");
-  overloadWarning.className = "overload-warning";
-  overloadWarning.style.display = "none";
-  overloadWarning.style.fontSize = "0.75rem";
-  overloadWarning.style.margin = "2px 0 6px";
-  overloadWarning.style.color = "#b91c1c";
-  const lastMax = isCardio ? null : getLastExerciseMaxWeight(exData.nombre);
-  if (lastMax != null) overloadWarning.dataset.baseline = String(lastMax);
-  card.appendChild(overloadWarning);
+  const suggestionInfo = document.createElement("div");
+  suggestionInfo.className = "exercise-suggestion";
+  suggestionInfo.style.display = "none";
+  suggestionInfo.style.margin = "2px 0 6px";
+  suggestionInfo.style.color = "#16a34a";
+  card.appendChild(suggestionInfo);
 
   // ====== TABLA DE SERIES ======
   const table = document.createElement("table");
@@ -3354,17 +3417,21 @@ function buildExerciseCard(exData) {
 
   const tbody = table.querySelector("tbody");
 
+  const existingNoteFromSets = Array.isArray(exData.sets)
+    ? Array.from(new Set(exData.sets.map(s => (s.obs ?? "").trim()).filter(Boolean))).join(" / ")
+    : "";
+  const exerciseNotesValue = (exData.notes ?? existingNoteFromSets ?? "").trim();
+
   // Series
   if (exData.sets && exData.sets.length > 0) {
     exData.sets.forEach(s => {
       const normalized = isCardio
         ? {
             intensidad: s.intensidad ?? s.peso ?? "",
-            tiempo: s.tiempo ?? s.reps ?? "",
-            obs: s.obs ?? ""
+            tiempo: s.tiempo ?? s.reps ?? ""
           }
         : s;
-      addSetRow(tbody, normalized, () => updateOverloadWarning(card), isCardio ? cardioSetFields : strengthSetFields);
+      addSetRow(tbody, normalized, null, isCardio ? cardioSetFields : strengthSetFields);
     });
   } else {
     const initialSet = {};
@@ -3374,29 +3441,68 @@ function buildExerciseCard(exData) {
         if (lastSet.intensidad != null && lastSet.intensidad !== "") initialSet.intensidad = lastSet.intensidad;
         if (lastSet.tiempo != null && lastSet.tiempo !== "") initialSet.tiempo = lastSet.tiempo;
       }
-      addSetRow(tbody, initialSet, () => updateOverloadWarning(card), cardioSetFields);
+      addSetRow(tbody, initialSet, null, cardioSetFields);
     } else {
       const lastSet = getLastExerciseSet(exData.nombre);
       if (lastSet) {
         if (lastSet.peso != null && lastSet.peso !== "") initialSet.peso = lastSet.peso;
         if (lastSet.reps != null && lastSet.reps !== "") initialSet.reps = lastSet.reps;
+        initialSet._suggested = true;
+        const repsValue = parseFloat(lastSet.reps);
+        const hasTenPlus = lastSet.hasTenPlus === true;
+        if (Number.isFinite(repsValue)) {
+          suggestionInfo.textContent = repsValue >= 12
+            ? t("exercise.suggestion.up")
+            : repsValue >= 8
+              ? t("exercise.suggestion.keep")
+              : repsValue === 7 || repsValue === 6
+                ? (hasTenPlus ? t("exercise.suggestion.keep") : t("exercise.suggestion.down"))
+                : t("exercise.suggestion.down");
+        } else {
+          suggestionInfo.textContent = t("exercise.suggestion.keep");
+        }
+        suggestionInfo.style.display = "block";
+      } else {
+        if (Object.keys(initialSet).length === 0) {
+          const maxWeight = getMaxWeight(exData.nombre);
+          if (maxWeight) initialSet.peso = maxWeight;
+        }
+        suggestionInfo.textContent = t("exercise.suggestionNone");
+        suggestionInfo.style.color = "var(--meta-text)";
+        suggestionInfo.style.display = "block";
       }
-      if (Object.keys(initialSet).length === 0) {
-        const maxWeight = getMaxWeight(exData.nombre);
-        if (maxWeight) initialSet.peso = maxWeight;
-      }
-      addSetRow(tbody, initialSet, () => updateOverloadWarning(card), strengthSetFields);
+      addSetRow(tbody, initialSet, null, strengthSetFields);
     }
   }
+
+  const notesWrap = document.createElement("div");
+  notesWrap.className = "exercise-general-notes";
+  notesWrap.style.margin = "6px 0 8px";
+  notesWrap.style.width = "100%";
+  const notesLabel = document.createElement("label");
+  notesLabel.textContent = t("exercise.notes.general");
+  notesLabel.style.display = "block";
+  notesLabel.style.fontSize = "0.75rem";
+  notesLabel.style.color = "var(--meta-text)";
+  const notesInput = document.createElement("textarea");
+  notesInput.className = "exercise-notes-input";
+  notesInput.rows = 2;
+  notesInput.style.width = "100%";
+  notesInput.style.boxSizing = "border-box";
+  notesInput.value = exerciseNotesValue || "";
+  notesInput.addEventListener("input", saveSession);
+  notesInput.addEventListener("change", saveSession);
+  notesWrap.appendChild(notesLabel);
+  notesWrap.appendChild(notesInput);
+  card.appendChild(notesWrap);
 
   const addBtn = document.createElement("button");
   addBtn.textContent = "+";
   addBtn.className = "add-set-btn";
   addBtn.setAttribute("aria-label", t("exercise.addSet"));
   addBtn.onclick = () => {
-    addSetRow(tbody, {}, () => updateOverloadWarning(card), isCardio ? cardioSetFields : strengthSetFields);
+    addSetRow(tbody, {}, null, isCardio ? cardioSetFields : strengthSetFields);
     saveSession();
-    updateOverloadWarning(card);
   };
 
   const headerRow = table.querySelector("thead tr");
@@ -3405,8 +3511,6 @@ function buildExerciseCard(exData) {
     actionHeader.innerHTML = "";
     actionHeader.appendChild(addBtn);
   }
-
-  updateOverloadWarning(card);
 
   // ====== NOTAS TÉCNICAS ======
   const notes = document.createElement("div");
@@ -3453,10 +3557,10 @@ function addExerciseFromTemplate(name) {
 // GUARDAR SESIÓN (Y SENSACIONES)
 // -------------------------
 
-function saveSession() {
-  if (!currentUserKey) return;
-  const key = sessionKey();
-  const cards = document.querySelectorAll(".exercise-card");
+function buildSessionData(container) {
+  if (!currentUserKey) return null;
+  const root = container || exercisesContainer || mainExercisesContainer || document;
+  const cards = root.querySelectorAll(".exercise-card");
   
   // Capturamos el valor antes de la posible reconstrucción del select.
   const selectedPainExercise = painExerciseSelect.value; 
@@ -3514,10 +3618,6 @@ function saveSession() {
           setData[key] = input.checked;
           return;
         }
-        if (key === "obs") {
-          setData[key] = input.value || "";
-          return;
-        }
         const raw = input.value;
         if (raw === "") {
           setData[key] = null;
@@ -3534,8 +3634,14 @@ function saveSession() {
         }
         setData[key] = raw;
       });
+      if ((setData.repsFallo == null || setData.repsFallo === "") && row.dataset.repsFallo) {
+        const parsed = parseInt(row.dataset.repsFallo, 10);
+        setData.repsFallo = Number.isNaN(parsed) ? null : parsed;
+      }
       return setData;
     });
+
+    const exerciseNotes = card.querySelector(".exercise-notes-input")?.value || "";
 
     data.exercises.push({
       nombre: name,
@@ -3544,10 +3650,20 @@ function saveSession() {
       hacer: hacer,
       noHacer: noHacer,
       trucos: trucos,
-      sets: sets
+      sets: sets,
+      notes: exerciseNotes
     });
   });
 
+  return data;
+}
+
+function saveSession() {
+  if (!currentUserKey) return;
+  if (isEditingHistory) return;
+  const key = sessionKey();
+  const data = buildSessionData(mainExercisesContainer);
+  if (!data) return;
   storage.setItem(key, JSON.stringify(data));
   setStatus(t("status.saved"));
   markAutoSaved();
@@ -3862,7 +3978,8 @@ function applyHistorySession(session, options = {}) {
         hacer: pickValue(ex.hacer, tpl.hacer ?? ""),
         noHacer: pickValue(ex.noHacer, tpl.noHacer ?? ""),
         trucos: pickValue(ex.trucos, tpl.trucos ?? ""),
-        sets
+        sets,
+        notes: ex.notes ?? ""
       }));
     });
     currentExercises = session.exercises.map(ex => ex.nombre);
@@ -3938,7 +4055,8 @@ function loadSession(options = {}) {
         hacer: pickValue(ex.hacer, tpl.hacer ?? ""),
         noHacer: pickValue(ex.noHacer, tpl.noHacer ?? ""),
         trucos: pickValue(ex.trucos, tpl.trucos ?? ""),
-        sets: ex.sets ?? []
+        sets: ex.sets ?? [],
+        notes: ex.notes ?? ""
       }));
     });
     
@@ -4053,12 +4171,47 @@ if (saveSessionBtn) {
     saveSession();
     const key = sessionKey();
     const saved = JSON.parse(storage.getItem(key) || "null");
-    if (!saved) return alert(t("alert.noDataToday"));
-    upsertLocalHistory(saved);
-    updateStepStatus();
-    setStatus(t("status.sessionSavedLocal"));
-    showSaveSessionMessage();
-  };
+  if (!saved) return alert(t("alert.noDataToday"));
+  upsertLocalHistory(saved);
+  updateStepStatus();
+  setStatus(t("status.sessionSavedLocal"));
+  showSaveSessionMessage();
+};
+
+function overwriteEditedSession() {
+  if (!historyDateInput) return;
+  if (editSessionStatus) editSessionStatus.style.display = "none";
+  const dateStr = historyDateInput.value;
+  if (!dateStr) return alert(t("alert.selectDay"));
+  if (!checkSensationsForm(true)) {
+    showSaveSessionError(t("status.postWorkoutSaveError"));
+    return;
+  }
+  const saved = buildSessionData(editExercisesContainer);
+  if (!saved) return alert(t("alert.noDataToday"));
+  const sessions = getLocalHistory();
+  const index = sessions.findIndex(item => item.date === dateStr);
+  if (index === -1) {
+    showSaveSessionError(t("status.noHistoryDay"));
+    return;
+  }
+  saved.date = dateStr;
+  saved.week = sessions[index].week ?? saved.week;
+  saved.day = sessions[index].day ?? saved.day;
+  saved.key = sessions[index].key || saved.key;
+  sessions[index] = { ...sessions[index], ...saved };
+  setLocalHistory(sessions);
+  window.uploadedHistory = sessions;
+  rebuildHistoryData(sessions);
+  refreshHistoryUI();
+  populateHistoryDaySelect();
+  setStatus(t("status.sessionSavedLocal"));
+  showSaveSessionMessage();
+  if (editSessionStatus) {
+    editSessionStatus.textContent = t("status.sessionOverwritten");
+    editSessionStatus.style.display = "block";
+  }
+}
 }
 
 
@@ -4912,6 +5065,7 @@ function buildCsvForUser(sessions) {
 
     exercises.forEach(ex => {
       const sets = Array.isArray(ex.sets) ? ex.sets : [];
+      const exerciseNote = (ex.notes ?? Array.from(new Set((ex.sets || []).map(s => (s.obs ?? "").trim()).filter(Boolean))).join(" / ")).trim();
       if (!sets.length) {
         const row = [
           base.usuario,
@@ -4928,7 +5082,7 @@ function buildCsvForUser(sessions) {
           "",
           "",
           "",
-          "",
+          exerciseNote,
           base.sens_general,
           base.sens_tiredness,
           base.sens_weight,
@@ -4955,7 +5109,7 @@ function buildCsvForUser(sessions) {
           set.repsFallo ?? "",
           set.intensidad ?? "",
           set.tiempo ?? "",
-          set.obs ?? "",
+          exerciseNote,
           base.sens_general,
           base.sens_tiredness,
           base.sens_weight,
@@ -5105,7 +5259,8 @@ if (historyEditBtn) {
       editingSessionContext = {
         date: dateInput?.value || "",
         week: weekSelect?.value || "",
-        day: daySelect?.value || ""
+        day: daySelect?.value || "",
+        restoreOnExit: false
       };
     }
     if (editExercisesContainer) {
@@ -5113,19 +5268,18 @@ if (historyEditBtn) {
       showAllExercises = true;
       editExercisesContainer.innerHTML = "";
     }
-    if (dateInput) dateInput.value = session.date || "";
-    if (weekSelect) {
-      ensureSelectValue(weekSelect, session.week || "");
-    }
-    if (daySelect) {
-      if (weekSelect) populateDaySelect(weekSelect.value);
-      ensureSelectValue(daySelect, session.day || "");
-    }
-    loadSession();
+    isEditingHistory = true;
+    applyHistorySession(session, { silent: true, preserveAutoSave: true });
     const step7Index = stepPages.indexOf(step7);
     if (step7Index >= 0) setActiveStep(step7Index);
     closeHistoryMenuOverlay();
     closeManageUserOverlay();
+  });
+}
+
+if (overwriteHistoryBtn) {
+  overwriteHistoryBtn.addEventListener("click", () => {
+    overwriteEditedSession();
   });
 }
 
