@@ -43,7 +43,15 @@ const importOverlayConfirm = document.getElementById("import-overlay-confirm");
 const manageUserOverlay = document.getElementById("manage-user-overlay");
 const manageUserClose = document.getElementById("manage-user-close");
 const manageUserHistoryBtn = document.getElementById("manage-user-history-btn");
+const manageUserChartsBtn = document.getElementById("manage-user-charts-btn");
+const manageUserMuscleChartsBtn = document.getElementById("manage-user-muscle-charts-btn");
+const manageUserFavoritesBtn = document.getElementById("manage-user-favorites-btn");
 const manageUserNameLabel = document.getElementById("manage-user-name");
+const globalUserStatsChartCanvas = document.getElementById("global-user-stats-chart");
+const globalUserStatsNoData = document.getElementById("global-user-stats-no-data");
+const globalUserStatsPieCanvas = document.getElementById("global-user-stats-pie");
+const globalUserStatsPieNoData = document.getElementById("global-user-stats-pie-no-data");
+const globalUserStatsPieLegend = document.getElementById("global-user-stats-pie-legend");
 const historyMenuOverlay = document.getElementById("history-menu-overlay");
 const historyMenuClose = document.getElementById("history-menu-close");
 const step0 = document.getElementById("step-0");
@@ -54,6 +62,8 @@ const step4 = document.getElementById("step-4");
 const step5 = document.getElementById("step-5");
 const step6 = document.getElementById("step-6");
 const step7 = document.getElementById("step-7");
+const step8 = document.getElementById("step-8");
+const step9 = document.getElementById("step-9");
 const step3Body = document.getElementById("step-3-body");
 const step7Body = document.getElementById("step-7-body");
 const step1Status = document.getElementById("step-1-status");
@@ -62,10 +72,13 @@ const step3Status = document.getElementById("step-3-status");
 const step4Status = document.getElementById("step-4-status");
 const step5Status = document.getElementById("step-5-status");
 const step6Status = document.getElementById("step-6-status");
+const step8Status = document.getElementById("step-8-status");
+const step9Status = document.getElementById("step-9-status");
 const stepperPrevBtn = document.getElementById("stepper-prev");
 const stepperNextBtn = document.getElementById("stepper-next");
 const subheader = document.getElementById("subheader");
 const toggleUserManageBtn = document.getElementById("toggle-user-manage");
+const currentUserNameLabel = document.getElementById("current-user-name");
 const toggleStopwatchBtn = document.getElementById("toggle-stopwatch");
 const toggleQuickAddBtn = document.getElementById("toggle-quick-add");
 const toggleOrderModeBtn = document.getElementById("toggle-order-mode");
@@ -91,6 +104,10 @@ const editSessionStatus = document.getElementById("edit-session-status");
 const historyViewOverlay = document.getElementById("history-view-overlay");
 const historyViewContent = document.getElementById("history-view-content");
 const historyViewClose = document.getElementById("history-view-close");
+const favoritesOverlay = document.getElementById("favorites-overlay");
+const favoritesList = document.getElementById("favorites-list");
+const favoritesClose = document.getElementById("favorites-close");
+const favoritesGroupSelect = document.getElementById("favorites-group-select");
 const sessionSummary = document.getElementById("session-summary");
 const removeExerciseBtn = document.getElementById("remove-exercise-btn");
 const step2ModeInputs = document.querySelectorAll('input[name="step2-mode"]');
@@ -103,6 +120,7 @@ const loadPreviousSessionBtn = document.getElementById("load-previous-session-bt
 const LOCAL_HISTORY_KEY = "gym_history_v1";
 const USER_LIST_KEY = "gym_user_list";
 const CUSTOM_ROUTINES_KEY = "gym_custom_routines_v1";
+const FAVORITES_KEY_PREFIX = "gym_favorites_v1_";
 let lastRoutinePromptSignature = "";
 const ROUTINE_VALUE_SEP = "|||";
 
@@ -194,6 +212,10 @@ const I18N_STRINGS = {
     "step6.hint": "Pas 6 · Gràfics de l'usuari",
     "step7.summary": "Pas 7: Edita sessió anterior",
     "step7.hint": "Pas 7 · Edita sessió anterior",
+    "step8.summary": "Pas 8",
+    "step8.hint": "Pas 8",
+    "step9.summary": "Pas 9",
+    "step9.hint": "Pas 9",
     "status.pending": "Pendent",
     "status.optional": "Opcional",
     "status.inProgress": "En progrés",
@@ -214,14 +236,19 @@ const I18N_STRINGS = {
     "label.sensTiredness": "Cansament percebut 0-10",
     "label.sensWeight": "Pes corporal (kg) - Opcional",
     "label.sensPain": "Dolor en algun múscul (sí/no)",
+    "label.sensComment": "Comentari general de la sessió",
+    "label.favoritesOnly": "Només favorits",
     "label.painZone": "Zona del dolor",
     "label.painExercise": "Identifica si algun exercici pot haver estat el responsable",
     "placeholder.sensGeneral": "Ex: 8",
     "placeholder.sensTiredness": "Ex: 6",
     "placeholder.sensWeight": "Ex: 78.5",
+    "placeholder.sensComment": "Ex: Molt bon entrenament, bona energia.",
     "placeholder.painZone": "Ex: Espatlla dreta",
     "placeholder.selectGroup": "Seleccionar grup...",
     "placeholder.selectExercise": "Seleccionar exercici...",
+    "favorites.title": "Exercicis favorits",
+    "favorites.emptyOption": "Sense favorits en aquest grup",
     "stopwatch.placeholder": "Temps en segons (ex: 60)",
     "customExercise.namePlaceholder": "Ex: Rem en barra",
     "cardio.placeholderIntensity": "1-10",
@@ -266,6 +293,14 @@ const I18N_STRINGS = {
     "import.title": "Selecciona l'usuari per fusionar",
     "manage.title": "Gestió de l'usuari",
     "manage.history": "Sessions anteriors",
+    "manage.chartsExercise": "Gràfics per exercici",
+    "manage.chartsMuscle": "Gràfics per grup muscular",
+    "manage.favorites": "Favorits",
+    "userStats.title": "Estadístiques per sessió",
+    "userStats.noData": "Encara no hi ha dades per mostrar.",
+    "chart.axis.sessions": "Sessions",
+    "chart.axis.sets": "Sèries",
+    "chart.muscle.unknown": "Altres",
     "manage.rename": "Canvia el nom de l'usuari",
     "manage.exportJson": "Còpia de seguretat (JSON)",
     "manage.exportCsv": "Exporta dades d'anàlisi (CSV)",
@@ -279,6 +314,9 @@ const I18N_STRINGS = {
     "customExercise.nameLabel": "Nom de l'exercici",
     "customExercise.isCardio": "És cardio",
     "charts.title": "Gràfics de l'usuari",
+    "charts.byExercise": "Gràfics per exercici",
+    "charts.byMuscleSession": "Gràfics per grup muscular i sessió",
+    "charts.byMuscleTotal": "Percentatge total de sèries per grup muscular",
     "charts.noData": "Encara no hi ha dades d'aquest usuari. Desa sessions o importa dades per veure els gràfics.",
     "chart.variable.maxWeight": "Pes màxim",
     "chart.variable.totalLoad": "Càrrega total (pes x reps)",
@@ -321,6 +359,7 @@ const I18N_STRINGS = {
     "session.summary.header": "Resum:",
     "session.summary.totalExercises": "- Total exercicis: {count}",
     "session.summary.totalSets": "- Total sèries: {count}",
+    "session.comment.label": "Comentari de la sessió:",
     "session.metrics.title": "Mètriques subjectives:",
     "session.metrics.general": "- Sensacions generals (0-10): {value}",
     "session.metrics.tiredness": "- Cansament percebut (0-10): {value}",
@@ -484,7 +523,8 @@ const I18N_STRINGS = {
     "csv.sens_weight": "sens_weight",
     "csv.sens_pain": "sens_pain",
     "csv.sens_pain_zone": "sens_pain_zone",
-    "csv.sens_pain_exercise": "sens_pain_exercise"
+    "csv.sens_pain_exercise": "sens_pain_exercise",
+    "csv.sens_comment": "sens_comment"
   },
   en: {
     "app.title": "Gym Routine Tracker",
@@ -539,6 +579,10 @@ const I18N_STRINGS = {
     "step6.hint": "Step 6 · User charts",
     "step7.summary": "Step 7: Edit previous session",
     "step7.hint": "Step 7 · Edit previous session",
+    "step8.summary": "Step 8",
+    "step8.hint": "Step 8",
+    "step9.summary": "Step 9",
+    "step9.hint": "Step 9",
     "status.pending": "Pending",
     "status.optional": "Optional",
     "status.inProgress": "In progress",
@@ -559,14 +603,19 @@ const I18N_STRINGS = {
     "label.sensTiredness": "Perceived fatigue 0-10",
     "label.sensWeight": "Body weight (kg) - Optional",
     "label.sensPain": "Pain in any muscle (yes/no)",
+    "label.sensComment": "General session comment",
+    "label.favoritesOnly": "Favorites only",
     "label.painZone": "Pain area",
     "label.painExercise": "Identify if any exercise might have caused it",
     "placeholder.sensGeneral": "e.g. 8",
     "placeholder.sensTiredness": "e.g. 6",
     "placeholder.sensWeight": "e.g. 78.5",
+    "placeholder.sensComment": "e.g. Great session, felt strong.",
     "placeholder.painZone": "e.g. Right shoulder",
     "placeholder.selectGroup": "Select group...",
     "placeholder.selectExercise": "Select exercise...",
+    "favorites.title": "Favorite exercises",
+    "favorites.emptyOption": "No favorites in this group",
     "stopwatch.placeholder": "Time in seconds (e.g. 60)",
     "customExercise.namePlaceholder": "e.g. Barbell row",
     "cardio.placeholderIntensity": "1-10",
@@ -611,6 +660,14 @@ const I18N_STRINGS = {
     "import.title": "Select the user to merge",
     "manage.title": "User management",
     "manage.history": "Previous sessions",
+    "manage.chartsExercise": "Charts by exercise",
+    "manage.chartsMuscle": "Charts by muscle group",
+    "manage.favorites": "Favorites",
+    "userStats.title": "Session stats",
+    "userStats.noData": "No data to show yet.",
+    "chart.axis.sessions": "Sessions",
+    "chart.axis.sets": "Sets",
+    "chart.muscle.unknown": "Other",
     "manage.rename": "Rename user",
     "manage.exportJson": "Backup (JSON)",
     "manage.exportCsv": "Export analysis data (CSV)",
@@ -624,6 +681,9 @@ const I18N_STRINGS = {
     "customExercise.nameLabel": "Exercise name",
     "customExercise.isCardio": "Is cardio",
     "charts.title": "User charts",
+    "charts.byExercise": "Charts by exercise",
+    "charts.byMuscleSession": "Charts by muscle group and session",
+    "charts.byMuscleTotal": "Total sets percentage by muscle group",
     "charts.noData": "No data for this user yet. Save sessions or import data to see charts.",
     "chart.variable.maxWeight": "Max weight",
     "chart.variable.totalLoad": "Total load (weight x reps)",
@@ -666,6 +726,7 @@ const I18N_STRINGS = {
     "session.summary.header": "Summary:",
     "session.summary.totalExercises": "- Total exercises: {count}",
     "session.summary.totalSets": "- Total sets: {count}",
+    "session.comment.label": "Session comment:",
     "session.metrics.title": "Subjective metrics:",
     "session.metrics.general": "- Overall feel (0-10): {value}",
     "session.metrics.tiredness": "- Perceived fatigue (0-10): {value}",
@@ -829,7 +890,8 @@ const I18N_STRINGS = {
     "csv.sens_weight": "sens_weight",
     "csv.sens_pain": "sens_pain",
     "csv.sens_pain_zone": "sens_pain_zone",
-    "csv.sens_pain_exercise": "sens_pain_exercise"
+    "csv.sens_pain_exercise": "sens_pain_exercise",
+    "csv.sens_comment": "sens_comment"
   },
   es: {
     "app.title": "Registro de rutinas de gimnasio",
@@ -884,6 +946,10 @@ const I18N_STRINGS = {
     "step6.hint": "Paso 6 · Gráficos del usuario",
     "step7.summary": "Paso 7: Editar sesión anterior",
     "step7.hint": "Paso 7 · Editar sesión anterior",
+    "step8.summary": "Paso 8",
+    "step8.hint": "Paso 8",
+    "step9.summary": "Paso 9",
+    "step9.hint": "Paso 9",
     "status.pending": "Pendiente",
     "status.optional": "Opcional",
     "status.inProgress": "En progreso",
@@ -904,14 +970,19 @@ const I18N_STRINGS = {
     "label.sensTiredness": "Cansancio percibido 0-10",
     "label.sensWeight": "Peso corporal (kg) - Opcional",
     "label.sensPain": "Dolor en algún músculo (sí/no)",
+    "label.sensComment": "Comentario general de la sesión",
+    "label.favoritesOnly": "Solo favoritos",
     "label.painZone": "Zona del dolor",
     "label.painExercise": "Identifica si algún ejercicio puede haber sido el responsable",
     "placeholder.sensGeneral": "Ej: 8",
     "placeholder.sensTiredness": "Ej: 6",
     "placeholder.sensWeight": "Ej: 78.5",
+    "placeholder.sensComment": "Ej: Muy buen entreno, buena energía.",
     "placeholder.painZone": "Ej: Hombro derecho",
     "placeholder.selectGroup": "Seleccionar grupo...",
     "placeholder.selectExercise": "Seleccionar ejercicio...",
+    "favorites.title": "Ejercicios favoritos",
+    "favorites.emptyOption": "Sin favoritos en este grupo",
     "stopwatch.placeholder": "Tiempo en segundos (ej: 60)",
     "customExercise.namePlaceholder": "Ej: Remo en barra",
     "cardio.placeholderIntensity": "1-10",
@@ -956,6 +1027,14 @@ const I18N_STRINGS = {
     "import.title": "Selecciona el usuario para fusionar",
     "manage.title": "Gestión del usuario",
     "manage.history": "Sesiones anteriores",
+    "manage.chartsExercise": "Gráficos por ejercicio",
+    "manage.chartsMuscle": "Gráficos por grupo muscular",
+    "manage.favorites": "Favoritos",
+    "userStats.title": "Estadísticas por sesión",
+    "userStats.noData": "Aún no hay datos para mostrar.",
+    "chart.axis.sessions": "Sesiones",
+    "chart.axis.sets": "Series",
+    "chart.muscle.unknown": "Otros",
     "manage.rename": "Cambiar el nombre del usuario",
     "manage.exportJson": "Copia de seguridad (JSON)",
     "manage.exportCsv": "Exportar datos de análisis (CSV)",
@@ -969,6 +1048,9 @@ const I18N_STRINGS = {
     "customExercise.nameLabel": "Nombre del ejercicio",
     "customExercise.isCardio": "Es cardio",
     "charts.title": "Gráficos del usuario",
+    "charts.byExercise": "Gráficos por ejercicio",
+    "charts.byMuscleSession": "Gráficos por grupo muscular y sesión",
+    "charts.byMuscleTotal": "Porcentaje total de series por grupo muscular",
     "charts.noData": "Aún no hay datos de este usuario. Guarda sesiones o importa datos para ver los gráficos.",
     "chart.variable.maxWeight": "Peso máximo",
     "chart.variable.totalLoad": "Carga total (peso x reps)",
@@ -1011,6 +1093,7 @@ const I18N_STRINGS = {
     "session.summary.header": "Resumen:",
     "session.summary.totalExercises": "- Total ejercicios: {count}",
     "session.summary.totalSets": "- Total series: {count}",
+    "session.comment.label": "Comentario de la sesión:",
     "session.metrics.title": "Métricas subjetivas:",
     "session.metrics.general": "- Sensaciones generales (0-10): {value}",
     "session.metrics.tiredness": "- Cansancio percibido (0-10): {value}",
@@ -1174,7 +1257,8 @@ const I18N_STRINGS = {
     "csv.sens_weight": "sens_weight",
     "csv.sens_pain": "sens_pain",
     "csv.sens_pain_zone": "sens_pain_zone",
-    "csv.sens_pain_exercise": "sens_pain_exercise"
+    "csv.sens_pain_exercise": "sens_pain_exercise",
+    "csv.sens_comment": "sens_comment"
   }
 };
 
@@ -1351,6 +1435,7 @@ function refreshLanguageSensitiveUI() {
   updateExercisePagination(false);
   updateAutoSaveLabel();
   updateSessionSummary();
+  updateCurrentUserBadge();
   refreshHistoryUI();
   setFastMode(isFastMode, { skipPersist: true });
   refreshRoutineSelectLabels();
@@ -1373,7 +1458,7 @@ window.gymI18n = { t, setLanguage, getLanguage, getLocale, applyTranslations, on
 
 let currentUserName = "";
 let currentUserKey = "";
-const stepPages = [step0, step1, step2, step3, step4, step5, step6, step7].filter(Boolean);
+const stepPages = [step0, step1, step2, step3, step4, step5, step6, step7, step8, step9].filter(Boolean);
 let activeStepIndex = 0;
 let pendingStartStepIndex = null;
 let activeExerciseIndex = 0;
@@ -1384,6 +1469,7 @@ let autoSaveTimer = null;
 let editingSessionContext = null;
 let isFastMode = false;
 let isEditingHistory = false;
+let allowGlobalChartsStep = false;
 
 function normalizeUserName(name) {
   return name.trim().replace(/\s+/g, "_");
@@ -1455,6 +1541,34 @@ function saveUserList(list) {
   storage.setItem(USER_LIST_KEY, JSON.stringify(list));
 }
 
+function getFavoritesKey(userKey = currentUserKey) {
+  if (!userKey) return "";
+  return `${FAVORITES_KEY_PREFIX}${userKey}`;
+}
+
+function loadFavorites(userKey = currentUserKey) {
+  const key = getFavoritesKey(userKey);
+  if (!key) return [];
+  try {
+    const raw = storage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    const cleaned = parsed
+      .filter(item => typeof item === "string" && item.trim())
+      .map(item => item.trim());
+    return Array.from(new Set(cleaned));
+  } catch (err) {
+    return [];
+  }
+}
+
+function saveFavorites(list, userKey = currentUserKey) {
+  const key = getFavoritesKey(userKey);
+  if (!key) return;
+  const cleaned = Array.from(new Set((list || []).filter(Boolean).map(item => String(item).trim()).filter(Boolean)));
+  storage.setItem(key, JSON.stringify(cleaned));
+}
+
 function promptForNewUserName(defaultValue) {
   const input = prompt(t("prompt.newUserName"), defaultValue || "");
   if (input == null) return "";
@@ -1465,6 +1579,12 @@ function setCurrentUser(name, key) {
   currentUserName = name;
   currentUserKey = key;
   storage.setItem("gym_user_name", currentUserName);
+  updateCurrentUserBadge();
+}
+
+function updateCurrentUserBadge() {
+  if (!currentUserNameLabel) return;
+  currentUserNameLabel.textContent = currentUserName || t("status.selectUser");
 }
 
 function refreshCharts() {
@@ -1664,6 +1784,7 @@ function deleteUserHistory(userKey) {
     storage.removeItem("gym_user_name");
     setAppEnabled(false);
     setAppVisible(false);
+    updateCurrentUserBadge();
   }
 
   refreshUserSelect();
@@ -1728,6 +1849,7 @@ function initializeForUserSelection() {
   refreshUserSelect();
   setAppEnabled(false);
   setAppVisible(false);
+  updateCurrentUserBadge();
   updateStepStatus();
 }
 
@@ -1779,6 +1901,8 @@ function updateStepStatus() {
       : t("status.blocked");
   }
   if (step6Status) step6Status.textContent = hasUser ? t("status.optional") : t("status.pending");
+  if (step8Status) step8Status.textContent = hasUser ? t("status.optional") : t("status.pending");
+  if (step9Status) step9Status.textContent = hasUser ? t("status.optional") : t("status.pending");
   if (toggleUserManageBtn) toggleUserManageBtn.disabled = !hasUser;
   if (postWorkoutSection) {
     postWorkoutSection.classList.toggle("post-workout-locked", !hasExercises);
@@ -1871,6 +1995,8 @@ function getMaxStepIndex() {
     const step4Index = stepPages.indexOf(step4);
     const step6Index = stepPages.indexOf(step6);
     const step7Index = stepPages.indexOf(step7);
+    const step8Index = stepPages.indexOf(step8);
+    const step9Index = stepPages.indexOf(step9);
     if (!isPostWorkoutComplete() && step5Index > 0) {
       maxIndex = Math.min(maxIndex, step5Index - 1);
       if (step4Index >= 0) {
@@ -1885,6 +2011,12 @@ function getMaxStepIndex() {
     }
     if (!editingSessionContext && step7Index >= 0 && step6Index >= 0) {
       maxIndex = Math.min(maxIndex, step6Index);
+    }
+    if (allowGlobalChartsStep && step8Index >= 0) {
+      maxIndex = Math.max(maxIndex, step8Index);
+    }
+    if (allowGlobalChartsStep && step9Index >= 0) {
+      maxIndex = Math.max(maxIndex, step9Index);
     }
     return maxIndex;
   }
@@ -2160,6 +2292,37 @@ function buildExportContent(saved, options = {}) {
     exportDiv.appendChild(tableWrap);
   }
 
+  const sessionComment = (saved.sensations?.comment ?? saved.comment ?? "").trim();
+  if (sessionComment) {
+    if (usePngStyles) {
+      const commentDiv = document.createElement("div");
+      commentDiv.style.marginTop = "10px";
+      commentDiv.style.fontSize = "12px";
+      commentDiv.style.color = "#000";
+      const label = document.createElement("p");
+      label.style.margin = "3px 0";
+      label.style.fontWeight = "bold";
+      label.textContent = t("session.comment.label");
+      const value = document.createElement("p");
+      value.style.margin = "3px 0";
+      value.textContent = sessionComment;
+      commentDiv.appendChild(label);
+      commentDiv.appendChild(value);
+      exportDiv.appendChild(commentDiv);
+    } else {
+      const commentSection = document.createElement("div");
+      commentSection.className = "session-summary-section";
+      const label = document.createElement("div");
+      label.className = "session-summary-label";
+      label.textContent = t("session.comment.label");
+      const value = document.createElement("div");
+      value.textContent = sessionComment;
+      commentSection.appendChild(label);
+      commentSection.appendChild(value);
+      exportDiv.appendChild(commentSection);
+    }
+  }
+
   if (usePngStyles) {
     const summary = document.createElement("div");
     summary.style.marginTop = "8px";
@@ -2210,17 +2373,32 @@ function buildExportContent(saved, options = {}) {
 
 function setActiveStep(index, options = {}) {
   if (!stepPages.length) return;
-  const maxIndex = getMaxStepIndex();
-  let nextIndex = Math.max(0, Math.min(index, maxIndex));
+  const maxBound = stepPages.length - 1;
+  const maxIndex = options.ignoreMax ? maxBound : getMaxStepIndex();
+  let nextIndex = options.force
+    ? Math.max(0, Math.min(index, maxBound))
+    : Math.max(0, Math.min(index, maxIndex));
   const prevIndex = activeStepIndex;
 
   const step7Index = stepPages.indexOf(step7);
   const step6Index = stepPages.indexOf(step6);
+  const step8Index = stepPages.indexOf(step8);
+  const step9Index = stepPages.indexOf(step9);
   const step3Index = stepPages.indexOf(step3);
   const step4Index = stepPages.indexOf(step4);
+  if (!editingSessionContext && step7Index >= 0 && nextIndex === step7Index) {
+    if (allowGlobalChartsStep && step8Index >= 0) {
+      nextIndex = step8Index;
+    } else if (step6Index >= 0) {
+      nextIndex = step6Index;
+    }
+  }
   const enteringStep7 = step7Index >= 0 && nextIndex === step7Index;
   const leavingStep7 = step7Index >= 0 && activeStepIndex === step7Index && nextIndex !== step7Index;
   const enteringStep4FromStep3 = step4Index >= 0 && step3Index >= 0 && prevIndex === step3Index && nextIndex === step4Index;
+  if (step8Index >= 0 || step9Index >= 0) {
+    allowGlobalChartsStep = nextIndex === step8Index || nextIndex === step9Index;
+  }
   if (enteringStep7 && editExercisesContainer) {
     exercisesContainer = editExercisesContainer;
     showAllExercises = true;
@@ -2262,6 +2440,15 @@ function setActiveStep(index, options = {}) {
       window.loadChartExercises();
     }
   }
+  if (step8Index >= 0 && nextIndex === step8Index) {
+    if (typeof window.loadChartExercises === "function") {
+      window.loadChartExercises();
+    }
+    renderUserStatsCharts();
+  }
+  if (step9Index >= 0 && nextIndex === step9Index) {
+    renderUserStatsCharts();
+  }
 
   if (step3Index >= 0 && nextIndex === step3Index) {
     lastRoutinePromptSignature = "";
@@ -2278,12 +2465,36 @@ function initializeStepper() {
   if (stepperPrevBtn) {
     stepperPrevBtn.addEventListener("click", () => {
       const step7Index = stepPages.indexOf(step7);
+      const step8Index = stepPages.indexOf(step8);
+      const step9Index = stepPages.indexOf(step9);
+      const step6Index = stepPages.indexOf(step6);
+      const step5Index = stepPages.indexOf(step5);
       const step2Index = stepPages.indexOf(step2);
-      if (step7Index >= 0 && step2Index >= 0 && activeStepIndex === step7Index && isEditingHistory) {
-        setActiveStep(step2Index);
+      if (step2Index >= 0) {
+        if (activeStepIndex === step7Index || activeStepIndex === step8Index || activeStepIndex === step9Index) {
+          setActiveStep(step2Index, { force: true, ignoreMax: true });
+          return;
+        }
+        if (activeStepIndex === step7Index && isEditingHistory) {
+          setActiveStep(step2Index, { force: true, ignoreMax: true });
+          return;
+        }
+      }
+      if (step6Index >= 0 && step5Index >= 0 && activeStepIndex === step6Index) {
+        setActiveStep(step5Index, { force: true });
         return;
       }
-      setActiveStep(activeStepIndex - 1);
+      if (!editingSessionContext) {
+        if (step8Index >= 0 && step6Index >= 0 && activeStepIndex === step8Index) {
+          setActiveStep(step6Index);
+          return;
+        }
+        if (step9Index >= 0 && step8Index >= 0 && activeStepIndex === step9Index) {
+          setActiveStep(step8Index);
+          return;
+        }
+      }
+      setActiveStep(activeStepIndex - 1, { force: true, ignoreMax: true });
     });
   }
   if (stepperNextBtn) {
@@ -2298,6 +2509,7 @@ const senseGeneralInput = document.getElementById("sense-general");
 const senseTirednessInput = document.getElementById("sense-tiredness");
 const senseWeightInput = document.getElementById("sense-weight");
 const sensePainSelect = document.getElementById("sense-pain");
+const senseCommentInput = document.getElementById("sense-comment");
 const painDetailsDiv = document.getElementById("pain-details");
 const painZoneInput = document.getElementById("pain-zone");
 const painExerciseSelect = document.getElementById("pain-exercise");
@@ -3578,7 +3790,8 @@ function buildSessionData(container) {
       weight: senseWeightInput.value,
       pain: sensePainSelect.value,
       painZone: painZoneInput.value,
-      painExercise: selectedPainExercise
+      painExercise: selectedPainExercise,
+      comment: senseCommentInput?.value || ""
     },
     user: currentUserName
   };
@@ -3679,6 +3892,7 @@ function saveSession() {
   checkSensationsForm();
   updateStepStatus();
   scheduleExercisePagination(false);
+  renderUserStatsCharts();
 }
 
 
@@ -3686,9 +3900,43 @@ function saveSession() {
 // FUNCIÓN PARA EL SELECTOR DE AÑADIR EJERCICIO (POR GRUPO)
 // -------------------------
 
+function normalizeMuscleLabel(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function mapMuscleToGroup(label) {
+  const raw = normalizeMuscleLabel(label);
+  if (!raw) return "";
+  if (raw.includes("cardio")) return "Cardio";
+  if (raw.includes("pecho") || raw.includes("pectoral")) return "Pecho";
+  if (raw.includes("espalda") || raw.includes("dorsal") || raw.includes("trapec")) return "Espalda";
+  if (raw.includes("hombro") || raw.includes("delto")) return "Hombros";
+  if (raw.includes("bicep") || raw.includes("tricep") || raw.includes("antebrazo") || raw.includes("brazo")) return "Brazos";
+  if (
+    raw.includes("pierna") ||
+    raw.includes("cuadricep") ||
+    raw.includes("isquio") ||
+    raw.includes("femoral") ||
+    raw.includes("gemel") ||
+    raw.includes("pantorr") ||
+    raw.includes("glute") ||
+    raw.includes("aductor") ||
+    raw.includes("abductor")
+  ) return "Piernas";
+  if (raw.includes("core") || raw.includes("abd") || raw.includes("lumbar")) return "Core";
+  return "";
+}
+
 function resolveExerciseGroup(tpl) {
   if (!tpl) return "Otros";
-  return muscleGroupMap[tpl.musculo] || tpl.grupo || "Otros";
+  const direct = muscleGroupMap[tpl.musculo];
+  if (direct) return direct;
+  if (tpl.grupo) return tpl.grupo;
+  const mapped = mapMuscleToGroup(tpl.musculo);
+  return mapped || "Otros";
 }
 
 function translateGroupLabel(label) {
@@ -3991,6 +4239,7 @@ function applyHistorySession(session, options = {}) {
     senseWeightInput.value = session.sensations.weight ?? "";
     sensePainSelect.value = session.sensations.pain ?? "no";
     painZoneInput.value = session.sensations.painZone ?? "";
+    if (senseCommentInput) senseCommentInput.value = session.sensations.comment ?? "";
     savedPainExercise = session.sensations.painExercise ?? "";
     if (sensePainSelect.value === "si") {
       painDetailsDiv.style.display = "flex";
@@ -4013,6 +4262,7 @@ function applyHistorySession(session, options = {}) {
 function loadSession(options = {}) {
   const silent = options.silent === true;
   const preserveAutoSave = options.preserveAutoSave === true;
+  const preserveExerciseIndex = options.preserveExerciseIndex === true;
   const key = sessionKey();
   const saved = JSON.parse(storage.getItem(key) || "null");
   if (!preserveAutoSave) {
@@ -4032,6 +4282,7 @@ function loadSession(options = {}) {
   senseTirednessInput.value = "";
   sensePainSelect.value = "no";
   painZoneInput.value = "";
+  if (senseCommentInput) senseCommentInput.value = "";
   painDetailsDiv.style.display = "none";
   
   let currentExercises = [];
@@ -4069,6 +4320,7 @@ function loadSession(options = {}) {
       senseWeightInput.value = saved.sensations.weight ?? "";
       sensePainSelect.value = saved.sensations.pain ?? "no";
       painZoneInput.value = saved.sensations.painZone ?? "";
+      if (senseCommentInput) senseCommentInput.value = saved.sensations.comment ?? "";
       savedPainExercise = saved.sensations.painExercise ?? ""; // Almacenamos el valor
       
       if (sensePainSelect.value === 'si') {
@@ -4111,7 +4363,7 @@ function loadSession(options = {}) {
   checkSensationsForm();
   updateStepStatus();
   updateSessionSummary();
-  scheduleExercisePagination(true);
+  scheduleExercisePagination(!preserveExerciseIndex);
   if (typeof window.loadChartExercises === "function") {
     window.loadChartExercises();
   }
@@ -4234,6 +4486,10 @@ sensePainSelect.addEventListener('change', () => {
 senseGeneralInput.addEventListener("input", saveSession);
 senseTirednessInput.addEventListener("input", saveSession);
 senseWeightInput.addEventListener("input", saveSession);
+if (senseCommentInput) {
+  senseCommentInput.addEventListener("input", saveSession);
+  senseCommentInput.addEventListener("change", saveSession);
+}
 painZoneInput.addEventListener("input", saveSession);
 painExerciseSelect.addEventListener("change", saveSession); // El change es necesario para capturar la selección
 if (senseGeneralInput) senseGeneralInput.addEventListener("input", () => checkSensationsForm());
@@ -4462,6 +4718,7 @@ const quickAddToggleBtn = document.getElementById('toggle-quick-add');
 const quickAddCloseBtn = document.getElementById('quick-add-close-btn');
 const quickAddGroupSelect = document.getElementById('quick-add-group');
 const quickAddExerciseSelect = document.getElementById('quick-add-exercise');
+const quickAddFavoritesOnly = document.getElementById('quick-add-favorites-only');
 const quickAddPredefinedBtn = document.getElementById('quick-add-predefined');
 const quickAddCustomBtn = document.getElementById('quick-add-custom');
 const customExerciseOverlay = document.getElementById('custom-exercise-overlay');
@@ -4674,6 +4931,8 @@ function populateQuickAddGroups() {
 function populateQuickAddExercises(selectedGroup) {
   const quickExerciseSelect = document.getElementById("quick-add-exercise");
   if (!quickExerciseSelect) return;
+  const favoritesOnly = Boolean(quickAddFavoritesOnly?.checked);
+  const favorites = favoritesOnly ? new Set(loadFavorites()) : null;
   quickExerciseSelect.innerHTML = `<option value="">${t("placeholder.selectExercise")}</option>`;
   if (!selectedGroup) {
     quickExerciseSelect.disabled = true;
@@ -4681,8 +4940,17 @@ function populateQuickAddExercises(selectedGroup) {
   }
   const exercisesInGroup = Object.keys(exerciseTemplates).filter(name => {
     const tpl = exerciseTemplates[name];
-    return resolveExerciseGroup(tpl) === selectedGroup;
+    if (resolveExerciseGroup(tpl) !== selectedGroup) return false;
+    if (favoritesOnly && favorites && !favorites.has(name)) return false;
+    return true;
   }).sort((a, b) => a.localeCompare(b, getLocale()));
+  if (!exercisesInGroup.length) {
+    if (favoritesOnly && quickExerciseSelect.options[0]) {
+      quickExerciseSelect.options[0].textContent = t("favorites.emptyOption");
+    }
+    quickExerciseSelect.disabled = true;
+    return;
+  }
   exercisesInGroup.forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
@@ -4696,6 +4964,13 @@ if (quickAddGroupSelect) {
   populateQuickAddGroups();
   quickAddGroupSelect.addEventListener("change", () => {
     populateQuickAddExercises(quickAddGroupSelect.value);
+  });
+}
+if (quickAddFavoritesOnly) {
+  quickAddFavoritesOnly.addEventListener("change", () => {
+    if (quickAddGroupSelect) {
+      populateQuickAddExercises(quickAddGroupSelect.value);
+    }
   });
 }
 
@@ -4821,9 +5096,9 @@ if (removeExerciseBtn) {
     const card = cards[index];
     if (!card) return;
     card.remove();
+    activeExerciseIndex = Math.max(0, index - 1);
     saveSession();
-    loadSession(); // Necesario para refrescar el painExerciseSelect
-    scheduleExercisePagination();
+    loadSession({ preserveExerciseIndex: true }); // Necesario para refrescar el painExerciseSelect
   });
 }
 
@@ -5015,7 +5290,8 @@ function buildCsvForUser(sessions) {
     t("csv.sens_weight"),
     t("csv.sens_pain"),
     t("csv.sens_pain_zone"),
-    t("csv.sens_pain_exercise")
+    t("csv.sens_pain_exercise"),
+    t("csv.sens_comment")
   ];
   const rows = [header.map(escapeCsvCell).join(",")];
 
@@ -5031,7 +5307,8 @@ function buildCsvForUser(sessions) {
       sens_weight: sensations.weight ?? "",
       sens_pain: sensations.pain ?? "",
       sens_pain_zone: sensations.painZone ?? "",
-      sens_pain_exercise: sensations.painExercise ?? ""
+      sens_pain_exercise: sensations.painExercise ?? "",
+      sens_comment: sensations.comment ?? ""
     };
 
     const exercises = Array.isArray(session.exercises) ? session.exercises : [];
@@ -5057,7 +5334,8 @@ function buildCsvForUser(sessions) {
         base.sens_weight,
         base.sens_pain,
         base.sens_pain_zone,
-        base.sens_pain_exercise
+        base.sens_pain_exercise,
+        base.sens_comment
       ];
       rows.push(row.map(escapeCsvCell).join(","));
       return;
@@ -5088,7 +5366,8 @@ function buildCsvForUser(sessions) {
           base.sens_weight,
           base.sens_pain,
           base.sens_pain_zone,
-          base.sens_pain_exercise
+          base.sens_pain_exercise,
+          base.sens_comment
         ];
         rows.push(row.map(escapeCsvCell).join(","));
         return;
@@ -5115,7 +5394,8 @@ function buildCsvForUser(sessions) {
           base.sens_weight,
           base.sens_pain,
           base.sens_pain_zone,
-          base.sens_pain_exercise
+          base.sens_pain_exercise,
+          base.sens_comment
         ];
         rows.push(row.map(escapeCsvCell).join(","));
       });
@@ -5183,6 +5463,7 @@ function openManageUserOverlay() {
   if (manageUserNameLabel) {
     manageUserNameLabel.textContent = currentUserName || t("status.selectUser");
   }
+  renderUserStatsCharts();
   manageUserOverlay.style.display = "flex";
   manageUserOverlay.setAttribute("aria-hidden", "false");
 }
@@ -5191,6 +5472,331 @@ function closeManageUserOverlay() {
   if (!manageUserOverlay) return;
   manageUserOverlay.style.display = "none";
   manageUserOverlay.setAttribute("aria-hidden", "true");
+}
+
+function openFavoritesOverlay() {
+  if (!favoritesOverlay) return;
+  renderFavoritesList();
+  favoritesOverlay.style.display = "flex";
+  favoritesOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeFavoritesOverlay() {
+  if (!favoritesOverlay) return;
+  favoritesOverlay.style.display = "none";
+  favoritesOverlay.setAttribute("aria-hidden", "true");
+}
+
+let globalUserStatsChartInstance = null;
+let globalUserStatsPieInstance = null;
+
+function renderUserStatsChart(targetCanvas, noDataLabel, instanceRefSetter, instanceRefGetter, options = {}) {
+  if (!targetCanvas || typeof Chart === "undefined") return;
+  const limit = Number.isInteger(options.limit) ? options.limit : null;
+  const sessions = getHistorySessionsForCharts();
+  let rows = (sessions || [])
+    .filter(session => Array.isArray(session.exercises) && session.exercises.length)
+    .slice()
+    .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+  if (limit && rows.length > limit) {
+    rows = rows.slice(-limit);
+  }
+
+  if (!rows.length) {
+    if (noDataLabel) noDataLabel.style.display = "block";
+    const currentInstance = instanceRefGetter();
+    if (currentInstance) currentInstance.destroy();
+    instanceRefSetter(null);
+    return;
+  }
+
+  const labels = rows.map((session, index) => {
+    const date = session.date || "";
+    if (!date) return `${t("chart.axis.sessions")} ${index + 1}`;
+    const dateObj = new Date(date);
+    return isNaN(dateObj)
+      ? date
+      : dateObj.toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit" });
+  });
+
+  const groupSet = new Set();
+  const perSession = rows.map(session => {
+    const counts = new Map();
+    session.exercises.forEach(ex => {
+      const name = ex?.nombre || "";
+      const tpl = exerciseTemplates[name] || {};
+      const rawGroup = resolveExerciseGroup(tpl || { musculo: ex?.musculo });
+      const muscle = (rawGroup || t("chart.muscle.unknown")).trim() || t("chart.muscle.unknown");
+      const setsCount = Array.isArray(ex.sets) ? ex.sets.length : 0;
+      if (setsCount <= 0) return;
+      groupSet.add(muscle);
+      counts.set(muscle, (counts.get(muscle) || 0) + setsCount);
+    });
+    return counts;
+  });
+
+  const groups = Array.from(groupSet).sort((a, b) => a.localeCompare(b, getLocale()));
+  if (!groups.length) {
+    if (noDataLabel) noDataLabel.style.display = "block";
+    const currentInstance = instanceRefGetter();
+    if (currentInstance) currentInstance.destroy();
+    instanceRefSetter(null);
+    return;
+  }
+
+  const palette = [
+    "#f97316",
+    "#22c55e",
+    "#38bdf8",
+    "#a855f7",
+    "#facc15",
+    "#ef4444",
+    "#14b8a6",
+    "#e11d48",
+    "#84cc16",
+    "#0ea5e9"
+  ];
+
+  const datasets = groups.map((group, idx) => ({
+    label: group,
+    data: perSession.map(map => map.get(group) || 0),
+    backgroundColor: palette[idx % palette.length],
+    stack: "sets"
+  }));
+
+  if (noDataLabel) noDataLabel.style.display = "none";
+  const existing = instanceRefGetter();
+  if (existing) existing.destroy();
+  const instance = new Chart(targetCanvas, {
+    type: "bar",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom" }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          title: { display: true, text: t("chart.axis.sessions"), font: { size: 14 } }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          title: { display: true, text: t("chart.axis.sets"), font: { size: 14 } }
+        }
+      }
+    }
+  });
+  instanceRefSetter(instance);
+}
+
+function renderUserStatsCharts() {
+  renderUserStatsChart(
+    globalUserStatsChartCanvas,
+    globalUserStatsNoData,
+    (val) => { globalUserStatsChartInstance = val; },
+    () => globalUserStatsChartInstance,
+    { limit: 10 }
+  );
+
+  renderUserStatsPieChart();
+}
+
+function renderUserStatsPieChart() {
+  if (!globalUserStatsPieCanvas || typeof Chart === "undefined") return;
+  const sessions = getHistorySessionsForCharts();
+  const rows = (sessions || [])
+    .filter(session => Array.isArray(session.exercises) && session.exercises.length);
+
+  const totals = new Map();
+  rows.forEach(session => {
+    session.exercises.forEach(ex => {
+      const name = ex?.nombre || "";
+      const tpl = exerciseTemplates[name] || {};
+      const rawGroup = resolveExerciseGroup(tpl || { musculo: ex?.musculo });
+      const muscle = (rawGroup || t("chart.muscle.unknown")).trim() || t("chart.muscle.unknown");
+      const setsCount = Array.isArray(ex.sets) ? ex.sets.length : 0;
+      if (setsCount <= 0) return;
+      totals.set(muscle, (totals.get(muscle) || 0) + setsCount);
+    });
+  });
+
+  const labels = Array.from(totals.keys()).sort((a, b) => a.localeCompare(b, getLocale()));
+  const values = labels.map(label => totals.get(label) || 0);
+  const totalSum = values.reduce((acc, val) => acc + val, 0);
+
+  if (!labels.length || totalSum === 0) {
+    if (globalUserStatsPieNoData) globalUserStatsPieNoData.style.display = "block";
+    if (globalUserStatsPieLegend) globalUserStatsPieLegend.innerHTML = "";
+    if (globalUserStatsPieInstance) globalUserStatsPieInstance.destroy();
+    globalUserStatsPieInstance = null;
+    return;
+  }
+  if (globalUserStatsPieNoData) globalUserStatsPieNoData.style.display = "none";
+
+  const palette = [
+    "#f97316",
+    "#22c55e",
+    "#38bdf8",
+    "#a855f7",
+    "#facc15",
+    "#ef4444",
+    "#14b8a6",
+    "#e11d48",
+    "#84cc16",
+    "#0ea5e9"
+  ];
+
+  if (globalUserStatsPieInstance) globalUserStatsPieInstance.destroy();
+  globalUserStatsPieInstance = new Chart(globalUserStatsPieCanvas, {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: labels.map((_, idx) => palette[idx % palette.length])
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const value = ctx.parsed || 0;
+              const pct = totalSum ? Math.round((value / totalSum) * 1000) / 10 : 0;
+              return `${ctx.label}: ${value} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  if (globalUserStatsPieLegend) {
+    const iconMap = {
+      "Pecho": "🫁",
+      "Espalda": "🧍",
+      "Hombros": "🤷",
+      "Brazos": "💪",
+      "Piernas": "🦵",
+      "Core": "🧱",
+      "Cardio": "❤️",
+      "Otros": "🔹"
+    };
+    globalUserStatsPieLegend.innerHTML = "";
+    labels.forEach((label, idx) => {
+      const item = document.createElement("div");
+      item.className = "pie-icon-item";
+      const dot = document.createElement("span");
+      dot.className = "pie-icon-dot";
+      dot.style.background = palette[idx % palette.length];
+      const icon = document.createElement("span");
+      icon.textContent = iconMap[label] || "🔸";
+      const text = document.createElement("span");
+      const value = values[idx] || 0;
+      const pct = totalSum ? Math.round((value / totalSum) * 1000) / 10 : 0;
+      text.textContent = `${label} ${pct}%`;
+      item.appendChild(dot);
+      item.appendChild(icon);
+      item.appendChild(text);
+      globalUserStatsPieLegend.appendChild(item);
+    });
+  }
+}
+
+function renderFavoritesList() {
+  if (!favoritesList) return;
+  favoritesList.innerHTML = "";
+  if (!currentUserKey) {
+    const hint = document.createElement("div");
+    hint.className = "hint-text";
+    hint.textContent = t("status.selectUser");
+    favoritesList.appendChild(hint);
+    return;
+  }
+  const favorites = new Set(loadFavorites());
+  const allNames = Object.keys(exerciseTemplates || {}).sort((a, b) => a.localeCompare(b, getLocale()));
+  if (!allNames.length) {
+    const hint = document.createElement("div");
+    hint.className = "hint-text";
+    hint.textContent = t("exercise.empty");
+    favoritesList.appendChild(hint);
+    return;
+  }
+
+  if (favoritesGroupSelect) {
+    const currentValue = favoritesGroupSelect.value || "";
+    favoritesGroupSelect.innerHTML = "";
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = t("placeholder.selectGroup");
+    favoritesGroupSelect.appendChild(placeholder);
+    const groups = Array.from(new Set(
+      allNames
+        .map(name => resolveExerciseGroup(exerciseTemplates[name]))
+        .filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, getLocale()));
+    groups.forEach(group => {
+      const opt = document.createElement("option");
+      opt.value = group;
+      opt.textContent = group;
+      favoritesGroupSelect.appendChild(opt);
+    });
+    const nextValue = currentValue && groups.includes(currentValue) ? currentValue : "";
+    favoritesGroupSelect.value = nextValue;
+  }
+
+  const selectedGroup = favoritesGroupSelect?.value || "";
+  if (!selectedGroup) {
+    const hint = document.createElement("div");
+    hint.className = "hint-text";
+    hint.textContent = t("placeholder.selectGroup");
+    favoritesList.appendChild(hint);
+    return;
+  }
+
+  const groupNames = allNames.filter(name => {
+    const tpl = exerciseTemplates[name];
+    return resolveExerciseGroup(tpl) === selectedGroup;
+  });
+  if (!groupNames.length) {
+    const hint = document.createElement("div");
+    hint.className = "hint-text";
+    hint.textContent = t("favorites.emptyOption");
+    favoritesList.appendChild(hint);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  groupNames.forEach(name => {
+    const label = document.createElement("label");
+    label.className = "favorite-item";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = favorites.has(name);
+    checkbox.addEventListener("change", () => {
+      const updated = new Set(loadFavorites());
+      if (checkbox.checked) {
+        updated.add(name);
+      } else {
+        updated.delete(name);
+      }
+      saveFavorites(Array.from(updated));
+      if (quickAddGroupSelect) {
+        populateQuickAddExercises(quickAddGroupSelect.value);
+      }
+    });
+    const text = document.createElement("span");
+    text.textContent = name;
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    fragment.appendChild(label);
+  });
+  favoritesList.appendChild(fragment);
 }
 
 function openHistoryMenuOverlay() {
@@ -5228,13 +5834,62 @@ if (manageUserHistoryBtn) {
   });
 }
 
+if (manageUserChartsBtn) {
+  manageUserChartsBtn.addEventListener("click", () => {
+    closeManageUserOverlay();
+    const step8Index = stepPages.indexOf(step8);
+    if (step8Index >= 0) {
+      allowGlobalChartsStep = true;
+      setActiveStep(step8Index, { force: true });
+      if (typeof window.loadChartExercises === "function") {
+        window.loadChartExercises();
+      }
+      renderUserStatsCharts();
+    }
+  });
+}
+
+if (manageUserMuscleChartsBtn) {
+  manageUserMuscleChartsBtn.addEventListener("click", () => {
+    closeManageUserOverlay();
+    const step9Index = stepPages.indexOf(step9);
+    if (step9Index >= 0) {
+      allowGlobalChartsStep = true;
+      setActiveStep(step9Index, { force: true });
+      renderUserStatsCharts();
+    }
+  });
+}
+
+if (manageUserFavoritesBtn) {
+  manageUserFavoritesBtn.addEventListener("click", () => {
+    closeManageUserOverlay();
+    openFavoritesOverlay();
+  });
+}
+if (favoritesGroupSelect) {
+  favoritesGroupSelect.addEventListener("change", () => {
+    renderFavoritesList();
+  });
+}
+
 if (historyMenuClose) {
   historyMenuClose.addEventListener("click", closeHistoryMenuOverlay);
+}
+
+if (favoritesClose) {
+  favoritesClose.addEventListener("click", closeFavoritesOverlay);
 }
 
 if (historyMenuOverlay) {
   historyMenuOverlay.addEventListener("click", (e) => {
     if (e.target === historyMenuOverlay) closeHistoryMenuOverlay();
+  });
+}
+
+if (favoritesOverlay) {
+  favoritesOverlay.addEventListener("click", (e) => {
+    if (e.target === favoritesOverlay) closeFavoritesOverlay();
   });
 }
 

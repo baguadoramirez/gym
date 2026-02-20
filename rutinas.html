@@ -818,7 +818,41 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    #chart-exercise-select {
+    .chart-container-small {
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #global-user-stats-pie {
+      width: 100% !important;
+      height: 330px !important;
+    }
+
+    .pie-icon-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 0.9rem;
+      margin-top: 0.6rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .pie-icon-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .pie-icon-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    #chart-exercise-select,
+    #global-chart-exercise-select {
       width: 100%;
       box-sizing: border-box;
     }
@@ -1002,9 +1036,15 @@
       width: 100%;
       margin-bottom: 0.5rem;
     }
-    .sensations-form input, .sensations-form select {
+    .sensations-form input,
+    .sensations-form select,
+    .sensations-form textarea {
         width: 100%;
         box-sizing: border-box; 
+    }
+    .sensations-form textarea {
+        resize: vertical;
+        min-height: 80px;
     }
     /* Estilo para los detalles de dolor (aparece/desaparece con JS) */
     .sensations-form #pain-details {
@@ -1014,8 +1054,45 @@
         margin-bottom: 5px;
     }
 
+    .favorites-filter {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.4rem 0 0.6rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
 
-    select, input {
+    .favorites-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.5rem 1rem;
+      max-height: 55vh;
+      overflow: auto;
+      padding: 0.2rem 0.1rem;
+    }
+
+    .favorites-select-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0.4rem 0 0.8rem;
+    }
+
+    .favorites-select-row select {
+      flex: 1;
+    }
+
+    .favorite-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+
+    select, input, textarea {
       padding: 0.4rem;
       font-size: 0.9rem;
       border-radius: 5px;
@@ -1354,12 +1431,14 @@
       color: #111;
       border: 2px solid var(--card-border);
       border-radius: 8px;
-      width: 43px;
+      width: auto;
       height: 43px;
+      padding: 0 12px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 0.45rem;
       font-size: 1.08rem;
     }
 
@@ -1377,6 +1456,15 @@
     #toggle-user-manage:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+
+    #toggle-user-manage .profile-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      max-width: 170px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .floating-actions {
@@ -1440,7 +1528,10 @@
     <div class="subheader-title" data-i18n="subheader.title">Barra d'opcions</div>
   </div>
   <div class="floating-actions" id="floating-actions">
-    <button id="toggle-user-manage" aria-label="Gestionar usuari" data-i18n-aria="aria.manageUser">👤</button>
+    <button id="toggle-user-manage" aria-label="Gestionar usuari" data-i18n-aria="aria.manageUser">
+      <span class="profile-icon" aria-hidden="true">👤</span>
+      <span id="current-user-name" class="profile-name" data-i18n="status.selectUser">Selecciona usuari</span>
+    </button>
     <button id="toggle-stopwatch" aria-label="Compte enrere" data-i18n-aria="aria.countdown">⏱️</button>
   </div>
 </div>
@@ -1460,7 +1551,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text" style="text-align:center;">v0.3.0</div>
+        <div class="hint-text" style="text-align:center;">v0.4</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary" data-i18n="welcome.start">Inicia sessió</button>
@@ -1681,7 +1772,11 @@
         <button id="quick-add-predefined" class="btn-secondary" data-i18n="button.add">Afegir</button>
         <button id="quick-add-custom" class="btn-secondary" data-i18n="button.custom">Personalitzat</button>
       </div>
-      <div class="overlay-actions">
+      <div class="overlay-actions" style="justify-content: space-between; width: 100%;">
+        <label class="favorites-filter" style="margin:0;">
+          <input type="checkbox" id="quick-add-favorites-only">
+          <span data-i18n="label.favoritesOnly">Només favorits</span>
+        </label>
         <button id="quick-add-close-btn" class="btn-secondary" data-i18n="button.close">Tanca</button>
       </div>
     </div>
@@ -1759,6 +1854,11 @@
             <label for="pain-exercise" data-i18n="label.painExercise">Identifica si algun exercici pot haver estat el responsable</label>
             <select id="pain-exercise"></select>
           </div>
+
+          <div class="control-row">
+            <label for="sense-comment" data-i18n="label.sensComment">Comentari general de la sessió</label>
+            <textarea id="sense-comment" rows="3" placeholder="Ex: Molt bon entrenament, bona energia." data-i18n-placeholder="placeholder.sensComment"></textarea>
+          </div>
         </div>
         
         <div class="final-action-row" style="margin-top: 1rem;">
@@ -1822,6 +1922,49 @@
       <div id="edit-session-status" class="hint-text" style="display:none; text-align:left; color:#16a34a; margin-top:6px;"></div>
     </div>
   </details>
+
+  <details id="step-8" class="step-section step-page" open>
+    <summary>
+      <span data-i18n="step8.summary">Pas 8</span>
+      <span id="step-8-status" class="step-status" data-i18n="status.optional">Opcional</span>
+    </summary>
+    <div class="step-body">
+      <div class="hint-text" data-i18n="step8.hint">Pas 8</div>
+      <h2 data-i18n="charts.byExercise">Gràfics per exercici</h2>
+      <div class="controls">
+        <div class="controls-row">
+          <div style="width: 100%;">
+            <select id="global-chart-exercise-select"></select>
+          </div>
+        </div>
+      </div>
+      <p id="global-chart-no-data-msg" style="display: none; color: var(--meta-text);" data-i18n="charts.noData">Encara no hi ha dades d'aquest usuari. Desa sessions o importa dades per veure els gràfics.</p>
+      <div class="chart-container">
+        <canvas id="global-progress-chart"></canvas>
+      </div>
+    </div>
+  </details>
+
+  <details id="step-9" class="step-section step-page" open>
+    <summary>
+      <span data-i18n="step9.summary">Pas 9</span>
+      <span id="step-9-status" class="step-status" data-i18n="status.optional">Opcional</span>
+    </summary>
+    <div class="step-body">
+      <div class="hint-text" data-i18n="step9.hint">Pas 9</div>
+      <h2 data-i18n="charts.byMuscleSession">Gràfics per grup muscular i sessió</h2>
+      <p id="global-user-stats-no-data" class="hint-text" style="display:none;" data-i18n="userStats.noData">Encara no hi ha dades per mostrar.</p>
+      <div class="chart-container">
+        <canvas id="global-user-stats-chart"></canvas>
+      </div>
+      <h3 data-i18n="charts.byMuscleTotal">Percentatge total de sèries per grup muscular</h3>
+      <p id="global-user-stats-pie-no-data" class="hint-text" style="display:none;" data-i18n="userStats.noData">Encara no hi ha dades per mostrar.</p>
+      <div class="chart-container chart-container-small">
+        <canvas id="global-user-stats-pie"></canvas>
+      </div>
+      <div id="global-user-stats-pie-legend" class="pie-icon-legend"></div>
+    </div>
+  </details>
   </div>
   </div>
 
@@ -1849,6 +1992,9 @@
     <div id="manage-user-name" class="manage-user-name"></div>
     <div class="manage-user-actions">
       <button id="manage-user-history-btn" class="btn-secondary" data-i18n="manage.history">Sessions anteriors</button>
+      <button id="manage-user-charts-btn" class="btn-secondary" data-i18n="manage.chartsExercise">Gràfics per exercici</button>
+      <button id="manage-user-muscle-charts-btn" class="btn-secondary" data-i18n="manage.chartsMuscle">Gràfics per grup muscular</button>
+      <button id="manage-user-favorites-btn" class="btn-secondary" data-i18n="manage.favorites">Favorits</button>
       <button id="rename-user-history-btn" class="btn-secondary" data-i18n="manage.rename">Canvia el nom de l'usuari</button>
       <button id="export-user-history-btn" class="btn-accent-alt" data-i18n="manage.exportJson">Còpia de seguretat (JSON)</button>
       <button id="export-user-history-csv-btn" class="btn-accent-alt" data-i18n="manage.exportCsv">Exporta dades d'anàlisi (CSV)</button>
@@ -1856,6 +2002,19 @@
     </div>
     <div class="overlay-actions">
       <button id="manage-user-close" class="btn-orange-dark" data-i18n="button.close">Tanca</button>
+    </div>
+  </div>
+</div>
+
+<div id="favorites-overlay" class="overlay" aria-hidden="true">
+  <div class="overlay-card">
+    <h3 data-i18n="favorites.title">Exercicis favorits</h3>
+    <div class="favorites-select-row">
+      <select id="favorites-group-select"></select>
+    </div>
+    <div id="favorites-list" class="favorites-list"></div>
+    <div class="overlay-actions">
+      <button id="favorites-close" class="btn-secondary" data-i18n="button.close">Tanca</button>
     </div>
   </div>
 </div>
@@ -1933,7 +2092,9 @@
     const chartExerciseSelect = document.getElementById("chart-exercise-select");
     const chartCanvas = document.getElementById("progress-chart");
     const chartNoDataMsg = document.getElementById("chart-no-data-msg");
-    let chartInstance;
+    const globalChartExerciseSelect = document.getElementById("global-chart-exercise-select");
+    const globalChartCanvas = document.getElementById("global-progress-chart");
+    const globalChartNoDataMsg = document.getElementById("global-chart-no-data-msg");
     const BODY_WEIGHT_KEY = "__body_weight__";
 
     const getHistorySessions = () => (
@@ -1971,181 +2132,222 @@
       return max;
     };
 
-    const renderChart = (exerciseName) => {
-      if (!chartCanvas) return;
-      const sessions = getHistorySessions();
-      const dateMap = new Map();
-      const isBodyWeight = exerciseName === BODY_WEIGHT_KEY;
-      sessions.forEach(session => {
-        const date = session?.date;
-        if (!date) return;
-        if (isBodyWeight) {
-          const weight = getBodyWeightValue(session);
-          if (weight == null) return;
-          dateMap.set(date, weight);
-          return;
-        }
-        const exercises = getSessionExercises(session);
-        const ex = exercises.find(item => getExerciseName(item) === exerciseName);
-        if (!ex || !Array.isArray(ex.sets)) return;
-        const maxWeight = getMaxWeightFromSets(ex.sets);
-        if (maxWeight == null) return;
-        const prev = dateMap.get(date);
-        if (prev == null || maxWeight > prev) {
-          dateMap.set(date, maxWeight);
-        }
-      });
+    const getCurrentSessionExerciseNames = () => (
+      Array.from(document.querySelectorAll("#exercises-container .exercise-card .exercise-title"))
+        .map(el => el.textContent.trim())
+        .filter(Boolean)
+    );
 
-      const sortedDates = Array.from(dateMap.keys()).sort((a, b) => new Date(a) - new Date(b));
-      if (!sortedDates.length) {
-        if (chartNoDataMsg) chartNoDataMsg.style.display = "block";
-        if (chartInstance) chartInstance.destroy();
-        chartInstance = null;
-        return;
-      }
-      if (chartNoDataMsg) chartNoDataMsg.style.display = "none";
-
-      const labels = sortedDates.map(date => new Date(date).toLocaleDateString(getChartLocale()));
-      const values = sortedDates.map(date => dateMap.get(date));
-      const maxValue = Math.max(...values);
-      const minValue = Math.min(...values);
-      let yMin = minValue;
-      let yMax = maxValue;
-      const padding = yMax * 0.1;
-      yMin = yMin - padding;
-      yMax = yMax + padding;
-      if (!Number.isFinite(yMin) || !Number.isFinite(yMax) || yMin >= yMax) {
-        yMin = minValue - 1;
-        yMax = maxValue + 1;
-      }
-      const datasetLabel = isBodyWeight ? tChart("chart.option.bodyWeight") : exerciseName;
-      const yAxisTitle = isBodyWeight ? tChart("chart.axis.bodyWeight") : tChart("chart.axis.weight");
-
-      if (chartInstance) chartInstance.destroy();
-      chartInstance = new Chart(chartCanvas, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [{
-            label: datasetLabel,
-            data: values,
-            borderColor: "#f97316",
-            backgroundColor: "#f9731620",
-            fill: false,
-            tension: 0.25,
-            pointRadius: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              title: { display: true, text: tChart("chart.axis.date"), font: { size: 16 } },
-              ticks: { font: { size: 14 } }
-            },
-            y: {
-              beginAtZero: false,
-              min: yMin,
-              max: yMax,
-              title: { display: true, text: yAxisTitle, font: { size: 16 } },
-              ticks: { font: { size: 14 } }
-            }
-          }
-        }
-      });
-    };
-
-    const loadChartExercises = () => {
-      if (!chartExerciseSelect) return;
-      const sessions = getHistorySessions();
-      const exercises = new Set(
+    const getAllHistoryExerciseNames = () => {
+      const names = new Set(
         typeof window.getGymHistoryExerciseNames === "function"
           ? window.getGymHistoryExerciseNames()
           : []
       );
-      Array.from(document.querySelectorAll(".exercise-card .exercise-title"))
-        .map(el => el.textContent.trim())
-        .filter(Boolean)
-        .forEach(name => exercises.add(name));
-
-      const maxByExercise = new Map();
+      const sessions = getHistorySessions();
       sessions.forEach(session => {
-        const exercisesList = getSessionExercises(session);
-        exercisesList.forEach(ex => {
+        getSessionExercises(session).forEach(ex => {
           const name = getExerciseName(ex);
-          if (!name || !Array.isArray(ex.sets)) return;
-          const maxWeight = getMaxWeightFromSets(ex.sets);
-          if (maxWeight == null) return;
-          const current = maxByExercise.get(name);
-          if (current == null || maxWeight > current) {
-            maxByExercise.set(name, maxWeight);
-          }
+          if (name) names.add(name);
         });
       });
-
-      const bodyWeightByDate = new Map();
-      sessions.forEach(session => {
-        const date = session?.date;
-        if (!date) return;
-        const weight = getBodyWeightValue(session);
-        if (weight == null) return;
-        bodyWeightByDate.set(date, weight);
-      });
-      const hasBodyWeight = bodyWeightByDate.size > 0;
-
-      chartExerciseSelect.innerHTML = "";
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.disabled = true;
-      placeholder.selected = true;
-      placeholder.textContent = tChart("placeholder.selectExercise");
-      chartExerciseSelect.appendChild(placeholder);
-
-      if (hasBodyWeight) {
-        const opt = document.createElement("option");
-        opt.value = BODY_WEIGHT_KEY;
-        opt.textContent = tChart("chart.option.bodyWeight");
-        chartExerciseSelect.appendChild(opt);
-      }
-
-      Array.from(exercises)
-        .sort((a, b) => a.localeCompare(b, getChartLocale()))
-        .forEach(name => {
-          const opt = document.createElement("option");
-          opt.value = name;
-          const maxValue = maxByExercise.get(name);
-          opt.textContent = maxValue != null ? `${name} · ${maxValue} kg` : name;
-          chartExerciseSelect.appendChild(opt);
-        });
-
-      const hasOptions = exercises.size > 0 || hasBodyWeight;
-      chartExerciseSelect.disabled = !hasOptions;
-      if (!hasOptions) {
-        if (chartNoDataMsg) chartNoDataMsg.style.display = "block";
-        if (chartInstance) chartInstance.destroy();
-        chartInstance = null;
-        return;
-      }
-
-      const sortedSessions = sessions.slice().sort((a, b) => new Date(b?.date || 0) - new Date(a?.date || 0));
-      const latestSession = sortedSessions[0];
-      const latestExercises = getSessionExercises(latestSession).map(ex => getExerciseName(ex)).filter(Boolean);
-      let defaultValue = latestExercises[0] || Array.from(exercises)[0] || "";
-      if (!defaultValue && hasBodyWeight) defaultValue = BODY_WEIGHT_KEY;
-      if (defaultValue) {
-        chartExerciseSelect.value = defaultValue;
-        renderChart(defaultValue);
-      }
+      return Array.from(names);
     };
 
-    if (chartExerciseSelect) {
-      chartExerciseSelect.addEventListener("change", () => {
-        if (chartExerciseSelect.value) renderChart(chartExerciseSelect.value);
-      });
-    }
+    const createChartSection = ({ selectEl, canvasEl, noDataMsgEl, allowBodyWeight, getExerciseNames }) => {
+      let chartInstance;
+
+      const renderChart = (exerciseName) => {
+        if (!canvasEl) return;
+        const sessions = getHistorySessions();
+        const dateMap = new Map();
+        const isBodyWeight = exerciseName === BODY_WEIGHT_KEY;
+        sessions.forEach(session => {
+          const date = session?.date;
+          if (!date) return;
+          if (isBodyWeight) {
+            const weight = getBodyWeightValue(session);
+            if (weight == null) return;
+            dateMap.set(date, weight);
+            return;
+          }
+          const exercises = getSessionExercises(session);
+          const ex = exercises.find(item => getExerciseName(item) === exerciseName);
+          if (!ex || !Array.isArray(ex.sets)) return;
+          const maxWeight = getMaxWeightFromSets(ex.sets);
+          if (maxWeight == null) return;
+          const prev = dateMap.get(date);
+          if (prev == null || maxWeight > prev) {
+            dateMap.set(date, maxWeight);
+          }
+        });
+
+        const sortedDates = Array.from(dateMap.keys()).sort((a, b) => new Date(a) - new Date(b));
+        if (!sortedDates.length) {
+          if (noDataMsgEl) noDataMsgEl.style.display = "block";
+          if (chartInstance) chartInstance.destroy();
+          chartInstance = null;
+          return;
+        }
+        if (noDataMsgEl) noDataMsgEl.style.display = "none";
+
+        const labels = sortedDates.map(date => new Date(date).toLocaleDateString(getChartLocale()));
+        const values = sortedDates.map(date => dateMap.get(date));
+        const maxValue = Math.max(...values);
+        const minValue = Math.min(...values);
+        let yMin = minValue;
+        let yMax = maxValue;
+        const padding = yMax * 0.1;
+        yMin = yMin - padding;
+        yMax = yMax + padding;
+        if (!Number.isFinite(yMin) || !Number.isFinite(yMax) || yMin >= yMax) {
+          yMin = minValue - 1;
+          yMax = maxValue + 1;
+        }
+        const datasetLabel = isBodyWeight ? tChart("chart.option.bodyWeight") : exerciseName;
+        const yAxisTitle = isBodyWeight ? tChart("chart.axis.bodyWeight") : tChart("chart.axis.weight");
+
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(canvasEl, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [{
+              label: datasetLabel,
+              data: values,
+              borderColor: "#f97316",
+              backgroundColor: "#f9731620",
+              fill: false,
+              tension: 0.25,
+              pointRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: tChart("chart.axis.date"), font: { size: 16 } },
+                ticks: { font: { size: 14 } }
+              },
+              y: {
+                beginAtZero: false,
+                min: yMin,
+                max: yMax,
+                title: { display: true, text: yAxisTitle, font: { size: 16 } },
+                ticks: { font: { size: 14 } }
+              }
+            }
+          }
+        });
+      };
+
+      const loadExercises = () => {
+        if (!selectEl) return;
+        const sessions = getHistorySessions();
+        const exercises = new Set(getExerciseNames());
+
+        const maxByExercise = new Map();
+        sessions.forEach(session => {
+          const exercisesList = getSessionExercises(session);
+          exercisesList.forEach(ex => {
+            const name = getExerciseName(ex);
+            if (!name || !Array.isArray(ex.sets) || !exercises.has(name)) return;
+            const maxWeight = getMaxWeightFromSets(ex.sets);
+            if (maxWeight == null) return;
+            const current = maxByExercise.get(name);
+            if (current == null || maxWeight > current) {
+              maxByExercise.set(name, maxWeight);
+            }
+          });
+        });
+
+        let hasBodyWeight = false;
+        if (allowBodyWeight) {
+          const bodyWeightByDate = new Map();
+          sessions.forEach(session => {
+            const date = session?.date;
+            if (!date) return;
+            const weight = getBodyWeightValue(session);
+            if (weight == null) return;
+            bodyWeightByDate.set(date, weight);
+          });
+          hasBodyWeight = bodyWeightByDate.size > 0;
+        }
+
+        selectEl.innerHTML = "";
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        placeholder.textContent = tChart("placeholder.selectExercise");
+        selectEl.appendChild(placeholder);
+
+        if (hasBodyWeight) {
+          const opt = document.createElement("option");
+          opt.value = BODY_WEIGHT_KEY;
+          opt.textContent = tChart("chart.option.bodyWeight");
+          selectEl.appendChild(opt);
+        }
+
+        Array.from(exercises)
+          .sort((a, b) => a.localeCompare(b, getChartLocale()))
+          .forEach(name => {
+            const opt = document.createElement("option");
+            opt.value = name;
+            const maxValue = maxByExercise.get(name);
+            opt.textContent = maxValue != null ? `${name} · ${maxValue} kg` : name;
+            selectEl.appendChild(opt);
+          });
+
+        const hasOptions = exercises.size > 0 || hasBodyWeight;
+        selectEl.disabled = !hasOptions;
+        if (!hasOptions) {
+          if (noDataMsgEl) noDataMsgEl.style.display = "block";
+          if (chartInstance) chartInstance.destroy();
+          chartInstance = null;
+          return;
+        }
+
+        let defaultValue = Array.from(exercises)[0] || "";
+        if (!defaultValue && hasBodyWeight) defaultValue = BODY_WEIGHT_KEY;
+        if (defaultValue) {
+          selectEl.value = defaultValue;
+          renderChart(defaultValue);
+        }
+      };
+
+      if (selectEl) {
+        selectEl.addEventListener("change", () => {
+          if (selectEl.value) renderChart(selectEl.value);
+        });
+      }
+
+      return { loadExercises };
+    };
+
+    const sessionCharts = createChartSection({
+      selectEl: chartExerciseSelect,
+      canvasEl: chartCanvas,
+      noDataMsgEl: chartNoDataMsg,
+      allowBodyWeight: false,
+      getExerciseNames: getCurrentSessionExerciseNames
+    });
+
+    const globalCharts = createChartSection({
+      selectEl: globalChartExerciseSelect,
+      canvasEl: globalChartCanvas,
+      noDataMsgEl: globalChartNoDataMsg,
+      allowBodyWeight: true,
+      getExerciseNames: getAllHistoryExerciseNames
+    });
+
+    const loadChartExercises = () => {
+      if (sessionCharts) sessionCharts.loadExercises();
+      if (globalCharts) globalCharts.loadExercises();
+    };
 
     loadChartExercises();
     window.loadChartExercises = loadChartExercises;
