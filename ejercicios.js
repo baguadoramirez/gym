@@ -994,12 +994,61 @@ const exerciseTemplates = {
   
 };
 
+const exercisesWithoutMaterial = new Set([
+  "Sentadillas",
+  "Plancha abdominal (Plank)",
+  "Plancha Abdominal Centrada",
+  "Plancha lateral",
+  "Hollow hold",
+  "Bird-dog",
+  "Dead bug",
+  "Crunch abdominal",
+  "Russian twists"
+]);
+
+Object.keys(exerciseTemplates).forEach(name => {
+  const tpl = exerciseTemplates[name];
+  if (!tpl) return;
+  if (exercisesWithoutMaterial.has(name)) {
+    tpl.sinMaterial = true;
+  } else if (tpl.sinMaterial == null) {
+    tpl.sinMaterial = false;
+  }
+});
+
 
 // ---------------------------------------------------------
-// RUTINAS (vacío: sesiones predefinidas eliminadas)
+// RUTINAS (predefinidas)
 // ---------------------------------------------------------
 
-const routines = {};
+const routines = {
+  "Semana 1": {
+    "Día 1 – Tren superior (tirón + pecho secundario)": [
+      "Jalón al pecho",
+      "Remo polea sentado",
+      "Remo con barra",
+      "Curl de bíceps con barra",
+      "Press inclinado mancuernas",
+      "Aperturas en máquina/polea"
+    ],
+    "Día 2 – Tren superior (empuje + hombro y brazos)": [
+      "Press de banca",
+      "Press inclinado barra",
+      "Press militar mancuernas",
+      "Elevaciones laterales",
+      "Press Francés (Skullcrushers)",
+      "Fondos en paralelas (Dips)"
+    ],
+    "Día 3 – Tren inferior + core": [
+      "Sentadillas",
+      "Peso muerto",
+      "Sentadilla goblet",
+      "Elevación de talones en máquina",
+      "Plancha abdominal (Plank)",
+      "Crunch abdominal"
+    ]
+  }
+};
 
 
 // Exportar

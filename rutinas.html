@@ -1063,6 +1063,17 @@
       color: var(--text);
     }
 
+    .quick-add-actions {
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .quick-add-filters {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
     .favorites-list {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1772,11 +1783,17 @@
         <button id="quick-add-predefined" class="btn-secondary" data-i18n="button.add">Afegir</button>
         <button id="quick-add-custom" class="btn-secondary" data-i18n="button.custom">Personalitzat</button>
       </div>
-      <div class="overlay-actions" style="justify-content: space-between; width: 100%;">
-        <label class="favorites-filter" style="margin:0;">
-          <input type="checkbox" id="quick-add-favorites-only">
-          <span data-i18n="label.favoritesOnly">Només favorits</span>
-        </label>
+      <div class="overlay-actions quick-add-actions" style="justify-content: space-between; width: 100%;">
+        <div class="quick-add-filters">
+          <label class="favorites-filter" style="margin:0;">
+            <input type="checkbox" id="quick-add-favorites-only">
+            <span data-i18n="label.favoritesOnly">Només favorits</span>
+          </label>
+          <label class="favorites-filter" style="margin:0;">
+            <input type="checkbox" id="quick-add-no-material">
+            <span data-i18n="label.noMaterial">Sense material</span>
+          </label>
+        </div>
         <button id="quick-add-close-btn" class="btn-secondary" data-i18n="button.close">Tanca</button>
       </div>
     </div>

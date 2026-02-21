@@ -238,6 +238,7 @@ const I18N_STRINGS = {
     "label.sensPain": "Dolor en algun múscul (sí/no)",
     "label.sensComment": "Comentari general de la sessió",
     "label.favoritesOnly": "Només favorits",
+    "label.noMaterial": "Sense material",
     "label.painZone": "Zona del dolor",
     "label.painExercise": "Identifica si algun exercici pot haver estat el responsable",
     "placeholder.sensGeneral": "Ex: 8",
@@ -605,6 +606,7 @@ const I18N_STRINGS = {
     "label.sensPain": "Pain in any muscle (yes/no)",
     "label.sensComment": "General session comment",
     "label.favoritesOnly": "Favorites only",
+    "label.noMaterial": "No equipment",
     "label.painZone": "Pain area",
     "label.painExercise": "Identify if any exercise might have caused it",
     "placeholder.sensGeneral": "e.g. 8",
@@ -972,6 +974,7 @@ const I18N_STRINGS = {
     "label.sensPain": "Dolor en algún músculo (sí/no)",
     "label.sensComment": "Comentario general de la sesión",
     "label.favoritesOnly": "Solo favoritos",
+    "label.noMaterial": "Sin material",
     "label.painZone": "Zona del dolor",
     "label.painExercise": "Identifica si algún ejercicio puede haber sido el responsable",
     "placeholder.sensGeneral": "Ej: 8",
@@ -4719,6 +4722,7 @@ const quickAddCloseBtn = document.getElementById('quick-add-close-btn');
 const quickAddGroupSelect = document.getElementById('quick-add-group');
 const quickAddExerciseSelect = document.getElementById('quick-add-exercise');
 const quickAddFavoritesOnly = document.getElementById('quick-add-favorites-only');
+const quickAddNoMaterialOnly = document.getElementById('quick-add-no-material');
 const quickAddPredefinedBtn = document.getElementById('quick-add-predefined');
 const quickAddCustomBtn = document.getElementById('quick-add-custom');
 const customExerciseOverlay = document.getElementById('custom-exercise-overlay');
@@ -4932,6 +4936,7 @@ function populateQuickAddExercises(selectedGroup) {
   const quickExerciseSelect = document.getElementById("quick-add-exercise");
   if (!quickExerciseSelect) return;
   const favoritesOnly = Boolean(quickAddFavoritesOnly?.checked);
+  const noMaterialOnly = Boolean(quickAddNoMaterialOnly?.checked);
   const favorites = favoritesOnly ? new Set(loadFavorites()) : null;
   quickExerciseSelect.innerHTML = `<option value="">${t("placeholder.selectExercise")}</option>`;
   if (!selectedGroup) {
@@ -4942,6 +4947,7 @@ function populateQuickAddExercises(selectedGroup) {
     const tpl = exerciseTemplates[name];
     if (resolveExerciseGroup(tpl) !== selectedGroup) return false;
     if (favoritesOnly && favorites && !favorites.has(name)) return false;
+    if (noMaterialOnly && !tpl?.sinMaterial) return false;
     return true;
   }).sort((a, b) => a.localeCompare(b, getLocale()));
   if (!exercisesInGroup.length) {
@@ -4968,6 +4974,13 @@ if (quickAddGroupSelect) {
 }
 if (quickAddFavoritesOnly) {
   quickAddFavoritesOnly.addEventListener("change", () => {
+    if (quickAddGroupSelect) {
+      populateQuickAddExercises(quickAddGroupSelect.value);
+    }
+  });
+}
+if (quickAddNoMaterialOnly) {
+  quickAddNoMaterialOnly.addEventListener("change", () => {
     if (quickAddGroupSelect) {
       populateQuickAddExercises(quickAddGroupSelect.value);
     }
