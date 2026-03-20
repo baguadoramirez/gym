@@ -101,6 +101,15 @@ const exerciseTemplates = {
     trucos: "Ideal para el desarrollo de la **parte interna del pectoral**. En el punto superior, intenta 'raspar' las mancuernas una contra otra para asegurar la contracción central."
   },
 
+  "Pec deck": {
+    musculo: "Pectoral",
+    grupo: "Pecho",
+    seccion: "General (Énfasis en Estiramiento)",
+    hacer: "<b>Ajusta el asiento</b> para que los codos queden alineados con los hombros. <b>Mantén los codos semiflexionados</b> y trae las asas hacia el centro del pecho en un movimiento de abrazo controlado. Siente el estiramiento en la fase excéntrica.",
+    noHacer: "<b>No conviertas el movimiento en un press</b> extendiendo completamente los codos. Evita usar pesos excesivos que comprometan la forma.",
+    trucos: "Imagina que estás <b>'abrazando un árbol'</b> para maximizar la contracción pectoral. Mantén una pausa de 1 segundo en el centro para intensificar la activación."
+  },
+
 
   // ======= HOMBRO 🎯 =======
   "Press militar mancuernas": {
@@ -394,6 +403,24 @@ const exerciseTemplates = {
     hacer: "<b>Agarre de una sola mano</b> en la cuerda. <b>Extiende el brazo al máximo</b> hacia abajo y hacia afuera, separando la cuerda al final. Control total del rango.",
     noHacer: "<b>No gires el tronco</b> para ayudar la extensión. Evita el balanceo del brazo.",
     trucos: "Al extender el codo, <b>separa ligeramente la mano</b> y realiza una rotación externa de la muñeca. Esto ayuda a enfatizar la cabeza lateral y el punto de 'herradura' del tríceps."
+  },
+
+  "Triceps katana unilateral": {
+    musculo: "Tríceps",
+    grupo: "Brazos",
+    seccion: "Aislamiento (Unilateral)",
+    hacer: "Usa la máquina katana con un brazo. <b>Mantén el codo fijo</b> y extiende el brazo completamente hacia abajo. Controla la fase excéntrica lentamente.",
+    noHacer: "<b>No uses el tronco</b> para ayudar el movimiento. Evita flexionar la muñeca.",
+    trucos: "Concéntrate en <b>apretar el tríceps</b> al final de la extensión. Realiza una pausa de 1 segundo para máxima contracción."
+  },
+
+  "Triceps katana cuerda": {
+    musculo: "Tríceps",
+    grupo: "Brazos",
+    seccion: "General (Cabeza Lateral)",
+    hacer: "<b>Agarre con ambas manos en la cuerda</b> de la máquina katana. <b>Extiende los brazos</b> hacia abajo, separando la cuerda al final para enfatizar la cabeza lateral.",
+    noHacer: "<b>No separes los codos</b> del torso. Evita el impulso del tronco.",
+    trucos: "Inclínate ligeramente hacia adelante y <b>bloquea los hombros</b> para aislar el tríceps. Piensa en formar una 'V' con los brazos al extender."
   },
 
 
@@ -994,6 +1021,14 @@ const exerciseTemplates = {
   
 };
 
+// Alias de nombres usados en históricos
+const exerciseAliasMap = {
+  "Triceps Katana": "Triceps katana cuerda",
+  "Triceps Katana (cuerda)": "Triceps katana cuerda",
+  "Fondos en paralelas": "Fondos en paralelas (Dips)",
+  "Fondos paralelas": "Fondos en paralelas (Dips)"
+};
+
 const exercisesWithoutMaterial = new Set([
   "Sentadillas",
   "Plancha abdominal (Plank)",
@@ -1054,3 +1089,4 @@ const routines = {
 // Exportar
 window.exerciseTemplates = exerciseTemplates;
 window.routines = routines;
+window.exerciseAliasMap = exerciseAliasMap;

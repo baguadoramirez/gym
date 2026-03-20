@@ -150,6 +150,17 @@ function getSafeStorage() {
 
 const storage = getSafeStorage();
 
+const exerciseAliasMap = window.exerciseAliasMap || {};
+function resolveExerciseAliasName(name) {
+  if (!name) return "";
+  return exerciseAliasMap[name] || name;
+}
+function getExerciseTemplate(name) {
+  const resolved = resolveExerciseAliasName(name);
+  return exerciseTemplates[resolved] || {};
+}
+window.resolveExerciseAliasName = resolveExerciseAliasName;
+
 const LANG_KEY = "gym_lang";
 const FONT_SCALE_KEY = "gym_font_scale";
 const FONT_SCALE_MIN = 0.75;
@@ -479,6 +490,10 @@ const I18N_STRINGS = {
     "group.Hombros": "Espatlles",
     "group.Brazos": "Braços",
     "group.Piernas": "Cames",
+    "group.Cuádriceps": "Cuàdriceps",
+    "group.Isquios": "Isquiotibials",
+    "group.Glúteos": "Glutis",
+    "group.Gemelos": "Bessons",
     "group.Antebrazos": "Avantbraços",
     "group.Cardio": "Cardio",
     "group.Core": "Core",
@@ -847,6 +862,10 @@ const I18N_STRINGS = {
     "group.Hombros": "Shoulders",
     "group.Brazos": "Arms",
     "group.Piernas": "Legs",
+    "group.Cuádriceps": "Quadriceps",
+    "group.Isquios": "Hamstrings",
+    "group.Glúteos": "Glutes",
+    "group.Gemelos": "Calves",
     "group.Antebrazos": "Forearms",
     "group.Cardio": "Cardio",
     "group.Core": "Core",
@@ -1215,6 +1234,10 @@ const I18N_STRINGS = {
     "group.Hombros": "Hombros",
     "group.Brazos": "Brazos",
     "group.Piernas": "Piernas",
+    "group.Cuádriceps": "Cuádriceps",
+    "group.Isquios": "Isquios",
+    "group.Glúteos": "Glúteos",
+    "group.Gemelos": "Gemelos",
     "group.Antebrazos": "Antebrazos",
     "group.Cardio": "Cardio",
     "group.Core": "Core",
@@ -2525,10 +2548,15 @@ const muscleGroupMap = {
   "Tríceps": "Brazos",
   "Espalda": "Espalda",
   "Dorsal": "Espalda",
-  "Cuádriceps": "Piernas",
-  "Femoral": "Piernas",
-  "Gemelos": "Piernas",
-  "Glúteo": "Piernas",
+  "Cuádriceps": "Cuádriceps",
+  "Femoral": "Isquios",
+  "Gemelos": "Gemelos",
+  "Glúteo": "Glúteos",
+  "Glúteo medio": "Glúteos",
+  "Glúteo/Aductores": "Glúteos",
+  "Glúteo/Cuádriceps": "Cuádriceps",
+  "Glúteo/Femoral": "Isquios",
+  "Pierna": "Cuádriceps",
   "Cardio": "Cardio",
   "Antebrazo": "Antebrazos",
   "Trapecio": "Espalda",
@@ -3745,7 +3773,7 @@ function buildExerciseCard(exData) {
 
 function addExerciseFromTemplate(name) {
   if (!name) return;
-  const tpl = exerciseTemplates[name] || {};
+  const tpl = getExerciseTemplate(name);
   if (!exercisesContainer) exercisesContainer = mainExercisesContainer;
   exercisesContainer.appendChild(
     buildExerciseCard({
@@ -3814,7 +3842,7 @@ function buildSessionData(container) {
         sec = metaElement.getAttribute("data-seccion") || "";
     }
     
-    const tpl = exerciseTemplates[name] || {};
+    const tpl = getExerciseTemplate(name);
     hacer = tpl.hacer ?? "";
     noHacer = tpl.noHacer ?? "";
     trucos = tpl.trucos ?? "";
@@ -3918,17 +3946,10 @@ function mapMuscleToGroup(label) {
   if (raw.includes("espalda") || raw.includes("dorsal") || raw.includes("trapec")) return "Espalda";
   if (raw.includes("hombro") || raw.includes("delto")) return "Hombros";
   if (raw.includes("bicep") || raw.includes("tricep") || raw.includes("antebrazo") || raw.includes("brazo")) return "Brazos";
-  if (
-    raw.includes("pierna") ||
-    raw.includes("cuadricep") ||
-    raw.includes("isquio") ||
-    raw.includes("femoral") ||
-    raw.includes("gemel") ||
-    raw.includes("pantorr") ||
-    raw.includes("glute") ||
-    raw.includes("aductor") ||
-    raw.includes("abductor")
-  ) return "Piernas";
+  if (raw.includes("glute")) return "Glúteos";
+  if (raw.includes("gemel") || raw.includes("pantorr")) return "Gemelos";
+  if (raw.includes("isquio") || raw.includes("femoral")) return "Isquios";
+  if (raw.includes("cuadricep") || raw.includes("aductor") || raw.includes("abductor") || raw.includes("pierna")) return "Cuádriceps";
   if (raw.includes("core") || raw.includes("abd") || raw.includes("lumbar")) return "Core";
   return "";
 }
@@ -3940,6 +3961,59 @@ function resolveExerciseGroup(tpl) {
   if (tpl.grupo) return tpl.grupo;
   const mapped = mapMuscleToGroup(tpl.musculo);
   return mapped || "Otros";
+}
+
+const PRIMARY_GROUPS = ["Piernas", "Brazos", "Pecho", "Espalda", "Core"];
+function resolvePrimaryGroup(label) {
+  const raw = String(label || "");
+  if (!raw) return "Core";
+  if (raw === "Cuádriceps" || raw === "Isquios" || raw === "Glúteos" || raw === "Gemelos" || raw === "Piernas") {
+    return "Piernas";
+  }
+  if (raw === "Brazos" || raw === "Antebrazos") return "Brazos";
+  if (raw === "Pecho" || raw === "Hombros") return "Pecho";
+  if (raw === "Espalda") return "Espalda";
+  if (raw === "Core") return "Core";
+  if (raw === "Cardio") return "Piernas";
+  return "Core";
+}
+
+const PRIMARY_GROUP_COLORS = {
+  "Piernas": "#16a34a",
+  "Brazos": "#f97316",
+  "Pecho": "#ef4444",
+  "Espalda": "#0ea5e9",
+  "Core": "#14b8a6"
+};
+
+const TONE_STEPS = [0, -12, -24, 12, -36, 24];
+function shadeColor(hex, amount) {
+  const raw = hex.replace("#", "");
+  const num = parseInt(raw, 16);
+  const clamp = (val) => Math.max(0, Math.min(255, val));
+  const r = clamp((num >> 16) + amount);
+  const g = clamp(((num >> 8) & 0xff) + amount);
+  const b = clamp((num & 0xff) + amount);
+  return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, "0")}`;
+}
+
+function buildGroupToneMap(labels) {
+  const groupsByPrimary = new Map();
+  labels.forEach(label => {
+    const primary = resolvePrimaryGroup(label);
+    if (!groupsByPrimary.has(primary)) groupsByPrimary.set(primary, new Set());
+    groupsByPrimary.get(primary).add(label);
+  });
+  const toneMap = new Map();
+  groupsByPrimary.forEach((set, primary) => {
+    const sorted = Array.from(set).sort((a, b) => a.localeCompare(b, getLocale()));
+    sorted.forEach((label, idx) => {
+      const base = PRIMARY_GROUP_COLORS[primary] || "#6b7280";
+      const step = TONE_STEPS[idx % TONE_STEPS.length];
+      toneMap.set(label, shadeColor(base, step));
+    });
+  });
+  return toneMap;
 }
 
 function translateGroupLabel(label) {
@@ -3962,7 +4036,10 @@ function getExerciseGroups() {
     "Espalda",
     "Hombros",
     "Brazos",
-    "Piernas",
+    "Cuádriceps",
+    "Isquios",
+    "Glúteos",
+    "Gemelos",
     "Antebrazos",
     "Cardio",
     "Core",
@@ -4202,7 +4279,7 @@ function applyHistorySession(session, options = {}) {
 
   if (session.exercises?.length) {
     session.exercises.forEach(ex => {
-      const tpl = exerciseTemplates[ex.nombre] || {};
+      const tpl = getExerciseTemplate(ex.nombre);
       let sets = ex.sets ?? [];
       if (onlyFirstSet && sets.length) {
         const isCardio = String(ex.musculo || ex.seccion || "").toLowerCase() === "cardio";
@@ -4294,7 +4371,7 @@ function loadSession(options = {}) {
   // *Si hay datos guardados, cargarlos*
   if (saved && saved.exercises?.length > 0) {
     saved.exercises.forEach(ex => {
-      const tpl = exerciseTemplates[ex.nombre] || {};
+      const tpl = getExerciseTemplate(ex.nombre);
       const pickValue = (primary, fallback) => {
         if (primary === null || primary === undefined) return fallback;
         const str = String(primary).trim();
@@ -4336,7 +4413,7 @@ function loadSession(options = {}) {
   // *Si no hay guardados pero sí rutina definida*
   else if (routine) { 
     routine.forEach(name => {
-      const tpl = exerciseTemplates[name] || {};
+      const tpl = getExerciseTemplate(name);
       exercisesContainer.appendChild(buildExerciseCard({
         nombre: name,
         musculo: tpl.musculo ?? "N/A",
@@ -4944,7 +5021,7 @@ function populateQuickAddExercises(selectedGroup) {
     return;
   }
   const exercisesInGroup = Object.keys(exerciseTemplates).filter(name => {
-    const tpl = exerciseTemplates[name];
+    const tpl = getExerciseTemplate(name);
     if (resolveExerciseGroup(tpl) !== selectedGroup) return false;
     if (favoritesOnly && favorites && !favorites.has(name)) return false;
     if (noMaterialOnly && !tpl?.sinMaterial) return false;
@@ -5537,7 +5614,7 @@ function renderUserStatsChart(targetCanvas, noDataLabel, instanceRefSetter, inst
     const counts = new Map();
     session.exercises.forEach(ex => {
       const name = ex?.nombre || "";
-      const tpl = exerciseTemplates[name] || {};
+      const tpl = getExerciseTemplate(name);
       const rawGroup = resolveExerciseGroup(tpl || { musculo: ex?.musculo });
       const muscle = (rawGroup || t("chart.muscle.unknown")).trim() || t("chart.muscle.unknown");
       const setsCount = Array.isArray(ex.sets) ? ex.sets.length : 0;
@@ -5557,23 +5634,12 @@ function renderUserStatsChart(targetCanvas, noDataLabel, instanceRefSetter, inst
     return;
   }
 
-  const palette = [
-    "#f97316",
-    "#22c55e",
-    "#38bdf8",
-    "#a855f7",
-    "#facc15",
-    "#ef4444",
-    "#14b8a6",
-    "#e11d48",
-    "#84cc16",
-    "#0ea5e9"
-  ];
+  const toneMap = buildGroupToneMap(groups);
 
   const datasets = groups.map((group, idx) => ({
     label: group,
     data: perSession.map(map => map.get(group) || 0),
-    backgroundColor: palette[idx % palette.length],
+    backgroundColor: toneMap.get(group) || "#6b7280",
     stack: "sets"
   }));
 
@@ -5626,7 +5692,7 @@ function renderUserStatsPieChart() {
   rows.forEach(session => {
     session.exercises.forEach(ex => {
       const name = ex?.nombre || "";
-      const tpl = exerciseTemplates[name] || {};
+      const tpl = getExerciseTemplate(name);
       const rawGroup = resolveExerciseGroup(tpl || { musculo: ex?.musculo });
       const muscle = (rawGroup || t("chart.muscle.unknown")).trim() || t("chart.muscle.unknown");
       const setsCount = Array.isArray(ex.sets) ? ex.sets.length : 0;
@@ -5648,18 +5714,7 @@ function renderUserStatsPieChart() {
   }
   if (globalUserStatsPieNoData) globalUserStatsPieNoData.style.display = "none";
 
-  const palette = [
-    "#f97316",
-    "#22c55e",
-    "#38bdf8",
-    "#a855f7",
-    "#facc15",
-    "#ef4444",
-    "#14b8a6",
-    "#e11d48",
-    "#84cc16",
-    "#0ea5e9"
-  ];
+  const toneMap = buildGroupToneMap(labels);
 
   if (globalUserStatsPieInstance) globalUserStatsPieInstance.destroy();
   globalUserStatsPieInstance = new Chart(globalUserStatsPieCanvas, {
@@ -5668,7 +5723,7 @@ function renderUserStatsPieChart() {
       labels,
       datasets: [{
         data: values,
-        backgroundColor: labels.map((_, idx) => palette[idx % palette.length])
+        backgroundColor: labels.map(label => toneMap.get(label) || "#6b7280")
       }]
     },
     options: {
@@ -5696,6 +5751,10 @@ function renderUserStatsPieChart() {
       "Hombros": "🤷",
       "Brazos": "💪",
       "Piernas": "🦵",
+      "Cuádriceps": "🦵",
+      "Isquios": "🦵",
+      "Glúteos": "🍑",
+      "Gemelos": "🦵",
       "Core": "🧱",
       "Cardio": "❤️",
       "Otros": "🔹"
@@ -5706,9 +5765,10 @@ function renderUserStatsPieChart() {
       item.className = "pie-icon-item";
       const dot = document.createElement("span");
       dot.className = "pie-icon-dot";
-      dot.style.background = palette[idx % palette.length];
+      dot.style.background = toneMap.get(label) || "#6b7280";
       const icon = document.createElement("span");
-      icon.textContent = iconMap[label] || "🔸";
+      const primaryLabel = resolvePrimaryGroup(label);
+      icon.textContent = iconMap[label] || iconMap[primaryLabel] || "🔸";
       const text = document.createElement("span");
       const value = values[idx] || 0;
       const pct = totalSum ? Math.round((value / totalSum) * 1000) / 10 : 0;
@@ -5750,7 +5810,7 @@ function renderFavoritesList() {
     favoritesGroupSelect.appendChild(placeholder);
     const groups = Array.from(new Set(
       allNames
-        .map(name => resolveExerciseGroup(exerciseTemplates[name]))
+        .map(name => resolveExerciseGroup(getExerciseTemplate(name)))
         .filter(Boolean)
     )).sort((a, b) => a.localeCompare(b, getLocale()));
     groups.forEach(group => {
@@ -5773,7 +5833,7 @@ function renderFavoritesList() {
   }
 
   const groupNames = allNames.filter(name => {
-    const tpl = exerciseTemplates[name];
+    const tpl = getExerciseTemplate(name);
     return resolveExerciseGroup(tpl) === selectedGroup;
   });
   if (!groupNames.length) {
