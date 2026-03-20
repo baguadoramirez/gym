@@ -5020,10 +5020,15 @@ function populateQuickAddExercises(selectedGroup) {
     quickExerciseSelect.disabled = true;
     return;
   }
-  const exercisesInGroup = Object.keys(exerciseTemplates).filter(name => {
+  const aliasNames = Object.keys(window.exerciseAliasMap || {});
+  const allNames = Array.from(new Set([...Object.keys(exerciseTemplates), ...aliasNames]));
+  const exercisesInGroup = allNames.filter(name => {
     const tpl = getExerciseTemplate(name);
     if (resolveExerciseGroup(tpl) !== selectedGroup) return false;
-    if (favoritesOnly && favorites && !favorites.has(name)) return false;
+    if (favoritesOnly && favorites) {
+      const canonical = resolveExerciseAliasName(name);
+      if (!favorites.has(name) && !favorites.has(canonical)) return false;
+    }
     if (noMaterialOnly && !tpl?.sinMaterial) return false;
     return true;
   }).sort((a, b) => a.localeCompare(b, getLocale()));
