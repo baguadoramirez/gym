@@ -1562,7 +1562,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text" style="text-align:center;">v0.5.2</div>
+        <div class="hint-text" style="text-align:center;">v0.4</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary" data-i18n="welcome.start">Inicia sessió</button>
@@ -2071,8 +2071,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="ejercicios.js?v=4"></script>
-<script src="app.js?v=4"></script>
+<script src="ejercicios.js?v=3"></script>
+<script src="app.js?v=3"></script>
 
 <script>
   // Script Modificado para el nuevo toggle
@@ -2149,29 +2149,23 @@
       return max;
     };
 
-    const resolveAliasName = (name) => (
-      typeof window.resolveExerciseAliasName === "function"
-        ? window.resolveExerciseAliasName(name)
-        : name
-    );
-
     const getCurrentSessionExerciseNames = () => (
       Array.from(document.querySelectorAll("#exercises-container .exercise-card .exercise-title"))
-        .map(el => resolveAliasName(el.textContent.trim()))
+        .map(el => el.textContent.trim())
         .filter(Boolean)
     );
 
     const getAllHistoryExerciseNames = () => {
-      const raw = typeof window.getGymHistoryExerciseNames === "function"
-        ? window.getGymHistoryExerciseNames()
-        : [];
-      const names = new Set(raw.map(resolveAliasName).filter(Boolean));
+      const names = new Set(
+        typeof window.getGymHistoryExerciseNames === "function"
+          ? window.getGymHistoryExerciseNames()
+          : []
+      );
       const sessions = getHistorySessions();
       sessions.forEach(session => {
         getSessionExercises(session).forEach(ex => {
           const name = getExerciseName(ex);
-          const resolved = resolveAliasName(name);
-          if (resolved) names.add(resolved);
+          if (name) names.add(name);
         });
       });
       return Array.from(names);
@@ -2185,7 +2179,6 @@
         const sessions = getHistorySessions();
         const dateMap = new Map();
         const isBodyWeight = exerciseName === BODY_WEIGHT_KEY;
-        const targetName = isBodyWeight ? exerciseName : resolveAliasName(exerciseName);
         sessions.forEach(session => {
           const date = session?.date;
           if (!date) return;
@@ -2196,7 +2189,7 @@
             return;
           }
           const exercises = getSessionExercises(session);
-          const ex = exercises.find(item => resolveAliasName(getExerciseName(item)) === targetName);
+          const ex = exercises.find(item => getExerciseName(item) === exerciseName);
           if (!ex || !Array.isArray(ex.sets)) return;
           const maxWeight = getMaxWeightFromSets(ex.sets);
           if (maxWeight == null) return;

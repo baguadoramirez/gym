@@ -46,6 +46,15 @@ const exerciseTemplates = {
     trucos: "Imagina que <b>rodeas un barril</b> para mantener la forma de arco. Al cerrar, <b>haz una pausa de 1 segundo</b> apretando el pectoral y piensa en juntar tus bíceps para una contracción máxima. En polea, cruza las manos ligeramente para una activación final más intensa."
   },
 
+  "Pec deck": {
+    grupo: "Pecho",
+    musculo: "Pectoral",
+    seccion: "General (Aislamiento)",
+    hacer: "<b>Ajusta el asiento</b> para que los antebrazos/quebrados queden a la altura del medio pecho. <b>Escápulas retraídas</b> contra el respaldo y pecho elevado. Cierra los brazos en un arco controlado hasta juntar los antebrazos/agarres, manteniendo una ligera flexión de codo.",
+    noHacer: "<b>No encorves los hombros</b> ni pierdas la retracción escapular. No conviertas el movimiento en un press empujando con los tríceps. Evita acortar el recorrido con pesos excesivos.",
+    trucos: "Piensa en <b>juntar los codos</b> en vez de las manos. Haz una <b>pausa de 1 segundo</b> en el cierre para maximizar la contracción interna del pectoral."
+  },
+
   "Press declinado mancuernas": {
     grupo: "Pecho",
     musculo: "Pectoral",
@@ -99,15 +108,6 @@ const exerciseTemplates = {
     hacer: "Agarre neutro (palmas enfrentadas). Esto pone los hombros en una posición más segura. <b>Empuja en un plano vertical</b> y mantén los codos ligeramente más pegados al torso (30°-45°).",
     noHacer: "No separes los codos en exceso. <b>No bloquees la articulación</b> completamente arriba.",
     trucos: "Ideal para el desarrollo de la **parte interna del pectoral**. En el punto superior, intenta 'raspar' las mancuernas una contra otra para asegurar la contracción central."
-  },
-
-  "Pec deck": {
-    musculo: "Pectoral",
-    grupo: "Pecho",
-    seccion: "General (Énfasis en Estiramiento)",
-    hacer: "<b>Ajusta el asiento</b> para que los codos queden alineados con los hombros. <b>Mantén los codos semiflexionados</b> y trae las asas hacia el centro del pecho en un movimiento de abrazo controlado. Siente el estiramiento en la fase excéntrica.",
-    noHacer: "<b>No conviertas el movimiento en un press</b> extendiendo completamente los codos. Evita usar pesos excesivos que comprometan la forma.",
-    trucos: "Imagina que estás <b>'abrazando un árbol'</b> para maximizar la contracción pectoral. Mantén una pausa de 1 segundo en el centro para intensificar la activación."
   },
 
 
@@ -405,22 +405,22 @@ const exerciseTemplates = {
     trucos: "Al extender el codo, <b>separa ligeramente la mano</b> y realiza una rotación externa de la muñeca. Esto ayuda a enfatizar la cabeza lateral y el punto de 'herradura' del tríceps."
   },
 
-  "Triceps katana unilateral": {
+  "Tríceps katana unilateral": {
     musculo: "Tríceps",
     grupo: "Brazos",
-    seccion: "Aislamiento (Unilateral)",
-    hacer: "Usa la máquina katana con un brazo. <b>Mantén el codo fijo</b> y extiende el brazo completamente hacia abajo. Controla la fase excéntrica lentamente.",
-    noHacer: "<b>No uses el tronco</b> para ayudar el movimiento. Evita flexionar la muñeca.",
-    trucos: "Concéntrate en <b>apretar el tríceps</b> al final de la extensión. Realiza una pausa de 1 segundo para máxima contracción."
+    seccion: "Cabeza larga (Unilateral)",
+    hacer: "Coloca la polea alta con agarre de una mano. Sitúate de espaldas a la polea, <b>brazo elevado</b> con el codo apuntando al techo y el antebrazo detrás de la cabeza. <b>Extiende el codo</b> hacia arriba y ligeramente al frente manteniendo el hombro estable.",
+    noHacer: "<b>No arquees la espalda</b> ni abras el codo hacia los lados. Evita impulsar con el tronco.",
+    trucos: "Piensa en <b>'empujar la espada'</b> hacia arriba manteniendo el codo fijo. Una <b>ligera inclinación del torso</b> adelante ayuda a alinear el cable con el antebrazo y aumentar el estiramiento."
   },
 
-  "Triceps katana cuerda": {
+  "Tríceps katana cuerda": {
     musculo: "Tríceps",
     grupo: "Brazos",
-    seccion: "General (Cabeza Lateral)",
-    hacer: "<b>Agarre con ambas manos en la cuerda</b> de la máquina katana. <b>Extiende los brazos</b> hacia abajo, separando la cuerda al final para enfatizar la cabeza lateral.",
-    noHacer: "<b>No separes los codos</b> del torso. Evita el impulso del tronco.",
-    trucos: "Inclínate ligeramente hacia adelante y <b>bloquea los hombros</b> para aislar el tríceps. Piensa en formar una 'V' con los brazos al extender."
+    seccion: "Cabeza larga (Bilateral)",
+    hacer: "Polea alta con cuerda. De espaldas a la polea, coloca la cuerda detrás de la cabeza con los codos apuntando arriba. <b>Extiende ambos codos</b> hacia arriba y ligeramente al frente, separando la cuerda al final.",
+    noHacer: "<b>No abras los codos</b> ni dejes que los hombros suban. Evita balancear el torso para ayudar.",
+    trucos: "Mantén el <b>pecho elevado</b> y el core firme. Haz una <b>pausa breve</b> arriba para enfatizar la cabeza larga."
   },
 
 
@@ -1021,14 +1021,6 @@ const exerciseTemplates = {
   
 };
 
-// Alias de nombres usados en históricos
-const exerciseAliasMap = {
-  "Triceps Katana": "Triceps katana cuerda",
-  "Triceps Katana (cuerda)": "Triceps katana cuerda",
-  "Fondos en paralelas": "Fondos en paralelas (Dips)",
-  "Fondos paralelas": "Fondos en paralelas (Dips)"
-};
-
 const exercisesWithoutMaterial = new Set([
   "Sentadillas",
   "Plancha abdominal (Plank)",
@@ -1089,4 +1081,3 @@ const routines = {
 // Exportar
 window.exerciseTemplates = exerciseTemplates;
 window.routines = routines;
-window.exerciseAliasMap = exerciseAliasMap;
