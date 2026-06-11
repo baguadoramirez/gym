@@ -1,0 +1,590 @@
+let historyData = {}; // {exerciseName: [weights]}
+window.uploadedHistory = []; // Array of sessions
+
+function getHistoryStorageKey() {
+  return currentUserKey ? `${LOCAL_HISTORY_KEY}_${currentUserKey}` : LOCAL_HISTORY_KEY;
+}
+
+function getHistoryStorageKeyForUser(userKey) {
+  return userKey ? `${LOCAL_HISTORY_KEY}_${userKey}` : LOCAL_HISTORY_KEY;
+}
+
+function buildSessionKeyForUser(session, userKey) {
+  const date = session?.date || "";
+  const week = session?.week || "";
+  const day = session?.day || "";
+  if (!date && !week && !day) return "";
+  const userPart = userKey ? `${userKey}_` : "";
+  return `gym_${userPart}${date}_${week}_${day}`;
+}
+
+function buildSessionKey(session) {
+  return buildSessionKeyForUser(session, currentUserKey);
+}
+
+function getLocalHistory() {
+  const raw = storage.getItem(getHistoryStorageKey());
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function getLegacyHistoryForCurrentUser() {
+  const raw = storage.getItem(LOCAL_HISTORY_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    if (!currentUserName) return parsed;
+    return parsed.filter(session => {
+      if (!session || typeof session !== "object") return false;
+      if (!session.user) return true;
+      return session.user === currentUserName;
+    });
+  } catch (err) {
+    return [];
+  }
+}
+
+function getHistorySessionsForCharts() {
+  const sources = [];
+  const stored = getLocalHistory();
+  if (stored.length) sources.push(stored);
+  const fromKeys = collectSessionsFromSessionKeys(currentUserKey);
+  if (fromKeys.length) sources.push(fromKeys);
+  const localKeys = collectSessionsFromSessionKeys("local");
+  if (localKeys.length) sources.push(localKeys);
+  const legacy = getLegacyHistoryForCurrentUser();
+  if (legacy.length) sources.push(legacy);
+  const merged = new Map();
+  sources.flat().forEach(session => {
+    if (!session || typeof session !== "object") return;
+    const key = session.key
+      || buildSessionKey(session)
+      || `${session.date || ""}|${session.week || ""}|${session.day || ""}|${session.user || ""}`;
+    if (!merged.has(key)) merged.set(key, session);
+  });
+  if (!merged.size) {
+    const scanned = collectSessionsFromStorage();
+    scanned.forEach(session => {
+      const key = session.key
+        || buildSessionKey(session)
+        || `${session.date || ""}|${session.week || ""}|${session.day || ""}|${session.user || ""}`;
+      if (!merged.has(key)) merged.set(key, session);
+    });
+  }
+  return Array.from(merged.values());
+}
+
+function collectSessionsFromStorage() {
+  const sessions = [];
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
+    if (!key.startsWith("gym_")) continue;
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") continue;
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          if (!item || typeof item !== "object") return;
+          const hasExercises = Array.isArray(item.exercises) || Array.isArray(item.ejercicios);
+          if (!hasExercises) return;
+          sessions.push({ ...item, key: item.key || key });
+        });
+        continue;
+      }
+      const hasExercises = Array.isArray(parsed.exercises) || Array.isArray(parsed.ejercicios);
+      if (!hasExercises) continue;
+      sessions.push({ ...parsed, key: parsed.key || key });
+    } catch (err) {
+      // Ignore malformed entries.
+    }
+  }
+  return sessions;
+}
+
+window.getGymHistorySessions = () => getHistorySessionsForCharts();
+
+function getExerciseNameFromEntry(entry) {
+  if (!entry || typeof entry !== "object") return "";
+  return entry.nombre || entry.name || entry.exercise || entry.ejercicio || "";
+}
+
+function getExercisesArrayFromSession(session) {
+  if (!session || typeof session !== "object") return [];
+  if (Array.isArray(session.exercises)) return session.exercises;
+  if (Array.isArray(session.ejercicios)) return session.ejercicios;
+  if (Array.isArray(session.data?.exercises)) return session.data.exercises;
+  if (Array.isArray(session.data?.ejercicios)) return session.data.ejercicios;
+  if (Array.isArray(session.session?.exercises)) return session.session.exercises;
+  if (Array.isArray(session.session?.ejercicios)) return session.session.ejercicios;
+  return [];
+}
+
+function getGymHistoryExerciseNames() {
+  const sessions = getHistorySessionsForCharts();
+  const names = new Set();
+  const collectFromSession = (session) => {
+    getExercisesArrayFromSession(session).forEach(entry => {
+      const name = getExerciseNameFromEntry(entry);
+      if (name) names.add(name);
+    });
+  };
+  sessions.forEach(collectFromSession);
+  if (names.size) return Array.from(names);
+  const fromStorage = collectExerciseNamesFromStorage();
+  return fromStorage.length ? fromStorage : Array.from(names);
+}
+
+window.getGymHistoryExerciseNames = getGymHistoryExerciseNames;
+
+function collectExerciseNamesFromStorage() {
+  const names = new Set();
+  const seen = new WeakSet();
+  const visit = (value, depth = 0) => {
+    if (depth > 4 || value == null) return;
+    if (Array.isArray(value)) {
+      value.forEach(item => visit(item, depth + 1));
+      return;
+    }
+    if (typeof value !== "object") return;
+    if (seen.has(value)) return;
+    seen.add(value);
+    const exercises = value.exercises || value.ejercicios || value.data?.exercises || value.data?.ejercicios || value.session?.exercises || value.session?.ejercicios;
+    if (Array.isArray(exercises)) {
+      exercises.forEach(entry => {
+        const name = getExerciseNameFromEntry(entry);
+        if (name) names.add(name);
+      });
+    }
+    Object.values(value).forEach(child => visit(child, depth + 1));
+  };
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
+    if (!key.includes("gym") && !key.includes("history")) continue;
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      visit(parsed, 0);
+    } catch (err) {
+      // Ignore malformed entries.
+    }
+  }
+  return Array.from(names);
+}
+
+function getLocalHistoryForUser(userKey) {
+  const raw = storage.getItem(getHistoryStorageKeyForUser(userKey));
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function hasHistoryForUser(userKey) {
+  if (!userKey) return false;
+  const historyKey = getHistoryStorageKeyForUser(userKey);
+  if (storage.getItem(historyKey)) return true;
+  const prefix = `gym_${userKey}_`;
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
+    if (key.startsWith(prefix)) return true;
+  }
+  return false;
+}
+
+function setLocalHistory(sessions) {
+  storage.setItem(getHistoryStorageKey(), JSON.stringify(sessions));
+}
+
+function setLocalHistoryForUser(userKey, sessions) {
+  storage.setItem(getHistoryStorageKeyForUser(userKey), JSON.stringify(sessions));
+}
+
+function collectSessionsFromSessionKeys(userKey) {
+  const sessions = [];
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) || "";
+    if (userKey === "local") {
+      if (!/^gym_\d{4}-\d{2}-\d{2}_/.test(key)) continue;
+    } else {
+      const prefix = `gym_${userKey}_`;
+      if (!key.startsWith(prefix)) continue;
+    }
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") continue;
+      if (!parsed.date) continue;
+      sessions.push({
+        ...parsed,
+        key,
+        user: parsed.user || currentUserName
+      });
+    } catch (err) {
+      // Ignore malformed entries.
+    }
+  }
+  return sessions;
+}
+
+function hydrateHistoryFromSessionKeys() {
+  const existing = getLocalHistory();
+  if (existing.length) return;
+  const sessions = collectSessionsFromSessionKeys(currentUserKey);
+  if (!sessions.length) return;
+  setLocalHistory(sessions);
+  window.uploadedHistory = sessions;
+  rebuildHistoryData(sessions);
+  refreshCharts();
+  if (typeof window.loadChartExercises === "function") {
+    window.loadChartExercises();
+  }
+}
+
+function rebuildHistoryData(sessions) {
+  historyData = {};
+  sessions.forEach(session => {
+    if (session.exercises) {
+      session.exercises.forEach(ex => {
+        if (!historyData[ex.nombre]) historyData[ex.nombre] = [];
+        if (ex.sets) {
+          ex.sets.forEach(set => {
+            if (set.peso && !isNaN(parseFloat(set.peso))) {
+              historyData[ex.nombre].push(parseFloat(set.peso));
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
+function loadLocalHistory() {
+  const sessions = getLocalHistory();
+  window.uploadedHistory = sessions;
+  rebuildHistoryData(sessions);
+  refreshCharts();
+  refreshHistoryUI();
+  populateHistoryDaySelect();
+  if (typeof window.loadChartExercises === "function") {
+    window.loadChartExercises();
+  }
+}
+
+function upsertLocalHistory(session) {
+  if (!session) return;
+  const sessions = getLocalHistory();
+  const key = session.key || buildSessionKey(session) || sessionKey();
+  const sessionWithKey = { ...session, key, user: session.user || currentUserName };
+  const index = sessions.findIndex(item => item.key === key);
+  if (index >= 0) {
+    const existing = sessions[index];
+    const revisions = Array.isArray(existing.revisions) ? existing.revisions.slice() : [];
+    const snapshot = { ...existing };
+    delete snapshot.revisions;
+    revisions.push({ savedAt: new Date().toISOString(), data: snapshot });
+    if (revisions.length > 10) {
+      revisions.splice(0, revisions.length - 10);
+    }
+    sessions[index] = { ...sessionWithKey, revisions };
+  } else {
+    sessions.push(sessionWithKey);
+  }
+  setLocalHistory(sessions);
+  window.uploadedHistory = sessions;
+  rebuildHistoryData(sessions);
+  refreshCharts();
+  refreshHistoryUI();
+}
+
+function normalizeImportedHistoryPayload(payload) {
+  const toFiniteNumberOrNull = value => {
+    if (value == null || value === "") return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  };
+  const rawSessions = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.sessions)
+      ? payload.sessions
+      : Array.isArray(payload?.history)
+        ? payload.history
+        : null;
+
+  if (!rawSessions) {
+    throw new Error("El JSON debe ser una lista de sesiones o contener sessions/history.");
+  }
+
+  const normalized = rawSessions
+    .filter(session => session && typeof session === "object")
+    .map(session => {
+      const date = String(session.date || "").trim();
+      const exercises = Array.isArray(session.exercises) ? session.exercises : [];
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+
+      const cleanExercises = exercises
+        .filter(ex => ex && typeof ex === "object")
+        .map(ex => ({
+          nombre: String(ex.nombre || ex.name || "").trim(),
+          musculo: String(ex.musculo || "").trim(),
+          seccion: String(ex.seccion || "").trim(),
+          sets: Array.isArray(ex.sets)
+            ? ex.sets
+                .filter(set => set && typeof set === "object")
+                .map(set => ({
+                  serie: toFiniteNumberOrNull(set.serie),
+                  peso: toFiniteNumberOrNull(set.peso),
+                  reps: toFiniteNumberOrNull(set.reps),
+                  fallo: set.fallo === true,
+                  repsFallo: toFiniteNumberOrNull(set.repsFallo),
+                  intensidad: toFiniteNumberOrNull(set.intensidad),
+                  tiempo: toFiniteNumberOrNull(set.tiempo)
+                }))
+            : [],
+          notes: String(ex.notes || "").trim()
+        }))
+        .filter(ex => ex.nombre);
+
+      return {
+        ...session,
+        date,
+        user: String(session.user || "").trim(),
+        week: String(session.week || "").trim(),
+        day: String(session.day || "").trim(),
+        exercises: cleanExercises,
+        sensations: session.sensations && typeof session.sensations === "object"
+          ? {
+              general: String(session.sensations.general ?? ""),
+              tiredness: String(session.sensations.tiredness ?? ""),
+              weight: String(session.sensations.weight ?? ""),
+              pain: session.sensations.pain === "si" ? "si" : "no",
+              painZone: String(session.sensations.painZone ?? ""),
+              painExercise: String(session.sensations.painExercise ?? ""),
+              comment: String(session.sensations.comment ?? "")
+            }
+          : {}
+      };
+    })
+    .filter(Boolean);
+
+  if (!normalized.length) {
+    throw new Error("No se ha encontrado ninguna sesión válida en el archivo.");
+  }
+
+  return normalized;
+}
+
+function mergeImportedHistory(imported) {
+  if (!Array.isArray(imported)) return;
+  const cleanImported = normalizeImportedHistoryPayload(imported);
+  const sessions = getLocalHistory();
+  const byKey = new Map();
+  sessions.forEach(item => {
+    const key = item.key || buildSessionKey(item);
+    if (key) byKey.set(key, { ...item, key, user: item.user || currentUserName });
+  });
+  cleanImported.forEach(item => {
+    if (!item || typeof item !== "object") return;
+    const key = item.key || buildSessionKey(item);
+    if (!key) return;
+    byKey.set(key, { ...item, key, user: item.user || currentUserName });
+  });
+  const merged = Array.from(byKey.values());
+  setLocalHistory(merged);
+  window.uploadedHistory = merged;
+  rebuildHistoryData(merged);
+  refreshCharts();
+}
+
+function mergeImportedHistoryForUser(imported, userName, userKey) {
+  if (!Array.isArray(imported)) return;
+  const cleanImported = normalizeImportedHistoryPayload(imported);
+  const sessions = getLocalHistoryForUser(userKey);
+  const byKey = new Map();
+  sessions.forEach(item => {
+    const key = item.key || buildSessionKeyForUser(item, userKey);
+    if (key) byKey.set(key, { ...item, key, user: item.user || userName });
+  });
+  cleanImported.forEach(item => {
+    if (!item || typeof item !== "object") return;
+    const key = item.key || buildSessionKeyForUser(item, userKey);
+    if (!key) return;
+    byKey.set(key, { ...item, key, user: item.user || userName });
+  });
+  const merged = Array.from(byKey.values());
+  setLocalHistoryForUser(userKey, merged);
+  refreshCharts();
+  refreshHistoryUI();
+}
+
+function getExportHistoryForUser(userKey) {
+  const sessions = getLocalHistoryForUser(userKey);
+  const base = sessions.length ? sessions : collectSessionsFromSessionKeys(userKey);
+  return base.map(session => ({
+    ...session,
+    user: session.user || currentUserName,
+    key: session.key || buildSessionKeyForUser(session, userKey)
+  }));
+}
+
+function getMaxWeight(exerciseName) {
+  if (!historyData[exerciseName] || historyData[exerciseName].length === 0) return null;
+  return Math.max(...historyData[exerciseName]);
+}
+
+function getExerciseWeightsFromHistory(exerciseName) {
+  const sessions = Array.isArray(window.uploadedHistory) ? window.uploadedHistory : [];
+  const weights = [];
+  sessions.forEach(session => {
+    const ex = session?.exercises?.find(e => e.nombre === exerciseName);
+    if (!ex?.sets?.length) return;
+    ex.sets.forEach(set => {
+      const peso = parseFloat(set?.peso);
+      if (Number.isFinite(peso) && peso > 0) weights.push(peso);
+    });
+  });
+  return weights;
+}
+
+function getMedian(values) {
+  if (!values.length) return null;
+  const sorted = values.slice().sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function getRobustMaxWeight(exerciseName) {
+  const weights = getExerciseWeightsFromHistory(exerciseName);
+  if (weights.length === 0) return null;
+  const median = getMedian(weights);
+  if (!Number.isFinite(median) || median <= 0) return Math.max(...weights);
+  const cutoff = median * 2.5;
+  const filtered = weights.filter(w => w <= cutoff);
+  return filtered.length ? Math.max(...filtered) : Math.max(...weights);
+}
+
+function getLastExerciseSession(exerciseName) {
+  const sessions = window.uploadedHistory || [];
+  let lastSession = null;
+  let lastDate = null;
+
+  sessions.forEach(session => {
+    if (!session?.exercises?.length) return;
+    const hasExercise = session.exercises.some(ex => ex.nombre === exerciseName);
+    if (!hasExercise) return;
+
+    const sessionDate = new Date(session.date);
+    if (!isNaN(sessionDate)) {
+      if (!lastDate || sessionDate > lastDate) {
+        lastDate = sessionDate;
+        lastSession = session;
+      }
+    } else {
+      lastSession = session;
+    }
+  });
+
+  return lastSession;
+}
+
+function isValidStrengthSet(exerciseName, set) {
+  const peso = parseFloat(set?.peso);
+  const reps = parseFloat(set?.reps);
+  if (!Number.isFinite(peso) || !Number.isFinite(reps)) return false;
+  if (reps < 1 || reps > 20) return false;
+  const maxHist = getRobustMaxWeight(exerciseName);
+  if (Number.isFinite(maxHist) && maxHist > 0 && peso > maxHist * 2.5) return false;
+  return true;
+}
+
+function getLastExerciseSet(exerciseName) {
+  const lastSession = getLastExerciseSession(exerciseName);
+  if (!lastSession) return null;
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  if (!ex?.sets?.length) return null;
+
+  const hasTenPlus = ex.sets.some(set => {
+    const repsValue = parseFloat(set?.reps);
+    return isValidStrengthSet(exerciseName, set) && Number.isFinite(repsValue) && repsValue >= 10;
+  });
+
+  for (let i = ex.sets.length - 1; i >= 0; i -= 1) {
+    const set = ex.sets[i];
+    if (!isValidStrengthSet(exerciseName, set)) continue;
+    return { peso: set.peso ?? null, reps: set.reps ?? null, hasTenPlus };
+  }
+  return null;
+}
+
+function getLastCardioSet(exerciseName) {
+  const lastSession = getLastExerciseSession(exerciseName);
+  if (!lastSession) return null;
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  if (!ex?.sets?.length) return null;
+
+  const firstSet = ex.sets[0] || {};
+  const tiempo = firstSet.tiempo ?? firstSet.reps ?? null;
+  const intensidad = firstSet.intensidad ?? firstSet.peso ?? null;
+
+  if (tiempo == null && intensidad == null) return null;
+  return { tiempo, intensidad };
+}
+
+function getLastExerciseMaxWeight(exerciseName) {
+  const lastSession = getLastExerciseSession(exerciseName);
+  if (!lastSession) return null;
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  if (!ex?.sets?.length) return null;
+  const weights = ex.sets
+    .map(s => parseFloat(s.peso))
+    .filter(v => !Number.isNaN(v) && v > 0);
+  if (weights.length === 0) return null;
+  return Math.max(...weights);
+}
+
+function getLastExerciseSummary(exerciseName) {
+  const lastSession = getLastExerciseSession(exerciseName);
+  if (!lastSession) return null;
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  if (!ex?.sets?.length) return null;
+  const firstSet = ex.sets[0] || {};
+  const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
+  if (isCardio) {
+    const tiempo = firstSet.tiempo ?? firstSet.reps ?? "";
+    const intensidad = firstSet.intensidad ?? firstSet.peso ?? "";
+    const parts = [];
+    if (intensidad !== "") parts.push(t("exercise.detail.intensity", { value: intensidad }));
+    if (tiempo !== "") parts.push(t("exercise.detail.time", { value: tiempo }));
+    const cardioDetail = parts.length
+      ? t("exercise.lastSession.cardio", { detail: parts.join(" · ") })
+      : t("exercise.cardio.noData");
+    return t("exercise.lastSession", { date: lastSession.date, detail: cardioDetail });
+  }
+  let peso = "";
+  let reps = "";
+  for (let i = ex.sets.length - 1; i >= 0; i -= 1) {
+    const set = ex.sets[i];
+    if (!isValidStrengthSet(exerciseName, set)) continue;
+    peso = set.peso ?? "";
+    reps = set.reps ?? "";
+    break;
+  }
+  const parts = [];
+  if (peso !== "") parts.push(t("exercise.detail.weight", { value: peso }));
+  if (reps !== "") parts.push(t("exercise.detail.reps", { value: reps }));
+  const firstSetDetail = parts.length ? t("exercise.firstSet", { detail: parts.join(" x ") }) : t("exercise.firstSet.noData");
+  return t("exercise.lastSession", { date: lastSession.date, detail: firstSetDetail });
+}
+

@@ -1,20 +1,44 @@
-const CACHE_NAME = "gym-tracker-v3";
+const CACHE_NAME = "gym-tracker-v14";
 const ASSETS = [
   "./",
-  "./rutinas.html",
-  "./app.js",
+  "./index.html",
+  "./styles.css",
+  "./theme-charts.js",
+  "./js/app-storage.js",
+  "./js/app-main.js",
+  "./js/app-history.js",
+  "./js/app-routines.js",
+  "./js/app-session.js",
+  "./js/app-export.js",
+  "./js/app-tools.js",
+  "./js/app-user.js",
   "./ejercicios.js",
-  "./bar_logo.png",
   "./manifest.webmanifest",
+  "./icons/bar_logo.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png"
 ];
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+async function cacheCoreAssets() {
+  const cache = await caches.open(CACHE_NAME);
+  await Promise.all(
+    ASSETS.map(asset =>
+      cache.add(asset).catch(err => {
+        console.warn("[sw] no se pudo cachear", asset, err);
+      })
+    )
   );
+}
+
+async function putIfCacheable(request, response) {
+  if (!response || !response.ok || response.type === "opaque") return;
+  const cache = await caches.open(CACHE_NAME);
+  await cache.put(request, response.clone());
+}
+
+self.addEventListener("install", event => {
+  event.waitUntil(cacheCoreAssets());
   self.skipWaiting();
 });
 
@@ -35,11 +59,14 @@ self.addEventListener("fetch", event => {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+          putIfCacheable(event.request, response);
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          return isNavigation ? caches.match("./index.html") : Response.error();
+        })
     );
     return;
   }
@@ -47,10 +74,9 @@ self.addEventListener("fetch", event => {
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        putIfCacheable(event.request, response);
         return response;
-      });
+      }).catch(() => Response.error());
     })
   );
 });
