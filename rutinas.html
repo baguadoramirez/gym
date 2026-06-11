@@ -852,9 +852,15 @@
     }
 
     #chart-exercise-select,
-    #global-chart-exercise-select {
+    #global-chart-exercise-select,
+    #chart-metric-select,
+    #global-chart-metric-select {
       width: 100%;
       box-sizing: border-box;
+      min-height: 48px;
+      padding: 0.75rem 0.9rem;
+      border-radius: 12px;
+      font-size: 1rem;
     }
 
 
@@ -1913,11 +1919,11 @@
       <h2 data-i18n="charts.title">Gràfics de l'usuari</h2>
       <div class="controls">
         <div class="controls-row">
-          <div style="width: 48%; min-width: 180px;">
+          <div style="width: 48%; min-width: 220px;">
             <label for="chart-metric-select" data-i18n="chart.metric.label">Métrica</label><br>
             <select id="chart-metric-select"></select>
           </div>
-          <div style="width: 48%; min-width: 180px;">
+          <div style="width: 48%; min-width: 220px;">
             <label for="chart-exercise-select" data-i18n="placeholder.selectExercise">Seleccionar ejercicio...</label><br>
             <select id="chart-exercise-select"></select>
           </div>
@@ -1955,11 +1961,11 @@
       <h2 data-i18n="charts.byExercise">Gràfics per exercici</h2>
       <div class="controls">
         <div class="controls-row">
-          <div style="width: 48%; min-width: 180px;">
+          <div style="width: 48%; min-width: 220px;">
             <label for="global-chart-metric-select" data-i18n="chart.metric.label">Métrica</label><br>
             <select id="global-chart-metric-select"></select>
           </div>
-          <div style="width: 48%; min-width: 180px;">
+          <div style="width: 48%; min-width: 220px;">
             <label for="global-chart-exercise-select" data-i18n="placeholder.selectExercise">Seleccionar ejercicio...</label><br>
             <select id="global-chart-exercise-select"></select>
           </div>
@@ -2174,16 +2180,18 @@
 
     const getVolumeFromSets = (sets) => {
       if (!Array.isArray(sets) || !sets.length) return null;
-      let total = 0;
-      let hasValidValue = false;
-      sets.forEach(set => {
-        const peso = getSetWeightValue(set);
-        const reps = getSetRepsValue(set);
-        if (!Number.isFinite(peso) || !Number.isFinite(reps) || reps <= 0) return;
-        total += peso * reps;
-        hasValidValue = true;
-      });
-      return hasValidValue ? total : null;
+      const volumes = sets
+        .map(set => {
+          const peso = getSetWeightValue(set);
+          const reps = getSetRepsValue(set);
+          return Number.isFinite(peso) && Number.isFinite(reps) && reps > 0
+            ? peso * reps
+            : null;
+        })
+        .filter(value => value != null);
+
+      if (!volumes.length) return null;
+      return volumes.reduce((sum, value) => sum + value, 0) / volumes.length;
     };
 
     const getCurrentSessionExerciseNames = () => (
