@@ -587,6 +587,15 @@ const exerciseTemplates = {
     trucos: "Cuanta menos ayuda, mayor activación del dorsal."
   },
 
+  "Dominadas agarre neutro": {
+    musculo: "Dorsal / Bíceps",
+    grupo: "Espalda",
+    seccion: "Vertical",
+    hacer: "<b>Cuelga con agarre neutro</b> (palmas mirando entre sí) y tira del cuerpo hacia arriba hasta que el pecho alcance la barra o agarres. Mantén el core activado y evita balancearte.",
+    noHacer: "<b>No uses impulso</b> ni dejes que los hombros se elevan hacia las orejas. Evita redondear la espalda.",
+    trucos: "Piensa en <b>apretar los omóplatos</b> al subir y controla la bajada para maximizar el trabajo del dorsal y bíceps."
+  },
+
   "Bicicleta estática": {
     musculo: "Cardio",
     grupo: "Cardio",
@@ -603,6 +612,15 @@ const exerciseTemplates = {
     hacer: "<b>Coloca la parte media del pie</b> sobre la plataforma, dejando los talones libres. Realiza una <b>extensión completa del tobillo</b>, subiendo los talones lo más alto posible. Baja lentamente hasta sentir un estiramiento profundo.",
     noHacer: "<b>No rebotes</b> en la parte baja del movimiento. No acortes el recorrido ni flexiones las rodillas en exceso para ayudarte.",
     trucos: "Mantén una <b>pausa de 1–2 segundos arriba</b> en máxima contracción. Para enfatizar el sóleo, realiza el ejercicio con <b>rodillas ligeramente flexionadas</b>; para gastrocnemio, mantenlas extendidas."
+  },
+
+  "Elevación de talones en prensa": {
+    grupo: "Piernas",
+    musculo: "Gemelos",
+    seccion: "Sóleo y Gastrocnemio",
+    hacer: "<b>Coloca los pies sobre la plataforma</b> con los talones fuera del borde y las rodillas ligeramente flexionadas. Eleva los talones hasta una <b>contracción completa</b> y baja controladamente hasta el estiramiento máximo.",
+    noHacer: "<b>No uses impulso</b> ni permitas que la espalda se despegue de la prensa. Evita acortar el rango de movimiento.",
+    trucos: "Mantén una <b>pausa breve arriba</b> para sentir la tensión en los gemelos y usa un peso que te permita controlar la bajada."
   },
 
   // ======= EJERCICIOS BÁSICOS ADICIONALES =======
