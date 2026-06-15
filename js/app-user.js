@@ -629,6 +629,9 @@ if (historyDateInput) {
   historyDateInput.addEventListener("change", () => {
     updateHistoryButtons();
   });
+  historyDateInput.addEventListener("input", () => {
+    updateHistoryButtons();
+  });
 }
 
 if (historyViewBtn) {

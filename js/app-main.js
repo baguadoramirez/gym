@@ -97,6 +97,7 @@ const exerciseNextBtn = document.getElementById("exercise-next");
 const saveRoutineControls = document.getElementById("save-routine-controls");
 const homeLogoBtn = document.getElementById("home-logo-btn");
 const historyDateInput = document.getElementById("history-date-input");
+const historyDateList = document.getElementById("history-date-list");
 const historyViewBtn = document.getElementById("history-view-btn");
 const historyEditBtn = document.getElementById("history-edit-btn");
 const overwriteHistoryBtn = document.getElementById("overwrite-history-btn");
@@ -714,6 +715,7 @@ function refreshHistoryUI() {
   if (latest && (!historyDateInput.value || historyDateInput.value === "")) {
     historyDateInput.value = latest.date || "";
   }
+  renderHistoryDateList();
   updateHistoryButtons();
 }
 
@@ -726,6 +728,77 @@ function updateHistoryButtons() {
   if (historyViewBtn) historyViewBtn.disabled = !hasSession;
   if (historyEditBtn) historyEditBtn.disabled = !hasSession;
   if (overwriteHistoryBtn) overwriteHistoryBtn.disabled = !hasSession;
+  updateHistoryDateListSelection();
+}
+
+function formatHistoryDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  if (isNaN(date)) return dateStr || "-";
+  return date.toLocaleDateString(getLocale(), {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+
+function renderHistoryDateList() {
+  if (!historyDateList) return;
+  const sessions = (window.uploadedHistory || [])
+    .filter(session => session?.date)
+    .slice()
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+  historyDateList.innerHTML = "";
+  if (!sessions.length) {
+    const empty = document.createElement("p");
+    empty.className = "meta-text";
+    empty.textContent = t("status.noHistorySessions");
+    historyDateList.appendChild(empty);
+    return;
+  }
+
+  const seenDates = new Set();
+  sessions.forEach(session => {
+    if (seenDates.has(session.date)) return;
+    seenDates.add(session.date);
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "history-date-item";
+    button.dataset.date = session.date;
+
+    const title = document.createElement("span");
+    title.className = "history-date-item-title";
+    title.textContent = formatHistoryDateLabel(session.date);
+
+    const details = document.createElement("span");
+    details.className = "history-date-item-details";
+    const routine = session.week || session.day || "";
+    const exerciseCount = Array.isArray(session.exercises) ? session.exercises.length : 0;
+    details.textContent = routine
+      ? `${translateRoutineLabel(routine)} · ${exerciseCount} ejercicios`
+      : `${exerciseCount} ejercicios`;
+
+    button.appendChild(title);
+    button.appendChild(details);
+    button.addEventListener("click", () => {
+      historyDateInput.value = session.date;
+      updateHistoryButtons();
+    });
+    historyDateList.appendChild(button);
+  });
+
+  updateHistoryDateListSelection();
+}
+
+function updateHistoryDateListSelection() {
+  if (!historyDateList || !historyDateInput) return;
+  const selectedDate = historyDateInput.value;
+  historyDateList.querySelectorAll(".history-date-item").forEach(button => {
+    const active = button.dataset.date === selectedDate;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
 }
 
 function getSelectedHistorySession() {

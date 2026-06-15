@@ -15,14 +15,39 @@
   const initialTheme = savedTheme === "light" ? "light" : "dark";
   applyTheme(initialTheme);
 
-  const onThemeToggle = () => {
-    const isDark = htmlElement.classList.contains("dark");
-    applyTheme(isDark ? "light" : "dark");
-  };
-  if (compactThemeToggle) compactThemeToggle.addEventListener("click", onThemeToggle);
+	  const onThemeToggle = () => {
+	    const isDark = htmlElement.classList.contains("dark");
+	    applyTheme(isDark ? "light" : "dark");
+	  };
+	  if (compactThemeToggle) compactThemeToggle.addEventListener("click", onThemeToggle);
 
-  // Gráficos simples (peso máximo por día)
-  (() => {
+	  if (typeof Chart !== "undefined") {
+	    Chart.register({
+	      id: "zeroReferenceLine",
+	      afterDraw(chart) {
+	        const yScale = chart.scales?.y;
+	        if (!yScale || !Number.isFinite(yScale.min) || !Number.isFinite(yScale.max)) return;
+	        if (yScale.min > 0 || yScale.max < 0) return;
+
+	        const { ctx, chartArea } = chart;
+	        const y = yScale.getPixelForValue(0);
+	        if (y < chartArea.top || y > chartArea.bottom) return;
+
+	        ctx.save();
+	        ctx.beginPath();
+	        ctx.setLineDash([6, 4]);
+	        ctx.lineWidth = 1.5;
+	        ctx.strokeStyle = "#9a3412";
+	        ctx.moveTo(chartArea.left, y);
+	        ctx.lineTo(chartArea.right, y);
+	        ctx.stroke();
+	        ctx.restore();
+	      }
+	    });
+	  }
+	
+	  // Gráficos simples (peso máximo por día)
+	  (() => {
     const i18n = window.gymI18n || {};
     const tChart = (key, vars) => (typeof i18n.t === "function" ? i18n.t(key, vars) : key);
     const getChartLocale = () => (typeof i18n.getLocale === "function" ? i18n.getLocale() : "es-ES");
@@ -46,6 +71,7 @@
       maxWeight: "maxWeight",
       meanVolume: "meanVolume"
     };
+    const TREND_ALPHA = 0.35;
 
     const getHistorySessions = () => (
       typeof window.getGymHistorySessions === "function"
@@ -102,6 +128,17 @@
 
       if (!volumes.length) return null;
       return volumes.reduce((sum, value) => sum + value, 0) / volumes.length;
+    };
+
+    const getTrendValues = (values) => {
+      let previous = null;
+      return values.map(value => {
+        if (!Number.isFinite(value)) return null;
+        previous = previous == null
+          ? value
+          : (TREND_ALPHA * value) + ((1 - TREND_ALPHA) * previous);
+        return previous;
+      });
     };
 
     const getCurrentSessionExerciseNames = () => (
@@ -202,8 +239,10 @@
           if (mode === METRIC_MODES.meanVolume) return current?.volumeCount ? current.volumeSum / current.volumeCount : null;
           return current?.maxWeight ?? null;
         });
-        const maxValue = Math.max(...values);
-        const minValue = Math.min(...values);
+        const trendValues = getTrendValues(values);
+        const chartValues = values.concat(trendValues).filter(value => Number.isFinite(value));
+        const maxValue = Math.max(...chartValues);
+        const minValue = Math.min(...chartValues);
         let yMin = minValue;
         let yMax = maxValue;
         const padding = yMax * 0.1;
@@ -225,20 +264,34 @@
           type: "line",
           data: {
             labels,
-            datasets: [{
-              label: datasetLabel,
-              data: values,
-              borderColor: "#f97316",
-              backgroundColor: "#f9731620",
-              fill: false,
-              tension: 0.25,
-              pointRadius: 4
-            }]
+            datasets: [
+              {
+                label: datasetLabel,
+                data: values,
+                borderColor: "#f97316",
+                backgroundColor: "#f9731620",
+                fill: false,
+                tension: 0.25,
+                pointRadius: 4
+              },
+              {
+                label: "Tendencia",
+                data: trendValues,
+                borderColor: "#2563eb",
+                backgroundColor: "transparent",
+                borderDash: [6, 4],
+                borderWidth: 2,
+                fill: false,
+                tension: 0.35,
+                pointRadius: 0,
+                spanGaps: true
+              }
+            ]
           },
           options: {
             responsive: true,
             plugins: {
-              legend: { display: false }
+              legend: { display: true, position: "bottom" }
             },
             scales: {
               x: {
