@@ -546,7 +546,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Cuerpo alineado de pies a cabeza. <b>Activa el core</b> y baja controlando hasta que el pecho se aproxime al suelo. Empuja manteniendo los codos a 30–45° del torso.",
       "noHacer": "<b>No hundas la cadera</b> ni eleves el glúteo. No abras los codos en exceso.",
       "trucos": "Imagina que <b>empujas el suelo hacia atrás</b>. Para más pecho, inclina ligeramente el torso hacia delante.",
-      "sinMaterial": false
+      "sinMaterial": true,
+      "cargaCorporal": "sumar"
     },
     "Flexiones declinadas": {
       "musculo": "Pectoral",
@@ -555,7 +556,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Pies elevados sobre banco. Mantén el cuerpo firme y baja lentamente hasta que el pecho esté alineado con las manos.",
       "noHacer": "<b>No pierdas la alineación corporal</b>. Evita rebotes.",
       "trucos": "Cuanto más altos los pies, mayor énfasis en el pectoral superior.",
-      "sinMaterial": false
+      "sinMaterial": true,
+      "cargaCorporal": "sumar"
     },
     "Press banca barra": {
       "musculo": "Pectoral",
@@ -582,7 +584,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Pecho elevado y tirón iniciando con la <b>depresión escapular</b>. Lleva el pecho hacia la barra.",
       "noHacer": "<b>No balancees el cuerpo</b> ni tires solo con los brazos.",
       "trucos": "Cuanta menos ayuda, mayor activación del dorsal.",
-      "sinMaterial": false
+      "sinMaterial": false,
+      "cargaCorporal": "restar"
     },
     "Dominadas agarre neutro": {
       "musculo": "Dorsal / Bíceps",
@@ -591,7 +594,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Cuelga con agarre neutro</b> (palmas mirando entre sí) y tira del cuerpo hacia arriba hasta que el pecho alcance la barra o agarres. Mantén el core activado y evita balancearte.",
       "noHacer": "<b>No uses impulso</b> ni dejes que los hombros se elevan hacia las orejas. Evita redondear la espalda.",
       "trucos": "Piensa en <b>apretar los omóplatos</b> al subir y controla la bajada para maximizar el trabajo del dorsal y bíceps.",
-      "sinMaterial": false
+      "sinMaterial": false,
+      "cargaCorporal": "sumar"
     },
     "Bicicleta estática": {
       "grupo": "Cardio",
@@ -627,7 +631,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Coloca los pies al ancho de hombros</b>, con las puntas ligeramente hacia afuera. Baja lentamente hasta que los muslos queden paralelos al suelo o ligeramente por debajo, manteniendo la espalda recta y el pecho elevado. Empuja con los talones para subir.",
       "noHacer": "<b>No dejes que las rodillas se pasen de los dedos de los pies</b>. Evita arquear la espalda o inclinarte excesivamente hacia adelante. No uses impulso o rebote en la bajada.",
       "trucos": "Mantén la <b>mirada al frente</b> para ayudar a mantener la columna neutra. Imagina que estás sentándote en una silla invisible. Para mayor estabilidad, <b>activa el core</b> contrayendo el abdomen durante todo el movimiento.",
-      "sinMaterial": true
+      "sinMaterial": true,
+      "cargaCorporal": "sumar"
     },
     "Sentadilla goblet": {
       "grupo": "Piernas",
@@ -663,7 +668,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Cuelga de la barra</b> con un grip prono más ancho que los hombros. Baja lentamente hasta que los brazos queden completamente extendidos, luego tira hacia arriba hasta que la barbilla pase la barra.",
       "noHacer": "<b>No uses impulso o balanceo</b>. Evita encogerte de hombros al subir. No dejes que el cuerpo se balancee.",
       "trucos": "Si eres principiante, usa asistencia o bandas elásticas. Enfócate en <b>contraer los omóplatos</b> al bajar. Mantén el core activado para evitar el balanceo.",
-      "sinMaterial": false
+      "sinMaterial": false,
+      "cargaCorporal": "sumar"
     },
     "Remo con barra": {
       "grupo": "Espalda",
@@ -879,7 +885,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Colócate entre dos barras paralelas con los brazos extendidos. Baja el cuerpo flexionando los codos hasta que los hombros queden por debajo de los codos, luego empuja hacia arriba hasta extender los brazos.",
       "noHacer": "No bajes demasiado para evitar sobrecargar los hombros. Evita balancearte o usar impulso.",
       "trucos": "Mantén el torso ligeramente inclinado hacia adelante para enfatizar el pecho. Si eres principiante, usa asistencia o bandas elásticas.",
-      "sinMaterial": false
+      "sinMaterial": false,
+      "cargaCorporal": "sumar"
     },
     "Remo con mancuerna a una mano": {
       "grupo": "Espalda",
@@ -1005,7 +1012,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Cuelga de una barra con las manos. Levanta las piernas extendidas hacia arriba hasta formar un ángulo de 90 grados, luego baja lentamente.",
       "noHacer": "No balancees el cuerpo. Evita doblar las rodillas si puedes mantenerlas rectas.",
       "trucos": "Contrae los abdominales fuertemente. Si es difícil, dobla las rodillas.",
-      "sinMaterial": false
+      "sinMaterial": false,
+      "cargaCorporal": "sumar"
     },
     "Russian twists": {
       "grupo": "Core",
@@ -1059,6 +1067,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       const tpl = templates[name];
       if (!tpl || typeof tpl !== "object") return;
       if (tpl.sinMaterial == null) tpl.sinMaterial = false;
+      if (tpl.cargaCorporal == null) tpl.cargaCorporal = "";
     });
 
     window.exerciseTemplates = templates;

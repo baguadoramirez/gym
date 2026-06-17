@@ -97,28 +97,56 @@
       return Number.isNaN(value) ? null : value;
     };
 
-    const getSetWeightValue = (set) => parseFloat(set?.peso ?? set?.weight ?? set?.intensidad);
+    const getNearestBodyWeightValue = (sessions, sessionIndex) => {
+      for (let i = sessionIndex; i >= 0; i -= 1) {
+        const value = getBodyWeightValue(sessions[i]);
+        if (value != null) return value;
+      }
+      return null;
+    };
+
+    const getBodyLoadMode = (exercise) => {
+      const name = getExerciseName(exercise);
+      const raw = exercise?.cargaCorporal ?? window.exerciseTemplates?.[name]?.cargaCorporal ?? "";
+      return raw === "sumar" || raw === "restar" ? raw : "";
+    };
+
+    const getExternalWeightValue = (set) => parseFloat(set?.peso ?? set?.weight ?? set?.intensidad);
+    const getSetWeightValue = (set, exercise, bodyWeight) => {
+      const externalWeight = getExternalWeightValue(set);
+      const bodyLoadMode = getBodyLoadMode(exercise);
+
+      if (bodyLoadMode && Number.isFinite(bodyWeight)) {
+        const extraWeight = Number.isFinite(externalWeight) ? externalWeight : 0;
+        const effectiveWeight = bodyLoadMode === "restar"
+          ? bodyWeight - extraWeight
+          : bodyWeight + extraWeight;
+        return Math.max(effectiveWeight, 0);
+      }
+
+      return externalWeight;
+    };
     const getSetRepsValue = (set) => parseFloat(set?.reps ?? set?.repeticiones ?? set?.tiempo ?? set?.time);
 
-    const getMeanWeightFromSets = (sets) => {
+    const getMeanWeightFromSets = (sets, exercise, bodyWeight) => {
       if (!Array.isArray(sets) || !sets.length) return null;
-      const values = sets.map(set => getSetWeightValue(set)).filter(value => Number.isFinite(value));
+      const values = sets.map(set => getSetWeightValue(set, exercise, bodyWeight)).filter(value => Number.isFinite(value));
       if (!values.length) return null;
       return values.reduce((sum, value) => sum + value, 0) / values.length;
     };
 
-    const getMaxWeightFromSets = (sets) => {
+    const getMaxWeightFromSets = (sets, exercise, bodyWeight) => {
       if (!Array.isArray(sets) || !sets.length) return null;
-      const values = sets.map(set => getSetWeightValue(set)).filter(value => Number.isFinite(value));
+      const values = sets.map(set => getSetWeightValue(set, exercise, bodyWeight)).filter(value => Number.isFinite(value));
       if (!values.length) return null;
       return Math.max(...values);
     };
 
-    const getVolumeFromSets = (sets) => {
+    const getVolumeFromSets = (sets, exercise, bodyWeight) => {
       if (!Array.isArray(sets) || !sets.length) return null;
       const volumes = sets
         .map(set => {
-          const peso = getSetWeightValue(set);
+          const peso = getSetWeightValue(set, exercise, bodyWeight);
           const reps = getSetRepsValue(set);
           return Number.isFinite(peso) && Number.isFinite(reps) && reps > 0
             ? peso * reps
@@ -181,11 +209,13 @@
 
       const renderChart = (exerciseName, mode = currentMode) => {
         if (!canvasEl) return;
-        const sessions = getHistorySessions();
+        const sessions = getHistorySessions()
+          .slice()
+          .sort((a, b) => new Date(a?.date || 0) - new Date(b?.date || 0));
         const dateMap = new Map();
         const isBodyWeight = exerciseName === BODY_WEIGHT_KEY;
 
-        sessions.forEach(session => {
+        sessions.forEach((session, sessionIndex) => {
           const date = session?.date;
           if (!date) return;
 
@@ -199,11 +229,12 @@
           const exercises = getSessionExercises(session);
           const ex = exercises.find(item => getExerciseName(item) === exerciseName);
           if (!ex || !Array.isArray(ex.sets)) return;
+          const bodyWeight = getNearestBodyWeightValue(sessions, sessionIndex);
 
           const metrics = {
-            meanWeight: getMeanWeightFromSets(ex.sets),
-            maxWeight: getMaxWeightFromSets(ex.sets),
-            volume: getVolumeFromSets(ex.sets)
+            meanWeight: getMeanWeightFromSets(ex.sets, ex, bodyWeight),
+            maxWeight: getMaxWeightFromSets(ex.sets, ex, bodyWeight),
+            volume: getVolumeFromSets(ex.sets, ex, bodyWeight)
           };
 
           const value = getMetricValue(mode, metrics);
@@ -334,16 +365,19 @@
 
       const loadExercises = () => {
         if (!selectEl) return;
-        const sessions = getHistorySessions();
+        const sessions = getHistorySessions()
+          .slice()
+          .sort((a, b) => new Date(a?.date || 0) - new Date(b?.date || 0));
         const exercises = new Set(getExerciseNames());
 
         const maxByExercise = new Map();
-        sessions.forEach(session => {
+        sessions.forEach((session, sessionIndex) => {
           const exercisesList = getSessionExercises(session);
           exercisesList.forEach(ex => {
             const name = getExerciseName(ex);
             if (!name || !Array.isArray(ex.sets) || !exercises.has(name)) return;
-            const maxWeight = getMaxWeightFromSets(ex.sets);
+            const bodyWeight = getNearestBodyWeightValue(sessions, sessionIndex);
+            const maxWeight = getMaxWeightFromSets(ex.sets, ex, bodyWeight);
             if (maxWeight == null) return;
             const current = maxByExercise.get(name);
             if (current == null || maxWeight > current) {
