@@ -315,6 +315,7 @@ const TEXT_STRINGS = {
     "chart.metric.meanWeight": "Media de peso por día",
     "chart.metric.maxWeight": "Máximo de peso por día",
     "chart.metric.meanVolume": "Volumen medio por día",
+    "chart.metric.totalVolume": "Volumen total por día",
     "exercise.counter.empty": "Ejercicio 0 de 0",
     "exercise.counter.all": "Ejercicios: {total}",
     "exercise.counter.current": "Ejercicio {current} de {total}",
@@ -2634,7 +2635,7 @@ onReady(() => {
   updateHeaderOffsets();
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js?v=17").then(reg => {
+    navigator.serviceWorker.register("./sw.js?v=18").then(reg => {
       reg.update().catch(() => {});
     }).catch(() => {});
   }

@@ -69,7 +69,8 @@
     const METRIC_MODES = {
       meanWeight: "meanWeight",
       maxWeight: "maxWeight",
-      meanVolume: "meanVolume"
+      meanVolume: "meanVolume",
+      totalVolume: "totalVolume"
     };
     const TREND_ALPHA = 0.35;
 
@@ -158,6 +159,22 @@
       return volumes.reduce((sum, value) => sum + value, 0) / volumes.length;
     };
 
+    const getTotalVolumeFromSets = (sets, exercise, bodyWeight) => {
+      if (!Array.isArray(sets) || !sets.length) return null;
+      const volumes = sets
+        .map(set => {
+          const peso = getSetWeightValue(set, exercise, bodyWeight);
+          const reps = getSetRepsValue(set);
+          return Number.isFinite(peso) && Number.isFinite(reps) && reps > 0
+            ? peso * reps
+            : null;
+        })
+        .filter(value => value != null);
+
+      if (!volumes.length) return null;
+      return volumes.reduce((sum, value) => sum + value, 0);
+    };
+
     const getTrendValues = (values) => {
       let previous = null;
       return values.map(value => {
@@ -198,12 +215,14 @@
       const getMetricLabel = (mode) => {
         if (mode === METRIC_MODES.meanWeight) return tChart("chart.metric.meanWeight");
         if (mode === METRIC_MODES.meanVolume) return tChart("chart.metric.meanVolume");
+        if (mode === METRIC_MODES.totalVolume) return tChart("chart.metric.totalVolume");
         return tChart("chart.metric.maxWeight");
       };
 
       const getMetricValue = (mode, metrics) => {
         if (mode === METRIC_MODES.meanWeight) return metrics.meanWeight;
         if (mode === METRIC_MODES.meanVolume) return metrics.volume;
+        if (mode === METRIC_MODES.totalVolume) return metrics.totalVolume;
         return metrics.maxWeight;
       };
 
@@ -234,18 +253,21 @@
           const metrics = {
             meanWeight: getMeanWeightFromSets(ex.sets, ex, bodyWeight),
             maxWeight: getMaxWeightFromSets(ex.sets, ex, bodyWeight),
-            volume: getVolumeFromSets(ex.sets, ex, bodyWeight)
+            volume: getVolumeFromSets(ex.sets, ex, bodyWeight),
+            totalVolume: getTotalVolumeFromSets(ex.sets, ex, bodyWeight)
           };
 
           const value = getMetricValue(mode, metrics);
           if (value == null) return;
 
-          const current = dateMap.get(date) || { meanWeightSum: 0, meanWeightCount: 0, maxWeight: null, volumeSum: 0, volumeCount: 0 };
+          const current = dateMap.get(date) || { meanWeightSum: 0, meanWeightCount: 0, maxWeight: null, volumeSum: 0, volumeCount: 0, totalVolume: 0 };
           if (mode === METRIC_MODES.meanWeight) {
             current.meanWeightSum += value;
             current.meanWeightCount += 1;
           } else if (mode === METRIC_MODES.maxWeight) {
             current.maxWeight = current.maxWeight == null ? value : Math.max(current.maxWeight, value);
+          } else if (mode === METRIC_MODES.totalVolume) {
+            current.totalVolume += value;
           } else {
             current.volumeSum += value;
             current.volumeCount += 1;
@@ -268,6 +290,7 @@
           if (isBodyWeight) return current?.value ?? null;
           if (mode === METRIC_MODES.meanWeight) return current?.meanWeightCount ? current.meanWeightSum / current.meanWeightCount : null;
           if (mode === METRIC_MODES.meanVolume) return current?.volumeCount ? current.volumeSum / current.volumeCount : null;
+          if (mode === METRIC_MODES.totalVolume) return current?.totalVolume ?? null;
           return current?.maxWeight ?? null;
         });
         const trendValues = getTrendValues(values);
@@ -288,7 +311,7 @@
           : `${exerciseName} · ${getMetricLabel(mode)}`;
         const yAxisTitle = isBodyWeight
           ? tChart("chart.axis.bodyWeight")
-          : (mode === METRIC_MODES.meanVolume ? tChart("chart.axis.load") : tChart("chart.axis.weight"));
+          : (mode === METRIC_MODES.meanVolume || mode === METRIC_MODES.totalVolume ? tChart("chart.axis.load") : tChart("chart.axis.weight"));
 
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(canvasEl, {
@@ -347,7 +370,8 @@
         const options = [
           [METRIC_MODES.meanWeight, tChart("chart.metric.meanWeight")],
           [METRIC_MODES.maxWeight, tChart("chart.metric.maxWeight")],
-          [METRIC_MODES.meanVolume, tChart("chart.metric.meanVolume")]
+          [METRIC_MODES.meanVolume, tChart("chart.metric.meanVolume")],
+          [METRIC_MODES.totalVolume, tChart("chart.metric.totalVolume")]
         ];
         options.forEach(([value, label]) => {
           const btn = document.createElement("button");
