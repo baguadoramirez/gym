@@ -546,8 +546,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Cuerpo alineado de pies a cabeza. <b>Activa el core</b> y baja controlando hasta que el pecho se aproxime al suelo. Empuja manteniendo los codos a 30–45° del torso.",
       "noHacer": "<b>No hundas la cadera</b> ni eleves el glúteo. No abras los codos en exceso.",
       "trucos": "Imagina que <b>empujas el suelo hacia atrás</b>. Para más pecho, inclina ligeramente el torso hacia delante.",
-      "sinMaterial": true,
-      "cargaCorporal": "sumar"
+      "sinMaterial": false
     },
     "Flexiones declinadas": {
       "musculo": "Pectoral",
@@ -556,8 +555,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Pies elevados sobre banco. Mantén el cuerpo firme y baja lentamente hasta que el pecho esté alineado con las manos.",
       "noHacer": "<b>No pierdas la alineación corporal</b>. Evita rebotes.",
       "trucos": "Cuanto más altos los pies, mayor énfasis en el pectoral superior.",
-      "sinMaterial": true,
-      "cargaCorporal": "sumar"
+      "sinMaterial": false
     },
     "Press banca barra": {
       "musculo": "Pectoral",
@@ -631,8 +629,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Coloca los pies al ancho de hombros</b>, con las puntas ligeramente hacia afuera. Baja lentamente hasta que los muslos queden paralelos al suelo o ligeramente por debajo, manteniendo la espalda recta y el pecho elevado. Empuja con los talones para subir.",
       "noHacer": "<b>No dejes que las rodillas se pasen de los dedos de los pies</b>. Evita arquear la espalda o inclinarte excesivamente hacia adelante. No uses impulso o rebote en la bajada.",
       "trucos": "Mantén la <b>mirada al frente</b> para ayudar a mantener la columna neutra. Imagina que estás sentándote en una silla invisible. Para mayor estabilidad, <b>activa el core</b> contrayendo el abdomen durante todo el movimiento.",
-      "sinMaterial": true,
-      "cargaCorporal": "sumar"
+      "sinMaterial": true
     },
     "Sentadilla goblet": {
       "grupo": "Piernas",

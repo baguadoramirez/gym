@@ -43,6 +43,7 @@ const importOverlayConfirm = document.getElementById("import-overlay-confirm");
 const manageUserOverlay = document.getElementById("manage-user-overlay");
 const manageUserClose = document.getElementById("manage-user-close");
 const manageUserHistoryBtn = document.getElementById("manage-user-history-btn");
+const manageUserBodyWeightBtn = document.getElementById("manage-user-body-weight-btn");
 const manageUserChartsBtn = document.getElementById("manage-user-charts-btn");
 const manageUserMuscleChartsBtn = document.getElementById("manage-user-muscle-charts-btn");
 const manageUserFavoritesBtn = document.getElementById("manage-user-favorites-btn");
@@ -2633,7 +2634,7 @@ onReady(() => {
   updateHeaderOffsets();
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js?v=15").then(reg => {
+    navigator.serviceWorker.register("./sw.js?v=17").then(reg => {
       reg.update().catch(() => {});
     }).catch(() => {});
   }

@@ -544,6 +544,78 @@ function closeHistoryMenuOverlay() {
   closeOverlay(historyMenuOverlay);
 }
 
+function getCurrentUserSessionsForBodyWeightEdit() {
+  const localSessions = getLocalHistory();
+  if (localSessions.length) return localSessions;
+  return collectSessionsFromSessionKeys(currentUserKey);
+}
+
+function getLatestBodyWeightSession(sessions) {
+  return sessions
+    .filter(session => session?.date)
+    .slice()
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0] || null;
+}
+
+async function editUserBodyWeight() {
+  if (!currentUserKey) {
+    alert(t("alert.selectValidUser"));
+    return;
+  }
+
+  const sessions = getCurrentUserSessionsForBodyWeightEdit();
+  if (!sessions.length) {
+    setUserHistoryStatus("No hay sesiones guardadas para modificar.");
+    return;
+  }
+
+  const latest = getLatestBodyWeightSession(sessions);
+  const defaultDate = latest?.date || dateInput?.value || "";
+  const dateStr = await promptForText("Fecha de la sesión (AAAA-MM-DD)", defaultDate);
+  if (!dateStr) return;
+
+  const matchingSessions = sessions.filter(session => session?.date === dateStr);
+  if (!matchingSessions.length) {
+    alert("No hay sesiones guardadas para esa fecha.");
+    return;
+  }
+
+  const currentWeight = matchingSessions.find(session => session?.sensations?.weight)?.sensations?.weight ?? "";
+  const weightText = await promptForText("Peso corporal (kg)", String(currentWeight ?? ""));
+  if (!weightText) return;
+
+  const parsedWeight = parseFloat(String(weightText).replace(",", "."));
+  if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
+    alert("Introduce un peso corporal válido.");
+    return;
+  }
+
+  const updatedSessions = sessions.map(session => {
+    if (session?.date !== dateStr) return session;
+    return {
+      ...session,
+      sensations: {
+        ...(session.sensations || {}),
+        weight: String(parsedWeight)
+      }
+    };
+  });
+
+  setLocalHistory(updatedSessions);
+  window.uploadedHistory = updatedSessions;
+  rebuildHistoryData(updatedSessions);
+  refreshHistoryUI();
+  refreshCharts();
+  renderUserStatsCharts();
+
+  if (dateInput?.value === dateStr && senseWeightInput) {
+    senseWeightInput.value = String(parsedWeight);
+    if (typeof persistSessionSafely === "function") persistSessionSafely();
+  }
+
+  setUserHistoryStatus(`Peso corporal actualizado para ${dateStr}: ${parsedWeight} kg.`);
+}
+
 if (importOverlayCancel) {
   importOverlayCancel.addEventListener("click", () => {
     closeImportOverlay();
@@ -563,6 +635,13 @@ if (manageUserOverlay) {
 if (manageUserHistoryBtn) {
   manageUserHistoryBtn.addEventListener("click", () => {
     openHistoryMenuOverlay();
+  });
+}
+
+if (manageUserBodyWeightBtn) {
+  manageUserBodyWeightBtn.addEventListener("click", () => {
+    closeManageUserOverlay();
+    editUserBodyWeight();
   });
 }
 
