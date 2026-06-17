@@ -2633,7 +2633,7 @@ onReady(() => {
   updateHeaderOffsets();
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js?v=14").then(reg => {
+    navigator.serviceWorker.register("./sw.js?v=15").then(reg => {
       reg.update().catch(() => {});
     }).catch(() => {});
   }
