@@ -291,7 +291,7 @@
           options: {
             responsive: true,
             plugins: {
-              legend: { display: true, position: "bottom" }
+              legend: { display: false }
             },
             scales: {
               x: {
