@@ -132,6 +132,7 @@ function getGymHistoryExerciseNames() {
   const names = new Set();
   const collectFromSession = (session) => {
     getExercisesArrayFromSession(session).forEach(entry => {
+      if (isWarmupExercise(entry)) return;
       const name = getExerciseNameFromEntry(entry);
       if (name) names.add(name);
     });
@@ -159,6 +160,7 @@ function collectExerciseNamesFromStorage() {
     const exercises = value.exercises || value.ejercicios || value.data?.exercises || value.data?.ejercicios || value.session?.exercises || value.session?.ejercicios;
     if (Array.isArray(exercises)) {
       exercises.forEach(entry => {
+        if (isWarmupExercise(entry)) return;
         const name = getExerciseNameFromEntry(entry);
         if (name) names.add(name);
       });
@@ -258,6 +260,7 @@ function rebuildHistoryData(sessions) {
   sessions.forEach(session => {
     if (session.exercises) {
       session.exercises.forEach(ex => {
+        if (isWarmupExercise(ex)) return;
         if (!historyData[ex.nombre]) historyData[ex.nombre] = [];
         if (ex.sets) {
           ex.sets.forEach(set => {
@@ -340,6 +343,7 @@ function normalizeImportedHistoryPayload(payload) {
           nombre: String(ex.nombre || ex.name || "").trim(),
           musculo: String(ex.musculo || "").trim(),
           seccion: String(ex.seccion || "").trim(),
+          calentamiento: isWarmupExercise(ex),
           sets: Array.isArray(ex.sets)
             ? ex.sets
                 .filter(set => set && typeof set === "object")
@@ -448,7 +452,7 @@ function getExerciseWeightsFromHistory(exerciseName) {
   const sessions = Array.isArray(window.uploadedHistory) ? window.uploadedHistory : [];
   const weights = [];
   sessions.forEach(session => {
-    const ex = session?.exercises?.find(e => e.nombre === exerciseName);
+    const ex = session?.exercises?.find(e => e.nombre === exerciseName && !isWarmupExercise(e));
     if (!ex?.sets?.length) return;
     ex.sets.forEach(set => {
       const peso = parseFloat(set?.peso);
@@ -482,7 +486,7 @@ function getLastExerciseSession(exerciseName) {
 
   sessions.forEach(session => {
     if (!session?.exercises?.length) return;
-    const hasExercise = session.exercises.some(ex => ex.nombre === exerciseName);
+    const hasExercise = session.exercises.some(ex => ex.nombre === exerciseName && !isWarmupExercise(ex));
     if (!hasExercise) return;
 
     const sessionDate = new Date(session.date);
@@ -512,7 +516,7 @@ function isValidStrengthSet(exerciseName, set) {
 function getLastExerciseSet(exerciseName) {
   const lastSession = getLastExerciseSession(exerciseName);
   if (!lastSession) return null;
-  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName && !isWarmupExercise(e));
   if (!ex?.sets?.length) return null;
 
   const hasTenPlus = ex.sets.some(set => {
@@ -531,7 +535,7 @@ function getLastExerciseSet(exerciseName) {
 function getLastCardioSet(exerciseName) {
   const lastSession = getLastExerciseSession(exerciseName);
   if (!lastSession) return null;
-  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName && !isWarmupExercise(e));
   if (!ex?.sets?.length) return null;
 
   const firstSet = ex.sets[0] || {};
@@ -545,7 +549,7 @@ function getLastCardioSet(exerciseName) {
 function getLastExerciseMaxWeight(exerciseName) {
   const lastSession = getLastExerciseSession(exerciseName);
   if (!lastSession) return null;
-  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName && !isWarmupExercise(e));
   if (!ex?.sets?.length) return null;
   const weights = ex.sets
     .map(s => parseFloat(s.peso))
@@ -557,7 +561,7 @@ function getLastExerciseMaxWeight(exerciseName) {
 function getLastExerciseSummary(exerciseName) {
   const lastSession = getLastExerciseSession(exerciseName);
   if (!lastSession) return null;
-  const ex = lastSession.exercises.find(e => e.nombre === exerciseName);
+  const ex = lastSession.exercises.find(e => e.nombre === exerciseName && !isWarmupExercise(e));
   if (!ex?.sets?.length) return null;
   const firstSet = ex.sets[0] || {};
   const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
@@ -587,4 +591,3 @@ function getLastExerciseSummary(exerciseName) {
   const firstSetDetail = parts.length ? t("exercise.firstSet", { detail: parts.join(" x ") }) : t("exercise.firstSet.noData");
   return t("exercise.lastSession", { date: lastSession.date, detail: firstSetDetail });
 }
-

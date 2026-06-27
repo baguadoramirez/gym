@@ -15,6 +15,7 @@ function buildCsvForUser(sessions) {
     t("csv.semana"),
     t("csv.dia"),
     t("csv.ejercicio"),
+    t("csv.calentamiento"),
     t("csv.musculo"),
     t("csv.seccion"),
     t("csv.serie"),
@@ -69,6 +70,7 @@ function buildCsvForUser(sessions) {
         "",
         "",
         "",
+        "",
         base.sens_general,
         base.sens_tiredness,
         base.sens_weight,
@@ -91,6 +93,7 @@ function buildCsvForUser(sessions) {
           base.semana,
           base.dia,
           ex.nombre || "",
+          isWarmupExercise(ex) ? t("option.yes") : t("option.no"),
           ex.musculo || "",
           ex.seccion || "",
           "",
@@ -119,6 +122,7 @@ function buildCsvForUser(sessions) {
           base.semana,
           base.dia,
           ex.nombre || "",
+          isWarmupExercise(ex) ? t("option.yes") : t("option.no"),
           ex.musculo || "",
           ex.seccion || "",
           set.serie ?? "",
@@ -257,6 +261,7 @@ function renderUserStatsChart(targetCanvas, noDataLabel, instanceRefSetter, inst
   const perSession = rows.map(session => {
     const counts = new Map();
     session.exercises.forEach(ex => {
+      if (isWarmupExercise(ex)) return;
       const name = ex?.nombre || "";
       const tpl = exerciseTemplates[name] || {};
       const rawGroup = resolveExerciseGroup(tpl || { musculo: ex?.musculo });
@@ -346,6 +351,7 @@ function renderUserStatsPieChart() {
   const totals = new Map();
   rows.forEach(session => {
     session.exercises.forEach(ex => {
+      if (isWarmupExercise(ex)) return;
       const name = ex?.nombre || "";
       const tpl = exerciseTemplates[name] || {};
       const rawGroup = resolveExerciseGroup(tpl || { musculo: ex?.musculo });

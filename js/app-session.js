@@ -92,6 +92,7 @@ function buildSessionData(container) {
       hacer: hacer,
       noHacer: noHacer,
       trucos: trucos,
+      calentamiento: card.dataset.calentamiento === "true",
       sets: sets,
       notes: exerciseNotes
     });
@@ -109,6 +110,9 @@ function saveSession() {
   storage.setItem(key, JSON.stringify(data));
   setStatus(t("status.saved"));
   markAutoSaved();
+  if (typeof updateSessionProgressIndicator === "function") {
+    updateSessionProgressIndicator();
+  }
   updateSessionSummary();
   
   // 1. Repopulate the list of exercises for the pain selector
@@ -128,4 +132,3 @@ function saveSession() {
 // -------------------------
 // FUNCIÓN PARA EL SELECTOR DE AÑADIR EJERCICIO (POR GRUPO)
 // -------------------------
-

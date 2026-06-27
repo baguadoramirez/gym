@@ -85,6 +85,11 @@
       return exercise.nombre || exercise.name || exercise.exercise || exercise.ejercicio || "";
     };
 
+    const isWarmup = (exercise) => {
+      if (typeof window.isWarmupExercise === "function") return window.isWarmupExercise(exercise);
+      return exercise?.calentamiento === true || exercise?.calentamiento === "true";
+    };
+
     const getSessionExercises = (session) => {
       if (!session || typeof session !== "object") return [];
       if (Array.isArray(session.exercises)) return session.exercises;
@@ -187,8 +192,9 @@
     };
 
     const getCurrentSessionExerciseNames = () => (
-      Array.from(document.querySelectorAll("#exercises-container .exercise-card .exercise-title"))
-        .map(el => el.textContent.trim())
+      Array.from(document.querySelectorAll("#exercises-container .exercise-card"))
+        .filter(card => card.dataset.calentamiento !== "true")
+        .map(card => card.querySelector(".exercise-title")?.textContent.trim() || "")
         .filter(Boolean)
     );
 
@@ -201,6 +207,7 @@
       const sessions = getHistorySessions();
       sessions.forEach(session => {
         getSessionExercises(session).forEach(ex => {
+          if (isWarmup(ex)) return;
           const name = getExerciseName(ex);
           if (name) names.add(name);
         });
@@ -246,7 +253,7 @@
           }
 
           const exercises = getSessionExercises(session);
-          const ex = exercises.find(item => getExerciseName(item) === exerciseName);
+          const ex = exercises.find(item => getExerciseName(item) === exerciseName && !isWarmup(item));
           if (!ex || !Array.isArray(ex.sets)) return;
           const bodyWeight = getNearestBodyWeightValue(sessions, sessionIndex);
 
@@ -344,6 +351,7 @@
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: { display: false }
             },
@@ -368,10 +376,10 @@
         if (!metricButtonsEl) return;
         metricButtonsEl.innerHTML = "";
         const options = [
-          [METRIC_MODES.meanWeight, tChart("chart.metric.meanWeight")],
-          [METRIC_MODES.maxWeight, tChart("chart.metric.maxWeight")],
-          [METRIC_MODES.meanVolume, tChart("chart.metric.meanVolume")],
-          [METRIC_MODES.totalVolume, tChart("chart.metric.totalVolume")]
+          [METRIC_MODES.meanWeight, "Media"],
+          [METRIC_MODES.maxWeight, "Máximo"],
+          [METRIC_MODES.meanVolume, "Vol. medio"],
+          [METRIC_MODES.totalVolume, "Vol. total"]
         ];
         options.forEach(([value, label]) => {
           const btn = document.createElement("button");
@@ -398,6 +406,7 @@
         sessions.forEach((session, sessionIndex) => {
           const exercisesList = getSessionExercises(session);
           exercisesList.forEach(ex => {
+            if (isWarmup(ex)) return;
             const name = getExerciseName(ex);
             if (!name || !Array.isArray(ex.sets) || !exercises.has(name)) return;
             const bodyWeight = getNearestBodyWeightValue(sessions, sessionIndex);

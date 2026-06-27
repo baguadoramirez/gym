@@ -76,12 +76,20 @@ function buildExportContent(saved, options = {}) {
 
   let totalExercises = 0;
   let totalSets = 0;
+  let effectiveExercises = 0;
+  let effectiveSets = 0;
+  let warmupSets = 0;
 
   saved.exercises.forEach((ex, exIndex) => {
+    const isWarmup = isWarmupExercise(ex);
     const groupBg = usePngStyles
       ? (exIndex % 2 === 0 ? "#e2e8f0" : "#f8fafc")
       : (exIndex % 2 === 0 ? "var(--control-bg)" : "var(--card-bg)");
     totalExercises += 1;
+    if (!isWarmup) effectiveExercises += 1;
+    const displayName = isWarmup
+      ? `${ex.nombre || t("history.view.exerciseDefault")} (${t("exercise.warmup")})`
+      : (ex.nombre || t("history.view.exerciseDefault"));
 
     const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
     if (!usePngStyles) {
@@ -103,7 +111,7 @@ function buildExportContent(saved, options = {}) {
         : (maxWeight !== "-" ? t("exercise.detail.weight", { value: maxWeight }) : "-");
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${escapeHtml(ex.nombre || t("history.view.exerciseDefault"))}</td>
+        <td>${escapeHtml(displayName)}</td>
         <td>${escapeHtml(seriesCount)}</td>
         <td>${escapeHtml(weightOrTime)}</td>
         <td>${escapeHtml(hasFailure)}</td>
@@ -113,8 +121,14 @@ function buildExportContent(saved, options = {}) {
     }
 
     const exerciseNote = (ex.notes ?? Array.from(new Set((ex.sets || []).map(s => (s.obs ?? "").trim()).filter(Boolean))).join(" / ")).trim();
-    ex.sets.forEach((set, setIndex) => {
+    const sets = Array.isArray(ex.sets) ? ex.sets : [];
+    sets.forEach((set, setIndex) => {
       totalSets += 1;
+      if (isWarmup) {
+        warmupSets += 1;
+      } else {
+        effectiveSets += 1;
+      }
       const displayPeso = isCardio ? (set.intensidad ?? set.peso ?? "") : (set.peso ?? "");
       const displayReps = isCardio ? (set.tiempo ?? set.reps ?? "") : (set.reps ?? "");
       const displayFallo = isCardio ? "" : (set.fallo ? t("session.failure.yes") : t("session.failure.no"));
@@ -126,7 +140,7 @@ function buildExportContent(saved, options = {}) {
       }
       if (usePngStyles) {
         tr.innerHTML = `
-          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-weight: bold;">${escapeHtml(ex.nombre)}</td>
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-weight: bold;">${escapeHtml(displayName)}</td>
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${escapeHtml(set.serie ?? "")}</td>
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${escapeHtml(displayPeso)}</td>
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${escapeHtml(displayReps)}</td>
@@ -134,7 +148,7 @@ function buildExportContent(saved, options = {}) {
         `;
       } else {
         tr.innerHTML = `
-          <td style="background:${groupBg}; font-weight: 700;">${escapeHtml(ex.nombre)}</td>
+          <td style="background:${groupBg}; font-weight: 700;">${escapeHtml(displayName)}</td>
           <td style="background:${groupBg};">${escapeHtml(set.serie ?? "")}</td>
           <td style="background:${groupBg}; text-align:right;">${escapeHtml(displayPeso)}</td>
           <td style="background:${groupBg}; text-align:right;">${escapeHtml(displayReps)}</td>
@@ -223,6 +237,9 @@ function buildExportContent(saved, options = {}) {
       <p style="margin: 3px 0; font-weight:bold; color:#000;">${t("session.summary.header")}</p>
       <p style="margin: 3px 0; color:#000;">${t("session.summary.totalExercises", { count: totalExercises })}</p>
       <p style="margin: 3px 0; color:#000;">${t("session.summary.totalSets", { count: totalSets })}</p>
+      <p style="margin: 3px 0; color:#000;">${t("session.summary.effectiveExercises", { count: effectiveExercises })}</p>
+      <p style="margin: 3px 0; color:#000;">${t("session.summary.effectiveSets", { count: effectiveSets })}</p>
+      <p style="margin: 3px 0; color:#000;">${t("session.summary.warmupSets", { count: warmupSets })}</p>
     `;
     exportDiv.appendChild(summary);
 
@@ -261,4 +278,3 @@ function buildExportContent(saved, options = {}) {
 
   return exportDiv;
 }
-

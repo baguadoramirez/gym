@@ -921,6 +921,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Mantén las <b>costillas abajo</b> y el core firme. Pausa 1-2 segundos con los brazos extendidos.",
       "sinMaterial": false
     },
+    "Rotación de torso en máquina": {
+      "grupo": "Core",
+      "musculo": "Oblicuos",
+      "seccion": "Rotación",
+      "hacer": "<b>Ajusta el asiento y los apoyos</b> para que la rotación salga del torso, no de los brazos. Mantén la pelvis estable, el pecho alto y gira de forma controlada hacia un lado. Vuelve lento al centro antes de repetir.",
+      "noHacer": "<b>No uses impulso</b> ni rebotes al final del recorrido. Evita mover la cadera con el giro o tirar con los hombros.",
+      "trucos": "Usa un <b>peso moderado</b> y piensa en acercar las costillas hacia la cadera contraria. Haz una pausa breve en la contracción para sentir mejor los oblicuos.",
+      "sinMaterial": false
+    },
     "Plancha lateral": {
       "grupo": "Core",
       "musculo": "Oblicuos",
@@ -1042,11 +1051,12 @@ Datos base de ejercicios/rutinas para carga inmediata.
       ],
       "Día 3 – Tren inferior + core": [
         "Sentadillas",
-        "Peso muerto",
+        "Peso muerto rumano con mancuernas",
         "Sentadilla goblet",
         "Elevación de talones en máquina",
         "Plancha abdominal (Plank)",
-        "Crunch abdominal"
+        "Crunch abdominal",
+        "Rotación de torso en máquina"
       ]
     }
   }
