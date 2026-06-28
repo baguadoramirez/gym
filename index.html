@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 
-  <link rel="stylesheet" href="styles.css?v=25" />
+  <link rel="stylesheet" href="styles.css?v=62" />
 </head>
 
 <body>
@@ -58,17 +58,11 @@
       <span class="profile-icon" aria-hidden="true">👤</span>
       <span id="current-user-name" class="profile-name">Selecciona un usuario</span>
     </button>
-    <div class="session-pill">
-      <span class="session-pill-label">Fecha</span>
-      <span id="session-header-date">-</span>
-    </div>
     <div class="session-pill session-status-pill" aria-live="polite">
-      <span class="session-pill-label">Estado</span>
-      <span id="session-save-status">Sin guardar</span>
+      <span id="session-save-status">Sin usuario</span>
     </div>
   </div>
   <div class="floating-actions" id="floating-actions">
-    <button id="session-primary-action" class="btn-primary" type="button">Siguiente</button>
     <button id="toggle-stopwatch" aria-label="Cuenta atrás">⏱️</button>
   </div>
 </div>
@@ -88,7 +82,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text text-center">v0.7.1 - Improving UI</div>
+        <div class="hint-text text-center">v0.8 - Lux UI</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
@@ -126,7 +120,6 @@
       <span id="step-1-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 1 · Selección de usuario</div>
       <div class="controls" id="user-history-controls">
         <div class="controls-row">
         <span id="user-history-status" class="hint-text">Empieza seleccionando un usuario para cargar sus datos.</span>
@@ -155,43 +148,40 @@
       <span id="step-2-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 2: Elige cómo quieres crear la sesión</div>
-
-  <div class="controls">
+  <div class="controls step2-controls">
     <div class="step2-mode-selector">
       <label>
         <input type="radio" name="step2-mode" value="manual" checked>
-        <span>Crear la sesión manualmente</span>
+        <span aria-hidden="true">＋</span>
+        <strong>En blanco</strong>
       </label>
       <label>
         <input type="radio" name="step2-mode" value="previous">
-        <span>Cargar una sesión previa</span>
+        <span aria-hidden="true">◷</span>
+        <strong>Anterior</strong>
       </label>
       <label>
         <input type="radio" name="step2-mode" value="predefined">
-        <span>Usar una sesión predefinida</span>
+        <span aria-hidden="true">☷</span>
+        <strong>Rutina</strong>
       </label>
     </div>
 
     <div id="step2-manual" class="step2-mode is-active">
-      <div class="hint-text">Añade ejercicios en el paso 3.</div>
+      <div class="step2-empty-copy">Empezar sin ejercicios</div>
     </div>
 
     <div id="step2-previous" class="step2-mode">
-      <div>
-        <label for="history-day-select">Día</label><br>
-        <select id="history-day-select"></select>
-      </div>
+      <select id="history-day-select" class="is-hidden" aria-hidden="true" tabindex="-1"></select>
+      <div id="history-session-list" class="step2-option-list"></div>
       <div class="routine-actions">
-        <button id="load-previous-session-btn" class="btn-secondary">Cargar sesión previa</button>
+        <button id="load-previous-session-btn" class="btn-secondary">Cargar sesión</button>
       </div>
     </div>
 
     <div id="step2-predefined" class="step2-mode">
-    <div>
-      <label for="routine-select">Rutinas</label><br>
-      <select id="routine-select"></select>
-    </div>
+    <select id="routine-select" class="is-hidden" aria-hidden="true" tabindex="-1"></select>
+    <div id="routine-option-list" class="step2-option-list"></div>
 
     <div class="routine-hidden">
       <label for="week-select">Semana</label><br>
@@ -215,7 +205,7 @@
 
     <div class="routine-actions">
       <button id="load-routine-btn" class="btn-secondary">Cargar rutina</button>
-      <button id="delete-routine-btn" class="btn-danger">Borrar rutina</button>
+      <button id="delete-routine-btn" class="btn-danger step2-delete-btn" aria-label="Borrar rutina" title="Borrar rutina">🗑</button>
     </div>
     </div>
 
@@ -230,18 +220,10 @@
       <span id="step-3-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
-      <div class="step-3-header">
-        <div class="hint-text">Paso 3 · Ejercicios de la sesión</div>
-        <div class="step-3-header-actions">
-        </div>
-      </div>
-
   <div id="exercise-panel">
   <div class="controls exercise-counter-bar">
     <div class="exercise-counter-top">
-      <div id="exercise-counter" class="hint-text">Ejercicio 0 de 0</div>
-      <div id="session-progress-indicator" class="session-progress-indicator" aria-live="polite">0 ejercicios · 0 series · 0 calentamiento</div>
-      <div id="autosave-status" class="hint-text" aria-live="polite"></div>
+      <div id="exercise-counter" class="hint-text">Ejercicio 0 de 0 · 0 series</div>
     </div>
     <div class="exercise-counter-bottom">
       <div class="exercise-nav-left">
@@ -249,15 +231,39 @@
         <button id="exercise-next" class="btn-secondary">→</button>
       </div>
       <div class="exercise-nav-actions">
-        <button id="remove-exercise-btn" class="remove-exercise-btn" type="button" aria-label="Eliminar ejercicio">−</button>
-        <button id="toggle-quick-add" aria-label="Ejercicios">＋</button>
-        <button id="toggle-order-mode" class="btn-secondary">Ordenar</button>
+        <button id="remove-exercise-btn" class="remove-exercise-btn" type="button" aria-label="Eliminar ejercicio" title="Eliminar ejercicio">
+          <span aria-hidden="true">-</span>
+        </button>
+        <button id="toggle-quick-add" type="button" aria-label="Ejercicios" title="Ejercicios">
+          <span aria-hidden="true">+</span>
+        </button>
+        <button id="toggle-order-mode" class="btn-secondary" type="button" aria-label="Reordenar ejercicios" title="Reordenar ejercicios">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7h9"></path>
+            <path d="M3 12h9"></path>
+            <path d="M3 17h9"></path>
+            <path d="M18 4v16"></path>
+          </svg>
+          <span>Reordenar</span>
+        </button>
       </div>
     </div>
   </div>
   
   <div id="exercises-container"></div>
-  <div id="exercise-empty-state" class="exercise-empty-state">Todavía no hay ejercicios en esta sesión. Usa el botón naranja arriba a la derecha "+" para añadir el primer ejercicio.</div>
+  <div id="exercise-empty-state" class="exercise-empty-state" aria-live="polite">
+    <div class="exercise-empty-state-title">Todavía no hay ejercicios</div>
+    <p>Empieza la sesión añadiendo el primer ejercicio.</p>
+    <div class="exercise-empty-actions">
+      <button id="exercise-empty-add-btn" class="btn-primary exercise-empty-main-action icon-text-btn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 5v14"></path>
+          <path d="M5 12h14"></path>
+        </svg>
+        <span>Añadir ejercicio</span>
+      </button>
+    </div>
+  </div>
   <div id="save-routine-controls" class="exercise-actions is-hidden">
     <button id="save-routine-btn" class="btn-secondary" type="button">Guardar rutina</button>
   </div>
@@ -352,10 +358,8 @@
       <span id="step-4-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 4 · Cuestionario post-entrenamiento</div>
       <div id="post-workout-section" class="post-workout-locked">
         <div class="controls sensations-form" id="sensations-controls">
-          <h3>Cuestionario de Post-Entrenamiento</h3>
           <div class="control-row">
             <label for="date-input">Fecha</label>
             <input type="date" id="date-input">
@@ -412,7 +416,6 @@
       <span id="step-5-status" class="step-status">Pendiente</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 5 · Resumen de la sesión</div>
       <div class="controls">
         <div class="controls-row stack-stretch">
           <div id="session-summary" class="hint-text"></div>
@@ -428,8 +431,6 @@
       <span id="step-6-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 6 · Gráficos del usuario</div>
-      <h2>Gráficos del usuario</h2>
       <div class="controls chart-controls-panel">
         <div class="chart-select-wrap">
           <label for="chart-exercise-select">Ejercicio</label>
@@ -446,13 +447,16 @@
 
   <details id="step-7" class="step-section step-page" open>
     <summary>
-      <span>Paso 7: Editar sesión anterior</span>
-      <span class="step-status">Edición</span>
+      <span>Paso 7: Sesión anterior</span>
+      <span class="step-status">Lectura</span>
     </summary>
     <div class="step-body" id="step-7-body">
-      <div class="hint-text">Paso 7 · Editar sesión anterior</div>
+      <div class="history-editor-header">
+        <div id="history-editor-mode" class="hint-text">Modo lectura</div>
+        <button id="unlock-history-edit-btn" class="btn-secondary" type="button" aria-pressed="false">🔒 Editar sesión</button>
+      </div>
       <div id="edit-exercises-container"></div>
-      <div class="controls-row center-actions" id="edit-session-actions">
+      <div class="controls-row center-actions is-hidden" id="edit-session-actions">
         <button id="overwrite-history-btn" class="btn-accent overwrite-btn">Sobrescribir sesión</button>
       </div>
       <div id="edit-session-status" class="hint-text success-status is-hidden"></div>
@@ -465,8 +469,6 @@
       <span id="step-8-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 8</div>
-      <h2>Gráficos por ejercicio</h2>
       <div class="controls chart-controls-panel">
         <div class="chart-select-wrap">
           <label for="global-chart-exercise-select">Ejercicio</label>
@@ -487,8 +489,6 @@
       <span id="step-9-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
-      <div class="hint-text">Paso 9</div>
-      <h2>Gráficos por grupo muscular y sesión</h2>
       <p id="global-user-stats-no-data" class="hint-text is-hidden">Aún no hay datos para mostrar.</p>
       <div class="chart-container">
         <canvas id="global-user-stats-chart"></canvas>
@@ -505,8 +505,12 @@
   </div>
 
   <div class="stepper-footer" id="stepper-footer">
-    <button id="stepper-prev" class="btn-secondary">Anterior</button>
-    <button id="stepper-next" class="btn-primary">Siguiente</button>
+    <button id="stepper-prev" class="btn-secondary stepper-nav-btn" type="button" aria-label="Paso anterior" title="Paso anterior">←</button>
+    <div class="stepper-context" aria-live="polite">
+      <span id="stepper-step-name" class="stepper-step-name">Inicio</span>
+      <span id="stepper-step-position" class="stepper-step-position">Paso 1 de 9</span>
+    </div>
+    <button id="stepper-next" class="btn-primary stepper-nav-btn" type="button" aria-label="Paso siguiente" title="Paso siguiente">→</button>
   </div>
 
 </main>
@@ -527,15 +531,46 @@
   <div class="overlay-card manage-user-card">
     <div id="manage-user-name" class="manage-user-name"></div>
     <div class="manage-user-actions">
-      <button id="manage-user-history-btn" class="btn-secondary">Sesiones anteriores</button>
-      <button id="manage-user-body-weight-btn" class="btn-secondary">Modificar peso corporal</button>
-      <button id="manage-user-charts-btn" class="btn-secondary">Gráficos por ejercicio</button>
-      <button id="manage-user-muscle-charts-btn" class="btn-secondary">Gráficos por grupo muscular</button>
-      <button id="manage-user-favorites-btn" class="btn-secondary">Favoritos</button>
-      <button id="rename-user-history-btn" class="btn-secondary">Cambiar el nombre del usuario</button>
-      <button id="export-user-history-btn" class="btn-accent-alt">Copia de seguridad (JSON)</button>
-      <button id="export-user-history-csv-btn" class="btn-accent-alt">Exportar datos de análisis (CSV)</button>
-      <button id="delete-user-history-btn" class="btn-danger">Eliminar usuario</button>
+      <button id="manage-user-history-btn" class="btn-secondary icon-action-btn icon-text-btn" type="button" aria-label="Sesiones anteriores" title="Sesiones anteriores">
+        <span class="unicode-icon" aria-hidden="true">🕒</span>
+        <span>Sesiones anteriores</span>
+      </button>
+      <button id="manage-user-body-weight-btn" class="btn-secondary icon-text-btn" type="button" aria-label="Modificar peso corporal" title="Modificar peso corporal">
+        <span class="unicode-icon" aria-hidden="true">⚖️</span>
+        <span>Modificar peso corporal</span>
+      </button>
+      <button id="manage-user-charts-btn" class="btn-secondary icon-text-btn" type="button" aria-label="Gráficos por ejercicio" title="Gráficos por ejercicio">
+        <span class="unicode-icon" aria-hidden="true">🏋️</span>
+        <span>Gráficos por ejercicio</span>
+      </button>
+      <button id="manage-user-muscle-charts-btn" class="btn-secondary icon-text-btn" type="button" aria-label="Gráfico por grupo muscular" title="Gráfico por grupo muscular">
+        <span class="unicode-icon" aria-hidden="true">💪</span>
+        <span>Gráfico por grupo muscular</span>
+      </button>
+      <button id="manage-user-favorites-btn" class="btn-secondary icon-action-btn icon-text-btn" type="button" aria-label="Favoritos" title="Favoritos">
+        <span class="unicode-icon" aria-hidden="true">⭐</span>
+        <span>Favoritos</span>
+      </button>
+      <button id="rename-user-history-btn" class="btn-secondary icon-text-btn" type="button" aria-label="Cambiar el nombre de usuario" title="Cambiar el nombre de usuario">
+        <span class="unicode-icon" aria-hidden="true">✏️</span>
+        <span>Cambiar nombre de usuario</span>
+      </button>
+      <button id="logout-user-btn" class="btn-secondary icon-text-btn" type="button" aria-label="Cerrar sesión" title="Cerrar sesión">
+        <span class="unicode-icon" aria-hidden="true">🚪</span>
+        <span>Cerrar sesión</span>
+      </button>
+      <button id="export-user-history-btn" class="btn-accent-alt icon-action-btn icon-text-btn" type="button" aria-label="Exportar usuario" title="Exportar usuario">
+        <span class="unicode-icon" aria-hidden="true">⬇️</span>
+        <span>Exportar usuario</span>
+      </button>
+      <button id="export-user-history-csv-btn" class="btn-accent-alt icon-action-btn icon-text-btn" type="button" aria-label="Exportar sesiones" title="Exportar sesiones">
+        <span class="unicode-icon" aria-hidden="true">📄</span>
+        <span>Exportar sesiones</span>
+      </button>
+      <button id="delete-user-history-btn" class="btn-danger icon-text-btn" type="button" aria-label="Eliminar usuario" title="Eliminar usuario">
+        <span class="unicode-icon" aria-hidden="true">✖️</span>
+        <span>Eliminar usuario</span>
+      </button>
     </div>
     <div class="overlay-actions">
       <button id="manage-user-close" class="btn-orange-dark">Cerrar</button>
@@ -558,24 +593,28 @@
 
 <div id="history-menu-overlay" class="overlay" aria-hidden="true">
   <div class="overlay-card">
-    <h3>Sesiones anteriores</h3>
-    <label for="history-date-input">Fecha</label><br>
-    <input type="date" id="history-date-input">
-    <div id="history-date-list" class="history-date-list"></div>
-    <div class="overlay-actions">
-      <button id="history-view-btn" class="btn-secondary" disabled>Ver</button>
-      <button id="history-edit-btn" class="btn-primary" disabled>Editar</button>
-      <button id="history-menu-close" class="btn-secondary">Cerrar</button>
+    <div class="overlay-title-row">
+      <h3>Sesiones anteriores</h3>
+      <button id="history-menu-close" class="overlay-close-btn" type="button" aria-label="Cerrar" title="Cerrar">×</button>
     </div>
-  </div>
-</div>
-
-<div id="history-view-overlay" class="overlay" aria-hidden="true">
-  <div class="overlay-card">
-    <h3>Sesión seleccionada</h3>
-    <div id="history-view-content" class="pre-wrap"></div>
-    <div class="overlay-actions">
-      <button id="history-view-close" class="btn-secondary">Cerrar</button>
+    <input type="hidden" id="history-date-input">
+    <div id="history-date-list" class="history-date-list"></div>
+    <div class="overlay-actions history-menu-actions">
+      <button id="history-view-btn" class="btn-primary icon-action-btn icon-text-btn" type="button" aria-label="Ver y editar sesión seleccionada" title="Ver y editar sesión seleccionada" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span>Ver y editar</span>
+      </button>
+      <button id="history-delete-session-btn" class="btn-danger icon-action-btn icon-text-btn" type="button" aria-label="Eliminar sesión seleccionada" title="Eliminar sesión seleccionada" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16"></path>
+          <path d="M9 7V4h6v3"></path>
+          <path d="M7 7l1 13h8l1-13"></path>
+        </svg>
+        <span>Eliminar sesión</span>
+      </button>
     </div>
   </div>
 </div>
@@ -605,13 +644,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="ejercicios.js?v=19"></script>
 <script src="js/app-storage.js?v=15"></script>
-<script src="js/app-main.js?v=31"></script>
-<script src="js/app-history.js?v=16"></script>
-<script src="js/app-routines.js?v=15"></script>
+<script src="js/app-main.js?v=59"></script>
+<script src="js/app-history.js?v=18"></script>
+<script src="js/app-routines.js?v=16"></script>
 <script src="js/app-session.js?v=17"></script>
 <script src="js/app-export.js?v=16"></script>
-<script src="js/app-tools.js?v=17"></script>
-<script src="js/app-user.js?v=18"></script>
+<script src="js/app-tools.js?v=24"></script>
+<script src="js/app-user.js?v=23"></script>
 
 <script src="theme-charts.js?v=23"></script>
 

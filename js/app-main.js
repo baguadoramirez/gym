@@ -77,6 +77,9 @@ const step8Status = document.getElementById("step-8-status");
 const step9Status = document.getElementById("step-9-status");
 const stepperPrevBtn = document.getElementById("stepper-prev");
 const stepperNextBtn = document.getElementById("stepper-next");
+const stepperFooter = document.getElementById("stepper-footer");
+const stepperStepName = document.getElementById("stepper-step-name");
+const stepperStepPosition = document.getElementById("stepper-step-position");
 const subheader = document.getElementById("subheader");
 const toggleUserManageBtn = document.getElementById("toggle-user-manage");
 const currentUserNameLabel = document.getElementById("current-user-name");
@@ -85,10 +88,9 @@ const toggleQuickAddBtn = document.getElementById("toggle-quick-add");
 const toggleOrderModeBtn = document.getElementById("toggle-order-mode");
 const sessionHeaderDate = document.getElementById("session-header-date");
 const sessionSaveStatus = document.getElementById("session-save-status");
-const sessionPrimaryAction = document.getElementById("session-primary-action");
-const autoSaveStatus = document.getElementById("autosave-status");
-const sessionProgressIndicator = document.getElementById("session-progress-indicator");
+const sessionStatusPill = document.querySelector(".session-status-pill");
 const exerciseEmptyState = document.getElementById("exercise-empty-state");
+const exerciseEmptyAddBtn = document.getElementById("exercise-empty-add-btn");
 const welcomeStartBtn = document.getElementById("welcome-start-btn");
 const welcomeInfoBtn = document.getElementById("welcome-info-btn");
 const welcomeLegalBtn = document.getElementById("welcome-legal-btn");
@@ -102,12 +104,12 @@ const homeLogoBtn = document.getElementById("home-logo-btn");
 const historyDateInput = document.getElementById("history-date-input");
 const historyDateList = document.getElementById("history-date-list");
 const historyViewBtn = document.getElementById("history-view-btn");
-const historyEditBtn = document.getElementById("history-edit-btn");
+const historyDeleteSessionBtn = document.getElementById("history-delete-session-btn");
 const overwriteHistoryBtn = document.getElementById("overwrite-history-btn");
+const unlockHistoryEditBtn = document.getElementById("unlock-history-edit-btn");
+const historyEditorMode = document.getElementById("history-editor-mode");
+const editSessionActions = document.getElementById("edit-session-actions");
 const editSessionStatus = document.getElementById("edit-session-status");
-const historyViewOverlay = document.getElementById("history-view-overlay");
-const historyViewContent = document.getElementById("history-view-content");
-const historyViewClose = document.getElementById("history-view-close");
 const promptOverlay = document.getElementById("prompt-overlay");
 const promptTitle = document.getElementById("prompt-title");
 const promptLabel = document.getElementById("prompt-label");
@@ -326,7 +328,7 @@ const TEXT_STRINGS = {
     "exercise.counter.empty": "Ejercicio 0 de 0",
     "exercise.counter.all": "Ejercicios: {total}",
     "exercise.counter.current": "Ejercicio {current} de {total}",
-    "exercise.empty": "Todavía no hay ejercicios en esta sesión. Usa el botón naranja arriba a la derecha \"+\" para añadir el primer ejercicio.",
+    "exercise.empty": "Todavía no hay ejercicios en esta sesión.",
     "autoSave.now": "Guardado ahora",
     "autoSave.ago": "Guardado hace {seconds} s",
     "session.noData": "Sin datos de sesión.",
@@ -434,7 +436,7 @@ const TEXT_STRINGS = {
     "message.saveSessionRandom.15": "Croissant 🥐 con faking café?! ¡Tú no!",
     "message.saveSessionRandom.16": "¿Barriga? Eso es como foak, ¡ni de coña! 🔥",
     "message.saveSessionRandom.17": "Entrenamiento limpio, mente fuerte! 🧠",
-    "exercise.history.none": "Sin historial para este ejercicio.",
+    "exercise.history.none": "Primera vez con este ejercicio",
     "exercise.history.label": "Última referencia",
     "exercise.series.label": "Series",
     "exercise.suggestionNone": "Sin sugerencia disponible.",
@@ -443,7 +445,7 @@ const TEXT_STRINGS = {
     "exercise.suggestion.up": "Buen trabajo: sube un paso y apunta a 10 reps 🔥",
     "exercise.table.cardio": "<th>Serie</th><th>Intensidad</th><th>Tiempo (min)</th><th class=\"set-action-col\"></th>",
     "exercise.table.strength": "<th>Serie</th><th>Peso</th><th>Reps</th><th>Fallo</th><th class=\"set-action-col\"></th>",
-    "exercise.notes.general": "Notas generales del ejercicio",
+    "exercise.notes.general": "Notas",
     "exercise.addSet": "Añadir serie",
     "exercise.removeSet": "Eliminar serie",
     "exercise.remove": "Eliminar ejercicio",
@@ -626,8 +628,9 @@ let pendingStartStepIndex = null;
 let activeExerciseIndex = 0;
 let exercisePaginationScheduled = false;
 let showAllExercises = false;
-let lastAutoSaveTime = null;
-let autoSaveTimer = null;
+let sessionSaveKind = "none";
+let sessionIsDirty = false;
+let historyEditUnlocked = false;
 let editingSessionContext = null;
 let isEditingHistory = appState.isEditingHistory;
 let allowGlobalChartsStep = false;
@@ -702,6 +705,16 @@ function updateCurrentUserBadge() {
   currentUserNameLabel.textContent = currentUserName || t("status.selectUser");
 }
 
+function setSessionSaveState(state, label) {
+  if (sessionSaveStatus) {
+    sessionSaveStatus.textContent = label;
+    sessionSaveStatus.dataset.state = state;
+  }
+  if (sessionStatusPill) {
+    sessionStatusPill.dataset.state = state;
+  }
+}
+
 function formatSessionHeaderDate(value) {
   if (!value) return "-";
   const date = new Date(value);
@@ -712,6 +725,14 @@ function formatSessionHeaderDate(value) {
 function updateSessionHeaderDate() {
   if (!sessionHeaderDate) return;
   sessionHeaderDate.textContent = formatSessionHeaderDate(dateInput?.value || "");
+}
+
+function markSessionDirty() {
+  if (!currentUserKey || isEditingHistory) return;
+  if (!sessionIsDirty) {
+    sessionIsDirty = true;
+    updateAutoSaveLabel();
+  }
 }
 
 function refreshCharts() {
@@ -740,7 +761,7 @@ function updateHistoryButtons() {
     dateStr && (window.uploadedHistory || []).some(session => session.date === dateStr)
   );
   if (historyViewBtn) historyViewBtn.disabled = !hasSession;
-  if (historyEditBtn) historyEditBtn.disabled = !hasSession;
+  if (historyDeleteSessionBtn) historyDeleteSessionBtn.disabled = !hasSession;
   if (overwriteHistoryBtn) overwriteHistoryBtn.disabled = !hasSession;
   updateHistoryDateListSelection();
 }
@@ -824,27 +845,63 @@ function getSelectedHistorySession() {
   return sorted[0];
 }
 
-function openHistoryViewOverlay(session) {
-  if (!historyViewOverlay || !historyViewContent || !session) return;
-  const exercises = Array.isArray(session.exercises) ? session.exercises : [];
-  const lines = [
-    `${t("history.view.date")}: ${session.date || "-"}`,
-    `${t("history.view.week")}: ${session.week || "-"}`,
-    `${t("history.view.day")}: ${session.day || "-"}`,
-    `${t("history.view.exercises")}: ${exercises.length}`
-  ];
-  exercises.forEach(ex => {
-    const sets = Array.isArray(ex.sets) ? ex.sets.length : 0;
-    const warmupLabel = isWarmupExercise(ex) ? ` · ${t("exercise.warmup")}` : "";
-    lines.push(`- ${ex.nombre || t("history.view.exerciseDefault")} (${sets} ${t("history.view.sets")}${warmupLabel})`);
+function setHistoryEditorMode(unlocked) {
+  historyEditUnlocked = unlocked === true;
+  if (!editExercisesContainer) return;
+
+  editExercisesContainer.classList.toggle("history-readonly", !historyEditUnlocked);
+  editExercisesContainer.classList.toggle("history-editing", historyEditUnlocked);
+  editExercisesContainer.querySelectorAll(".exercise-table td input").forEach(input => {
+    let valueDisplay = input.parentElement.querySelector(".readonly-set-value");
+    if (!valueDisplay) {
+      valueDisplay = document.createElement("span");
+      valueDisplay.className = "readonly-set-value";
+      input.parentElement.appendChild(valueDisplay);
+    }
+    valueDisplay.textContent = input.type === "checkbox"
+      ? (input.checked ? "Sí" : "—")
+      : (input.value || "—");
+    valueDisplay.hidden = historyEditUnlocked;
+    input.hidden = !historyEditUnlocked;
   });
-  historyViewContent.textContent = lines.join("\n");
-  openOverlay(historyViewOverlay, { initialFocus: historyViewClose });
+  editExercisesContainer.querySelectorAll("input, textarea, select, button").forEach(control => {
+    control.disabled = !historyEditUnlocked;
+  });
+  if (historyEditorMode) {
+    historyEditorMode.textContent = historyEditUnlocked ? "Modo edición" : "Modo lectura";
+  }
+  if (unlockHistoryEditBtn) {
+    unlockHistoryEditBtn.textContent = historyEditUnlocked ? "🔓 Salir de edición" : "🔒 Editar sesión";
+    unlockHistoryEditBtn.setAttribute("aria-pressed", historyEditUnlocked ? "true" : "false");
+    setVisible(unlockHistoryEditBtn, true, "inline-flex");
+  }
+  if (editSessionActions) {
+    setVisible(editSessionActions, historyEditUnlocked, "flex");
+  }
+  setVisible(editSessionStatus, false);
 }
 
-function closeHistoryViewOverlay() {
-  if (!historyViewOverlay) return;
-  closeOverlay(historyViewOverlay);
+function deleteSelectedHistorySession() {
+  const selected = getSelectedHistorySession();
+  if (!selected) return false;
+  const label = formatHistoryDateLabel(selected.date);
+  if (!confirm(`¿Eliminar completamente la sesión del ${label}?`)) return false;
+
+  const selectedKey = selected.key || buildSessionKey(selected);
+  const sessions = getLocalHistory().filter(session => {
+    const sessionKeyValue = session.key || buildSessionKey(session);
+    return selectedKey ? sessionKeyValue !== selectedKey : session.date !== selected.date;
+  });
+  if (selectedKey) storage.removeItem(selectedKey);
+  setLocalHistory(sessions);
+  window.uploadedHistory = sessions;
+  rebuildHistoryData(sessions);
+  refreshHistoryUI();
+  if (historyDateInput) historyDateInput.value = "";
+  updateHistoryButtons();
+  populateHistoryDaySelect();
+  refreshCharts();
+  return true;
 }
 
 function ensureSelectValue(selectEl, value) {
@@ -1034,10 +1091,13 @@ function setAppEnabled(enabled) {
 }
 
 function initializeForUserSelection() {
+  sessionSaveKind = "none";
+  sessionIsDirty = false;
   refreshUserSelect();
   setAppEnabled(false);
   setAppVisible(false);
   updateCurrentUserBadge();
+  updateAutoSaveLabel();
   updateStepStatus();
 }
 
@@ -1049,12 +1109,15 @@ function activateSelectedUser(userKey) {
     return;
   }
   setCurrentUser(selected.name, selected.key);
+  sessionSaveKind = "none";
+  sessionIsDirty = false;
   loadLocalHistory();
   hydrateHistoryFromSessionKeys();
   setAppEnabled(true);
   setAppVisible(true);
   populateRoutineSelectors();
   checkSensationsForm();
+  updateAutoSaveLabel();
   setUserHistoryStatus(t("status.userActive", { name: selected.name }));
   updateStepStatus();
   scheduleExercisePagination(true);
@@ -1099,19 +1162,38 @@ function updateStepStatus() {
 }
 
 function updateSessionProgressIndicator() {
-  if (!sessionProgressIndicator) return;
   const root = exercisesContainer || mainExercisesContainer;
   const cards = root ? Array.from(root.querySelectorAll(".exercise-card")) : [];
   const exerciseCount = cards.length;
   const seriesCount = cards.reduce((total, card) => {
-    return total + card.querySelectorAll("tbody tr").length;
+    return total + card.querySelectorAll(".exercise-series-block > .exercise-table > tbody > tr").length;
   }, 0);
-  const warmupCount = cards.filter(card => card.dataset.calentamiento === "true").length;
-  const exerciseText = exerciseCount === 1 ? "1 ejercicio" : `${exerciseCount} ejercicios`;
+  const currentText = exerciseCount === 0
+    ? "Ejercicio 0 de 0"
+    : `Ejercicio ${Math.min(activeExerciseIndex + 1, exerciseCount)} de ${exerciseCount}`;
   const seriesText = seriesCount === 1 ? "1 serie" : `${seriesCount} series`;
-  const warmupText = warmupCount === 1 ? "1 calentamiento" : `${warmupCount} calentamiento`;
-  sessionProgressIndicator.textContent = `${exerciseText} · ${seriesText} · ${warmupText}`;
+  if (exerciseCounter) {
+    exerciseCounter.textContent = `${currentText} · ${seriesText}`;
+  }
 }
+
+document.addEventListener("input", event => {
+  if (!currentUserKey || isEditingHistory) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest("#exercises-container, #edit-exercises-container, #step-2, #step-3, #post-workout-section")) {
+    markSessionDirty();
+  }
+}, true);
+
+document.addEventListener("change", event => {
+  if (!currentUserKey || isEditingHistory) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest("#exercises-container, #edit-exercises-container, #step-2, #step-3, #post-workout-section")) {
+    markSessionDirty();
+  }
+}, true);
 
 function updateExercisePagination(resetIndex = false) {
   if (!exercisesContainer) return;
@@ -1126,7 +1208,6 @@ function updateExercisePagination(resetIndex = false) {
   }
   if (total === 0) {
     updateSessionProgressIndicator();
-    if (exerciseCounter) exerciseCounter.textContent = t("exercise.counter.empty");
     if (exercisePrevBtn) exercisePrevBtn.disabled = true;
     if (exerciseNextBtn) exerciseNextBtn.disabled = true;
     setVisible(saveRoutineControls, false);
@@ -1142,7 +1223,6 @@ function updateExercisePagination(resetIndex = false) {
       card.style.display = "block";
     });
     if (removeExerciseBtn) removeExerciseBtn.disabled = false;
-    if (exerciseCounter) exerciseCounter.textContent = t("exercise.counter.all", { total });
     if (exercisePrevBtn) exercisePrevBtn.disabled = true;
     if (exerciseNextBtn) exerciseNextBtn.disabled = true;
     setVisible(saveRoutineControls, false);
@@ -1155,14 +1235,21 @@ function updateExercisePagination(resetIndex = false) {
   });
   const activeCard = cards[activeExerciseIndex];
   if (removeExerciseBtn) removeExerciseBtn.disabled = !activeCard;
-  if (exerciseCounter) {
-    exerciseCounter.textContent = t("exercise.counter.current", { current: activeExerciseIndex + 1, total });
-  }
   if (exercisePrevBtn) exercisePrevBtn.disabled = activeExerciseIndex === 0;
   if (exerciseNextBtn) exerciseNextBtn.disabled = activeExerciseIndex >= total - 1;
   if (saveRoutineControls) {
     setVisible(saveRoutineControls, activeExerciseIndex === total - 1, "flex");
   }
+}
+
+if (exerciseEmptyAddBtn) {
+  exerciseEmptyAddBtn.addEventListener("click", () => {
+    if (typeof openQuickAddOverlay === "function") {
+      openQuickAddOverlay();
+    } else {
+      toggleQuickAddBtn?.click();
+    }
+  });
 }
 
 function scheduleExercisePagination(resetIndex = false) {
@@ -1231,6 +1318,28 @@ function updateStepNavigation() {
     appState.activeStepIndex = activeStepIndex;
   }
   const activeStep = stepPages[activeStepIndex];
+  const stepNames = new Map([
+    [step0, "Inicio"],
+    [step1, "Usuario"],
+    [step2, "Preparar sesión"],
+    [step3, "Ejercicios"],
+    [step4, "Cuestionario"],
+    [step5, "Resumen"],
+    [step6, "Gráficos"],
+    [step7, "Sesión anterior"],
+    [step8, "Gráficos por ejercicio"],
+    [step9, "Gráficos musculares"]
+  ]);
+
+  if (stepperFooter) {
+    stepperFooter.style.display = activeStepIndex === 0 ? "none" : "grid";
+  }
+  if (stepperStepName) {
+    stepperStepName.textContent = stepNames.get(activeStep) || "Sesión";
+  }
+  if (stepperStepPosition) {
+    stepperStepPosition.textContent = `Paso ${activeStepIndex} de ${Math.max(1, stepPages.length - 1)}`;
+  }
 
   if (subheader) {
     const step2Index = stepPages.indexOf(step2);
@@ -1265,28 +1374,6 @@ function updateStepNavigation() {
     stepperNextBtn.disabled = !canMoveNext;
     stepperNextBtn.style.display = activeStepIndex === 0 ? "none" : "inline-flex";
   }
-  if (sessionPrimaryAction) {
-    const step3Index = stepPages.indexOf(step3);
-    const step4Index = stepPages.indexOf(step4);
-    const step5Index = stepPages.indexOf(step5);
-    if (step3Index >= 0 && activeStepIndex === step3Index) {
-      sessionPrimaryAction.textContent = "Añadir";
-      sessionPrimaryAction.disabled = false;
-      sessionPrimaryAction.dataset.action = "add-exercise";
-    } else if (step4Index >= 0 && activeStepIndex === step4Index) {
-      sessionPrimaryAction.textContent = "Guardar";
-      sessionPrimaryAction.disabled = saveSessionBtn?.disabled === true;
-      sessionPrimaryAction.dataset.action = "save-session";
-    } else if (step5Index >= 0 && activeStepIndex === step5Index) {
-      sessionPrimaryAction.textContent = "Exportar";
-      sessionPrimaryAction.disabled = exportBtn?.disabled === true;
-      sessionPrimaryAction.dataset.action = "export-session";
-    } else {
-      sessionPrimaryAction.textContent = "Siguiente";
-      sessionPrimaryAction.disabled = stepperNextBtn?.disabled === true;
-      sessionPrimaryAction.dataset.action = "next-step";
-    }
-  }
 }
 
 function updateHeaderOffsets() {
@@ -1304,21 +1391,29 @@ function updateHeaderOffsets() {
 }
 
 function updateAutoSaveLabel() {
-  const label = lastAutoSaveTime
-    ? (Date.now() - lastAutoSaveTime < 5000
-      ? t("autoSave.now")
-      : t("autoSave.ago", { seconds: Math.max(1, Math.round((Date.now() - lastAutoSaveTime) / 1000)) }))
-    : "Sin guardar";
-  if (autoSaveStatus) autoSaveStatus.textContent = lastAutoSaveTime ? label : "";
-  if (sessionSaveStatus) sessionSaveStatus.textContent = label;
+  if (!currentUserKey) {
+    setSessionSaveState("no-user", "Sin usuario");
+    return;
+  }
+  if (sessionIsDirty) {
+    setSessionSaveState("pending", "Pendiente");
+    return;
+  }
+  if (sessionSaveKind === "manual") {
+    setSessionSaveState("saved", "Guardado");
+    return;
+  }
+  if (sessionSaveKind === "auto") {
+    setSessionSaveState("warning", "Autoguardado");
+    return;
+  }
+  setSessionSaveState("active", "En sesión");
 }
 
-function markAutoSaved() {
-  lastAutoSaveTime = Date.now();
+function markAutoSaved(kind = "auto") {
+  sessionSaveKind = kind;
+  sessionIsDirty = false;
   updateAutoSaveLabel();
-  if (!autoSaveTimer) {
-    autoSaveTimer = setInterval(updateAutoSaveLabel, 15000);
-  }
 }
 
 function setActiveStep(index, options = {}) {
@@ -1375,6 +1470,7 @@ function setActiveStep(index, options = {}) {
     editingSessionContext = null;
     isEditingHistory = false;
     appState.isEditingHistory = isEditingHistory;
+    historyEditUnlocked = false;
   }
 
   activeStepIndex = nextIndex;
@@ -1452,24 +1548,6 @@ function initializeStepper() {
   }
   if (stepperNextBtn) {
     stepperNextBtn.addEventListener("click", () => setActiveStep(activeStepIndex + 1));
-  }
-  if (sessionPrimaryAction) {
-    sessionPrimaryAction.addEventListener("click", () => {
-      const action = sessionPrimaryAction.dataset.action || "next-step";
-      if (action === "add-exercise") {
-        quickAddToggleBtn?.click();
-        return;
-      }
-      if (action === "save-session") {
-        saveSessionBtn?.click();
-        return;
-      }
-      if (action === "export-session") {
-        exportBtn?.click();
-        return;
-      }
-      stepperNextBtn?.click();
-    });
   }
   if (dateInput) {
     dateInput.addEventListener("change", updateSessionHeaderDate);
@@ -1823,6 +1901,7 @@ function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetField
   removeBtn.addEventListener("click", () => {
     tr.remove();
     updateSetNumbers(tbody);
+    markSessionDirty();
     saveSession();
     if (onInputChange) onInputChange();
   });
@@ -1887,31 +1966,26 @@ function buildExerciseCard(exData) {
 
   const headerActions = document.createElement("div");
   headerActions.className = "exercise-header-actions";
+  if (isEditingHistory) {
+    const deleteExerciseBtn = document.createElement("button");
+    deleteExerciseBtn.type = "button";
+    deleteExerciseBtn.className = "btn-danger history-delete-exercise";
+    deleteExerciseBtn.textContent = "Eliminar ejercicio";
+    deleteExerciseBtn.addEventListener("click", () => {
+      if (!historyEditUnlocked) return;
+      if (!confirm(`¿Eliminar completamente ${exData.nombre} de esta sesión?`)) return;
+      card.remove();
+    });
+    headerActions.appendChild(deleteExerciseBtn);
+  }
 
   header.appendChild(left);
   header.appendChild(headerActions);
   card.appendChild(header);
 
-  // ====== HISTORIAL RAPIDO ======
-  const historyInfo = document.createElement("div");
-  historyInfo.className = "exercise-history";
-  historyInfo.innerHTML = `
-    <span class="exercise-section-label">${t("exercise.history.label")}</span>
-    <span>${escapeHtml(getLastExerciseSummary(exData.nombre) || t("exercise.history.none"))}</span>
-  `;
-  card.appendChild(historyInfo);
-
-  const suggestionInfo = document.createElement("div");
-  suggestionInfo.className = "exercise-suggestion";
-  card.appendChild(suggestionInfo);
-
   // ====== TABLA DE SERIES ======
   const seriesBlock = document.createElement("div");
   seriesBlock.className = "exercise-series-block";
-  const seriesLabel = document.createElement("div");
-  seriesLabel.className = "exercise-section-label";
-  seriesLabel.textContent = t("exercise.series.label");
-  seriesBlock.appendChild(seriesLabel);
   const table = document.createElement("table");
   table.className = "exercise-table";
   table.innerHTML = isCardio ? `
@@ -1964,29 +2038,11 @@ function buildExerciseCard(exData) {
       if (lastSet) {
         if (lastSet.peso != null && lastSet.peso !== "") initialSet.peso = lastSet.peso;
         if (lastSet.reps != null && lastSet.reps !== "") initialSet.reps = lastSet.reps;
-        initialSet._suggested = true;
-        const repsValue = parseFloat(lastSet.reps);
-        const hasTenPlus = lastSet.hasTenPlus === true;
-        if (Number.isFinite(repsValue)) {
-          suggestionInfo.textContent = repsValue >= 12
-            ? t("exercise.suggestion.up")
-            : repsValue >= 8
-              ? t("exercise.suggestion.keep")
-              : repsValue === 7 || repsValue === 6
-                ? (hasTenPlus ? t("exercise.suggestion.keep") : t("exercise.suggestion.down"))
-                : t("exercise.suggestion.down");
-        } else {
-          suggestionInfo.textContent = t("exercise.suggestion.keep");
-        }
-        suggestionInfo.style.display = "block";
       } else {
         if (Object.keys(initialSet).length === 0) {
           const maxWeight = getMaxWeight(exData.nombre);
           if (maxWeight) initialSet.peso = maxWeight;
         }
-        suggestionInfo.textContent = t("exercise.suggestionNone");
-        suggestionInfo.style.color = "var(--meta-text)";
-        suggestionInfo.style.display = "block";
       }
       addSetRow(tbody, initialSet, null, strengthSetFields);
     }
@@ -2017,6 +2073,7 @@ function buildExerciseCard(exData) {
   addBtn.setAttribute("aria-label", t("exercise.addSet"));
   addBtn.onclick = () => {
     addSetRow(tbody, {}, null, isCardio ? cardioSetFields : strengthSetFields);
+    markSessionDirty();
     saveSession();
   };
 
@@ -2026,6 +2083,72 @@ function buildExerciseCard(exData) {
     actionHeader.innerHTML = "";
     actionHeader.appendChild(addBtn);
   }
+
+  // ====== ÚLTIMA REFERENCIA ======
+  const historyDetails = document.createElement("details");
+  historyDetails.className = "exercise-history";
+  const historySummary = document.createElement("summary");
+  historySummary.textContent = t("exercise.history.label");
+  historyDetails.appendChild(historySummary);
+
+  const historyContent = document.createElement("div");
+  historyContent.className = "exercise-history-content";
+  const lastReference = getLastExerciseReference(exData.nombre);
+
+  if (!lastReference) {
+    const emptyHistory = document.createElement("p");
+    emptyHistory.className = "exercise-history-empty";
+    emptyHistory.textContent = t("exercise.history.none");
+    historyContent.appendChild(emptyHistory);
+  } else {
+    const historyDate = document.createElement("div");
+    historyDate.className = "exercise-history-date";
+    historyDate.textContent = lastReference.date;
+    historyContent.appendChild(historyDate);
+
+    const historyTable = document.createElement("table");
+    historyTable.className = "exercise-table exercise-history-table";
+    const headerLabels = lastReference.isCardio
+      ? ["Serie", "Intensidad", "Tiempo (min)"]
+      : ["Serie", "Peso", "Reps", "Fallo"];
+    const tableHead = document.createElement("thead");
+    const historyHeaderRow = document.createElement("tr");
+    headerLabels.forEach(label => {
+      const th = document.createElement("th");
+      th.textContent = label;
+      historyHeaderRow.appendChild(th);
+    });
+    tableHead.appendChild(historyHeaderRow);
+    historyTable.appendChild(tableHead);
+
+    const historyBody = document.createElement("tbody");
+    lastReference.sets.forEach((set, index) => {
+      const row = document.createElement("tr");
+      const values = lastReference.isCardio
+        ? [
+            set.serie ?? index + 1,
+            set.intensidad ?? set.peso ?? "",
+            set.tiempo ?? set.reps ?? ""
+          ]
+        : [
+            set.serie ?? index + 1,
+            set.peso ?? "",
+            set.reps ?? "",
+            set.fallo === true || set.fallo === "true" ? "*" : ""
+          ];
+      values.forEach(value => {
+        const td = document.createElement("td");
+        td.textContent = value;
+        row.appendChild(td);
+      });
+      historyBody.appendChild(row);
+    });
+    historyTable.appendChild(historyBody);
+    historyContent.appendChild(historyTable);
+  }
+
+  historyDetails.appendChild(historyContent);
+  card.appendChild(historyDetails);
 
   // ====== NOTAS TÉCNICAS ======
   const notes = document.createElement("div");
@@ -2194,9 +2317,10 @@ function applyHistorySession(session, options = {}) {
   const preserveAutoSave = options.preserveAutoSave === true;
   const onlyFirstSet = options.onlyFirstSet === true;
   if (!preserveAutoSave) {
-    lastAutoSaveTime = null;
-    updateAutoSaveLabel();
+    sessionSaveKind = "none";
   }
+  sessionIsDirty = false;
+  updateAutoSaveLabel();
   exercisesContainer.innerHTML = "";
   senseGeneralInput.value = "";
   senseTirednessInput.value = "";
@@ -2285,8 +2409,8 @@ function loadSession(options = {}) {
   const saved = JSON.parse(storage.getItem(key) || "null");
   if (!preserveAutoSave) {
     lastAutoSaveTime = null;
-    updateAutoSaveLabel();
   }
+  sessionIsDirty = false;
 
   const week = weekSelect.value;
   const day = daySelect.value;
@@ -2387,6 +2511,7 @@ function loadSession(options = {}) {
   if (typeof window.loadChartExercises === "function") {
     window.loadChartExercises();
   }
+  updateAutoSaveLabel();
 }
 
 
@@ -2440,7 +2565,7 @@ if (saveSessionBtn) {
       showSaveSessionError(t("status.postWorkoutSaveError"));
       return;
     }
-    saveSession();
+    saveSession({ source: "manual" });
     const key = sessionKey();
     const saved = JSON.parse(storage.getItem(key) || "null");
     if (!saved) return alert(t("alert.noDataToday"));
@@ -2473,6 +2598,7 @@ function overwriteEditedSession() {
   saved.day = sessions[index].day ?? saved.day;
   saved.key = sessions[index].key || saved.key;
   sessions[index] = { ...sessions[index], ...saved };
+  if (saved.key) storage.setItem(saved.key, JSON.stringify(sessions[index]));
   setLocalHistory(sessions);
   window.uploadedHistory = sessions;
   rebuildHistoryData(sessions);
@@ -2480,6 +2606,7 @@ function overwriteEditedSession() {
   populateHistoryDaySelect();
   setStatus(t("status.sessionSavedLocal"));
   showSaveSessionMessage();
+  setHistoryEditorMode(false);
   if (editSessionStatus) {
     editSessionStatus.textContent = t("status.sessionOverwritten");
     setVisible(editSessionStatus, true);

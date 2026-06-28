@@ -1,4 +1,6 @@
 
+const logoutUserBtn = document.getElementById("logout-user-btn");
+
 function escapeCsvCell(value) {
   if (value == null) return "";
   const text = String(value);
@@ -542,7 +544,10 @@ function renderFavoritesList() {
 function openHistoryMenuOverlay() {
   if (!historyMenuOverlay) return;
   refreshHistoryUI();
-  openOverlay(historyMenuOverlay, { initialFocus: historyDateInput || historyMenuClose });
+  if (historyDateInput) historyDateInput.value = "";
+  updateHistoryButtons();
+  const firstSession = historyDateList?.querySelector(".history-date-item");
+  openOverlay(historyMenuOverlay, { initialFocus: firstSession || historyMenuClose });
 }
 
 function closeHistoryMenuOverlay() {
@@ -684,6 +689,32 @@ if (manageUserFavoritesBtn) {
     openFavoritesOverlay();
   });
 }
+
+if (logoutUserBtn) {
+  logoutUserBtn.addEventListener("click", () => {
+    currentUserKey = "";
+    currentUserName = "";
+    appState.currentUserKey = "";
+    appState.currentUserName = "";
+    sessionSaveKind = "none";
+    lastAutoSaveTime = null;
+    sessionIsDirty = false;
+    storage.removeItem("gym_user_name");
+    updateCurrentUserBadge();
+    setAppEnabled(false);
+    setAppVisible(false);
+    updateAutoSaveLabel();
+    refreshUserSelect();
+    if (userHistorySelect) {
+      userHistorySelect.value = "";
+      userHistorySelect.selectedIndex = 0;
+    }
+    closeManageUserOverlay();
+    closeHistoryMenuOverlay();
+    closeFavoritesOverlay();
+    closeImportOverlay();
+  });
+}
 if (favoritesGroupSelect) {
   favoritesGroupSelect.addEventListener("change", () => {
     renderFavoritesList();
@@ -722,13 +753,6 @@ if (historyDateInput) {
 if (historyViewBtn) {
   historyViewBtn.addEventListener("click", () => {
     const session = getSelectedHistorySession();
-    if (session) openHistoryViewOverlay(session);
-  });
-}
-
-if (historyEditBtn) {
-  historyEditBtn.addEventListener("click", () => {
-    const session = getSelectedHistorySession();
     if (!session) return;
     if (!editingSessionContext) {
       editingSessionContext = {
@@ -745,27 +769,31 @@ if (historyEditBtn) {
     }
     isEditingHistory = true;
     appState.isEditingHistory = isEditingHistory;
+    setHistoryEditorMode(false);
     applyHistorySession(session, { silent: true, preserveAutoSave: true });
     const step7Index = stepPages.indexOf(step7);
     if (step7Index >= 0) setActiveStep(step7Index);
+    setHistoryEditorMode(false);
     closeHistoryMenuOverlay();
     closeManageUserOverlay();
+  });
+}
+
+if (historyDeleteSessionBtn) {
+  historyDeleteSessionBtn.addEventListener("click", () => {
+    deleteSelectedHistorySession();
+  });
+}
+
+if (unlockHistoryEditBtn) {
+  unlockHistoryEditBtn.addEventListener("click", () => {
+    setHistoryEditorMode(!historyEditUnlocked);
   });
 }
 
 if (overwriteHistoryBtn) {
   overwriteHistoryBtn.addEventListener("click", () => {
     overwriteEditedSession();
-  });
-}
-
-if (historyViewClose) {
-  historyViewClose.addEventListener("click", closeHistoryViewOverlay);
-}
-
-if (historyViewOverlay) {
-  historyViewOverlay.addEventListener("click", (e) => {
-    if (e.target === historyViewOverlay) closeHistoryViewOverlay();
   });
 }
 

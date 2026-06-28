@@ -101,15 +101,16 @@ function buildSessionData(container) {
   return data;
 }
 
-function saveSession() {
+function saveSession(options = {}) {
   if (!currentUserKey) return;
   if (isEditingHistory) return;
+  const source = options.source === "manual" ? "manual" : "auto";
   const key = sessionKey();
   const data = buildSessionData(mainExercisesContainer);
   if (!data) return;
   storage.setItem(key, JSON.stringify(data));
   setStatus(t("status.saved"));
-  markAutoSaved();
+  markAutoSaved(source);
   if (typeof updateSessionProgressIndicator === "function") {
     updateSessionProgressIndicator();
   }

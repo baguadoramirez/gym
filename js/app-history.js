@@ -558,36 +558,42 @@ function getLastExerciseMaxWeight(exerciseName) {
   return Math.max(...weights);
 }
 
-function getLastExerciseSummary(exerciseName) {
+function formatRelativeExerciseDate(dateValue) {
+  if (!dateValue) return "";
+  const dateParts = String(dateValue).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const date = dateParts
+    ? new Date(Number(dateParts[1]), Number(dateParts[2]) - 1, Number(dateParts[3]))
+    : new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return String(dateValue);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
+  const dayDifference = Math.round((date.getTime() - today.getTime()) / 86400000);
+  return new Intl.RelativeTimeFormat(getLocale(), { numeric: "auto" }).format(dayDifference, "day");
+}
+
+function getLastExerciseReference(exerciseName) {
   const lastSession = getLastExerciseSession(exerciseName);
   if (!lastSession) return null;
-  const ex = lastSession.exercises.find(e => e.nombre === exerciseName && !isWarmupExercise(e));
-  if (!ex?.sets?.length) return null;
-  const firstSet = ex.sets[0] || {};
-  const isCardio = String(ex.musculo || "").toLowerCase() === "cardio";
-  if (isCardio) {
-    const tiempo = firstSet.tiempo ?? firstSet.reps ?? "";
-    const intensidad = firstSet.intensidad ?? firstSet.peso ?? "";
-    const parts = [];
-    if (intensidad !== "") parts.push(t("exercise.detail.intensity", { value: intensidad }));
-    if (tiempo !== "") parts.push(t("exercise.detail.time", { value: tiempo }));
-    const cardioDetail = parts.length
-      ? t("exercise.lastSession.cardio", { detail: parts.join(" · ") })
-      : t("exercise.cardio.noData");
-    return t("exercise.lastSession", { date: lastSession.date, detail: cardioDetail });
-  }
-  let peso = "";
-  let reps = "";
-  for (let i = ex.sets.length - 1; i >= 0; i -= 1) {
-    const set = ex.sets[i];
-    if (!isValidStrengthSet(exerciseName, set)) continue;
-    peso = set.peso ?? "";
-    reps = set.reps ?? "";
-    break;
-  }
-  const parts = [];
-  if (peso !== "") parts.push(t("exercise.detail.weight", { value: peso }));
-  if (reps !== "") parts.push(t("exercise.detail.reps", { value: reps }));
-  const firstSetDetail = parts.length ? t("exercise.firstSet", { detail: parts.join(" x ") }) : t("exercise.firstSet.noData");
-  return t("exercise.lastSession", { date: lastSession.date, detail: firstSetDetail });
+  const exercise = lastSession.exercises.find(
+    entry => entry.nombre === exerciseName && !isWarmupExercise(entry)
+  );
+  if (!exercise?.sets?.length) return null;
+
+  const isCardio = String(exercise.musculo || "").toLowerCase() === "cardio";
+  const sets = isCardio
+    ? exercise.sets.filter(set => {
+        const intensity = set.intensidad ?? set.peso ?? "";
+        const time = set.tiempo ?? set.reps ?? "";
+        return intensity !== "" || time !== "";
+      })
+    : exercise.sets.filter(set => isValidStrengthSet(exerciseName, set));
+
+  if (!sets.length) return null;
+  return {
+    date: formatRelativeExerciseDate(lastSession.date),
+    isCardio,
+    sets
+  };
 }

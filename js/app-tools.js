@@ -6,6 +6,7 @@ let stopwatchTime = 0; // en segundos
 let isRunning = false;
 let beepInterval = null;
 let beepContext = null;
+let stopwatchWakeLock = null;
 
 const stopwatchDisplay = document.getElementById('stopwatch-display');
 const stopwatchInput = document.getElementById('stopwatch-input');
@@ -19,6 +20,7 @@ const stopwatchCloseBtn = document.getElementById('stopwatch-close-btn');
 const quickAddPopup = document.getElementById('quick-add-popup');
 const quickAddOverlay = document.getElementById('quick-add-overlay');
 const quickAddToggleBtn = document.getElementById('toggle-quick-add');
+const quickAddShortcuts = document.getElementById('quick-add-shortcuts');
 const quickAddCloseBtn = document.getElementById('quick-add-close-btn');
 const quickAddSearch = document.getElementById('quick-add-search');
 const quickAddGroups = document.getElementById('quick-add-groups');
@@ -37,6 +39,9 @@ const orderOverlay = document.getElementById('order-overlay');
 const orderList = document.getElementById('order-list');
 const orderCancel = document.getElementById('order-cancel');
 const orderConfirm = document.getElementById('order-confirm');
+
+let quickAddSelectedGroup = "";
+let quickAddMode = "all";
 
 function updateDisplay() {
   const minutes = Math.floor(stopwatchTime / 60);
@@ -74,6 +79,42 @@ function stopBeepLoop() {
   beepInterval = null;
 }
 
+async function requestStopwatchWakeLock() {
+  if (!isRunning || document.visibilityState !== "visible" || !("wakeLock" in navigator)) return;
+
+  try {
+    const lock = await navigator.wakeLock.request("screen");
+    if (!isRunning) {
+      await lock.release();
+      return;
+    }
+    stopwatchWakeLock = lock;
+    lock.addEventListener("release", () => {
+      if (stopwatchWakeLock === lock) stopwatchWakeLock = null;
+    });
+  } catch (error) {
+    stopwatchWakeLock = null;
+  }
+}
+
+async function releaseStopwatchWakeLock() {
+  const lock = stopwatchWakeLock;
+  stopwatchWakeLock = null;
+  if (!lock) return;
+
+  try {
+    await lock.release();
+  } catch (error) {
+    // The browser may already have released it after a visibility change.
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && isRunning && !stopwatchWakeLock) {
+    requestStopwatchWakeLock();
+  }
+});
+
 function openStopwatchOverlay() {
   if (!stopwatchOverlay) return;
   openOverlay(stopwatchOverlay, { initialFocus: stopwatchInput || startBtn });
@@ -86,6 +127,12 @@ function closeStopwatchOverlay() {
 
 function openQuickAddOverlay() {
   if (!quickAddOverlay) return;
+  quickAddMode = "all";
+  quickAddSelectedGroup = "";
+  if (quickAddSearch) quickAddSearch.value = "";
+  if (quickAddFavoritesOnly) quickAddFavoritesOnly.checked = true;
+  if (quickAddNoMaterialOnly) quickAddNoMaterialOnly.checked = false;
+  if (quickAddWarmup) quickAddWarmup.checked = false;
   renderQuickAddGroups();
   renderQuickAddResults();
   openOverlay(quickAddOverlay, { initialFocus: quickAddSearch || quickAddResults || quickAddCustomBtn });
@@ -120,37 +167,71 @@ function renderOrderList(items) {
   items.forEach((entry, index) => {
     const row = document.createElement("div");
     row.className = "order-item";
+    row._orderEntry = entry;
     const title = document.createElement("div");
     title.className = "order-title";
     title.textContent = entry.name;
-    const actions = document.createElement("div");
-    actions.className = "order-actions";
-    const upBtn = document.createElement("button");
-    upBtn.type = "button";
-    upBtn.textContent = "↑";
-    upBtn.disabled = index === 0;
-    upBtn.addEventListener("click", () => {
-      if (index === 0) return;
-      const swapped = items[index - 1];
-      items[index - 1] = items[index];
-      items[index] = swapped;
-      renderOrderList(items);
+    const dragHandle = document.createElement("button");
+    dragHandle.type = "button";
+    dragHandle.className = "order-drag-handle";
+    dragHandle.setAttribute("aria-label", `Mover ${entry.name}`);
+    dragHandle.title = "Mantén pulsado y arrastra";
+    dragHandle.textContent = "⋮";
+
+    dragHandle.addEventListener("pointerdown", event => {
+      if (event.button !== 0 && event.pointerType === "mouse") return;
+      event.preventDefault();
+      const activePointerId = event.pointerId;
+      row.classList.add("is-dragging");
+      document.body.classList.add("is-reordering");
+
+      const moveRow = moveEvent => {
+        if (moveEvent.pointerId !== activePointerId) return;
+        moveEvent.preventDefault();
+        const otherRows = Array.from(orderList.querySelectorAll(".order-item"))
+          .filter(item => item !== row);
+        const nextRow = otherRows.find(item => {
+          const rect = item.getBoundingClientRect();
+          return moveEvent.clientY < rect.top + rect.height / 2;
+        });
+
+        if (nextRow) {
+          orderList.insertBefore(row, nextRow);
+        } else {
+          orderList.appendChild(row);
+        }
+      };
+
+      const finishDragging = finishEvent => {
+        if (finishEvent?.pointerId != null && finishEvent.pointerId !== activePointerId) return;
+        row.classList.remove("is-dragging");
+        document.body.classList.remove("is-reordering");
+        items.splice(0, items.length, ...Array.from(orderList.children).map(item => item._orderEntry));
+        document.removeEventListener("pointermove", moveRow);
+        document.removeEventListener("pointerup", finishDragging);
+        document.removeEventListener("pointercancel", finishDragging);
+        window.removeEventListener("blur", finishDragging);
+      };
+
+      document.addEventListener("pointermove", moveRow, { passive: false });
+      document.addEventListener("pointerup", finishDragging);
+      document.addEventListener("pointercancel", finishDragging);
+      window.addEventListener("blur", finishDragging);
     });
-    const downBtn = document.createElement("button");
-    downBtn.type = "button";
-    downBtn.textContent = "↓";
-    downBtn.disabled = index === items.length - 1;
-    downBtn.addEventListener("click", () => {
-      if (index >= items.length - 1) return;
-      const swapped = items[index + 1];
-      items[index + 1] = items[index];
-      items[index] = swapped;
+
+    dragHandle.addEventListener("keydown", event => {
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+      event.preventDefault();
+      const currentIndex = items.indexOf(entry);
+      const nextIndex = event.key === "ArrowUp" ? currentIndex - 1 : currentIndex + 1;
+      if (nextIndex < 0 || nextIndex >= items.length) return;
+      [items[currentIndex], items[nextIndex]] = [items[nextIndex], items[currentIndex]];
       renderOrderList(items);
+      orderList.children[nextIndex]?.querySelector(".order-drag-handle")?.focus();
     });
-    actions.appendChild(upBtn);
-    actions.appendChild(downBtn);
+
     row.appendChild(title);
-    row.appendChild(actions);
+    row.appendChild(dragHandle);
     orderList.appendChild(row);
   });
 }
@@ -173,6 +254,7 @@ startBtn.addEventListener('click', () => {
   if (!isRunning && stopwatchTime > 0) {
     stopBeepLoop();
     isRunning = true;
+    requestStopwatchWakeLock();
     startBtn.style.display = 'none'; // Ocultar botón iniciar
     stopwatchInterval = setInterval(() => {
       if (stopwatchTime > 0) {
@@ -181,6 +263,7 @@ startBtn.addEventListener('click', () => {
       } else {
         clearInterval(stopwatchInterval);
         isRunning = false;
+        releaseStopwatchWakeLock();
         startBtn.style.display = 'inline-block'; // Mostrar botón iniciar
         startBeepLoop();
         setStatus(t("status.timeFinished"));
@@ -193,6 +276,7 @@ stopBtn.addEventListener('click', () => {
   if (isRunning) {
     isRunning = false;
     clearInterval(stopwatchInterval);
+    releaseStopwatchWakeLock();
     startBtn.style.display = 'inline-block'; // Mostrar botón iniciar
   }
   stopBeepLoop();
@@ -201,6 +285,7 @@ stopBtn.addEventListener('click', () => {
 resetBtn.addEventListener('click', () => {
   isRunning = false;
   clearInterval(stopwatchInterval);
+  releaseStopwatchWakeLock();
   stopwatchTime = parseInt(stopwatchInput.value) || 0;
   updateDisplay();
   startBtn.style.display = 'inline-block'; // Mostrar botón iniciar
@@ -223,9 +308,6 @@ toggleBtn.addEventListener('click', () => {
   }
 });
 
-
-let quickAddSelectedGroup = "";
-
 function normalizeQuickAddText(value) {
   return String(value || "")
     .normalize("NFD")
@@ -237,14 +319,56 @@ function getQuickAddSearchText() {
   return normalizeQuickAddText(quickAddSearch?.value).trim();
 }
 
+function getQuickAddRecentNames(limit = 12) {
+  const history = typeof getLocalHistory === "function" ? getLocalHistory() : [];
+  const seen = new Set();
+  const names = [];
+  history
+    .slice()
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+    .forEach(session => {
+      (Array.isArray(session.exercises) ? session.exercises : []).forEach(ex => {
+        const name = ex?.nombre?.trim();
+        if (!name || seen.has(name)) return;
+        seen.add(name);
+        names.push(name);
+      });
+    });
+  return names.slice(0, limit);
+}
+
+function getQuickAddPopularNames(limit = 12) {
+  const counts = new Map();
+  const history = typeof getLocalHistory === "function" ? getLocalHistory() : [];
+  history.forEach(session => {
+    (Array.isArray(session.exercises) ? session.exercises : []).forEach(ex => {
+      const name = ex?.nombre?.trim();
+      if (!name) return;
+      counts.set(name, (counts.get(name) || 0) + 1);
+    });
+  });
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], getLocale()))
+    .slice(0, limit)
+    .map(([name]) => name);
+}
+
+function getQuickAddPool() {
+  if (quickAddMode === "recent") return getQuickAddRecentNames();
+  if (quickAddMode === "favorites") return loadFavorites();
+  if (quickAddMode === "popular") return getQuickAddPopularNames();
+  return Object.keys(exerciseTemplates);
+}
+
 function getQuickAddMatches() {
   const searchText = getQuickAddSearchText();
   const favoritesOnly = Boolean(quickAddFavoritesOnly?.checked);
   const noMaterialOnly = Boolean(quickAddNoMaterialOnly?.checked);
   const favorites = favoritesOnly ? new Set(loadFavorites()) : null;
 
-  return Object.keys(exerciseTemplates).filter(name => {
+  return getQuickAddPool().filter(name => {
     const tpl = exerciseTemplates[name];
+    if (!tpl) return false;
     const group = resolveExerciseGroup(tpl);
     const section = tpl?.seccion || "";
     const muscle = tpl?.musculo || "";
@@ -261,6 +385,13 @@ function updateQuickFilterStates() {
   [quickAddFavoritesOnly, quickAddNoMaterialOnly, quickAddWarmup].forEach(input => {
     const label = input?.closest(".quick-filter");
     if (label) label.classList.toggle("is-active", input.checked);
+  });
+}
+
+function updateQuickShortcutStates() {
+  if (!quickAddShortcuts) return;
+  quickAddShortcuts.querySelectorAll(".quick-shortcut-btn").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.quickMode === quickAddMode);
   });
 }
 
@@ -302,6 +433,7 @@ function addQuickExercise(name) {
 
 function renderQuickAddResults() {
   if (!quickAddResults) return;
+  updateQuickShortcutStates();
   updateQuickFilterStates();
   const matches = getQuickAddMatches();
   const favorites = new Set(loadFavorites());
@@ -369,6 +501,14 @@ if (quickAddSearch) {
     addQuickExercise(first);
   });
 }
+if (quickAddShortcuts) {
+  quickAddShortcuts.addEventListener("click", event => {
+    const btn = event.target.closest(".quick-shortcut-btn");
+    if (!btn) return;
+    quickAddMode = btn.dataset.quickMode || "all";
+    renderQuickAddResults();
+  });
+}
 if (quickAddFavoritesOnly) {
   quickAddFavoritesOnly.addEventListener("change", renderQuickAddResults);
 }
@@ -411,13 +551,16 @@ if (toggleOrderModeBtn) {
     openOrderOverlay(items);
     if (orderConfirm) {
       orderConfirm.onclick = () => {
-        if (!items.length) {
-          closeOrderOverlay();
-          return;
-        }
-        items.forEach(item => {
-          exercisesContainer.appendChild(item.node);
-        });
+    if (!items.length) {
+      closeOrderOverlay();
+      return;
+    }
+    if (typeof markSessionDirty === "function") {
+      markSessionDirty();
+    }
+    items.forEach(item => {
+      exercisesContainer.appendChild(item.node);
+    });
         saveSession();
         scheduleExercisePagination(true);
         closeOrderOverlay();
@@ -501,6 +644,9 @@ if (removeExerciseBtn) {
     if (!card) return;
     card.remove();
     activeExerciseIndex = Math.max(0, index - 1);
+    if (typeof markSessionDirty === "function") {
+      markSessionDirty();
+    }
     saveSession();
     loadSession({ preserveExerciseIndex: true }); // Necesario para refrescar el painExerciseSelect
   });

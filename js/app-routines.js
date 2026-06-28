@@ -43,7 +43,10 @@ function syncRoutineSelectFromWeekDay() {
   if (!routineSelect || !weekSelect || !daySelect) return;
   const value = buildRoutineValue(weekSelect.value, daySelect.value);
   const hasOption = Array.from(routineSelect.options).some(opt => opt.value === value);
-  if (hasOption) routineSelect.value = value;
+  if (hasOption) {
+    routineSelect.value = value;
+    updateRoutineOptionSelection(value);
+  }
 }
 
 function getRoutineEntries() {
@@ -61,12 +64,126 @@ function getRoutineEntries() {
         week,
         day,
         label,
-        value: buildRoutineValue(week, day)
+        value: buildRoutineValue(week, day),
+        exerciseCount: Array.isArray(days[day]) ? days[day].length : 0,
+        isCustom: Object.prototype.hasOwnProperty.call(loadCustomRoutines(), week)
       });
     });
   });
   entries.sort((a, b) => a.label.localeCompare(b.label, getLocale()));
   return entries;
+}
+
+function updateRoutineDeleteState(entry) {
+  if (!deleteRoutineBtn) return;
+  const canDelete = entry?.isCustom === true;
+  deleteRoutineBtn.disabled = !canDelete;
+  deleteRoutineBtn.title = canDelete ? "Borrar rutina" : "Las rutinas predefinidas no se pueden borrar";
+}
+
+function updateRoutineOptionSelection(value) {
+  const list = document.getElementById("routine-option-list");
+  if (!list) return;
+  list.querySelectorAll(".step2-option-row").forEach(button => {
+    const selected = button.dataset.value === value;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  });
+  const entry = getRoutineEntries().find(item => item.value === value);
+  updateRoutineDeleteState(entry);
+}
+
+function renderRoutineOptionList(entries, selectedValue) {
+  const list = document.getElementById("routine-option-list");
+  if (!list) return;
+  list.innerHTML = "";
+  if (!entries.length) {
+    const empty = document.createElement("div");
+    empty.className = "step2-option-empty";
+    empty.textContent = "No hay rutinas disponibles";
+    list.appendChild(empty);
+    updateRoutineDeleteState(null);
+    if (loadBtn) loadBtn.disabled = true;
+    return;
+  }
+
+  entries.forEach(entry => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "step2-option-row";
+    button.dataset.value = entry.value;
+    button.setAttribute("aria-pressed", entry.value === selectedValue ? "true" : "false");
+    button.classList.toggle("is-selected", entry.value === selectedValue);
+
+    const main = document.createElement("span");
+    main.className = "step2-option-main";
+    main.textContent = entry.label;
+    const meta = document.createElement("span");
+    meta.className = "step2-option-meta";
+    meta.textContent = `${entry.exerciseCount} ejercicios`;
+    button.appendChild(main);
+    button.appendChild(meta);
+
+    button.addEventListener("click", () => {
+      if (routineSelect) {
+        routineSelect.value = entry.value;
+        routineSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      updateRoutineOptionSelection(entry.value);
+      updateRoutineDeleteState(entry);
+      if (loadBtn) loadBtn.disabled = false;
+    });
+    list.appendChild(button);
+  });
+
+  updateRoutineDeleteState(entries.find(entry => entry.value === selectedValue));
+  if (loadBtn) loadBtn.disabled = false;
+}
+
+function renderHistorySessionList(sessions, selectedValue) {
+  const list = document.getElementById("history-session-list");
+  if (!list) return;
+  list.innerHTML = "";
+  if (!sessions.length) {
+    const empty = document.createElement("div");
+    empty.className = "step2-option-empty";
+    empty.textContent = t("status.noHistorySessions");
+    list.appendChild(empty);
+    return;
+  }
+
+  sessions.forEach(session => {
+    const value = session.key || buildSessionKey(session) || "";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "step2-option-row";
+    button.dataset.value = value;
+    button.classList.toggle("is-selected", value === selectedValue);
+    button.setAttribute("aria-pressed", value === selectedValue ? "true" : "false");
+
+    const main = document.createElement("span");
+    main.className = "step2-option-main";
+    const dateLabel = formatHistoryDateLabel(session.date);
+    const dayLabel = session.day ? translateRoutineLabel(session.day) : "Sesión";
+    main.textContent = `${dateLabel} · ${dayLabel}`;
+    const meta = document.createElement("span");
+    meta.className = "step2-option-meta";
+    const exerciseCount = Array.isArray(session.exercises) ? session.exercises.length : 0;
+    meta.textContent = `${exerciseCount} ejercicios`;
+    button.appendChild(main);
+    button.appendChild(meta);
+
+    button.addEventListener("click", () => {
+      if (historyDaySelect) historyDaySelect.value = value;
+      list.querySelectorAll(".step2-option-row").forEach(row => {
+        const selected = row === button;
+        row.classList.toggle("is-selected", selected);
+        row.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+      if (loadPreviousSessionBtn) loadPreviousSessionBtn.disabled = false;
+    });
+    list.appendChild(button);
+  });
 }
 
 function normalizeRoutineExerciseName(name) {
@@ -293,6 +410,7 @@ function populateRoutineSelectors() {
     daySelect.innerHTML = "";
     if (routineSelect) routineSelect.innerHTML = "";
   }
+  renderRoutineOptionList(entries, selectedValue);
 }
 
 function refreshRoutineSelectLabels() {
@@ -310,6 +428,7 @@ function refreshRoutineSelectLabels() {
       routineSelect.value = currentValue;
     }
     syncRoutineSelectFromWeekDay();
+    renderRoutineOptionList(entries, routineSelect.value);
     return;
   }
   if (weekSelect) {
@@ -339,6 +458,7 @@ function populateHistoryDaySelect() {
   if (!sessions.length) {
     historyDaySelect.disabled = true;
     if (loadPreviousSessionBtn) loadPreviousSessionBtn.disabled = true;
+    renderHistorySessionList([], "");
     return;
   }
   sessions.forEach(session => {
@@ -350,7 +470,10 @@ function populateHistoryDaySelect() {
     historyDaySelect.appendChild(opt);
   });
   historyDaySelect.disabled = false;
-  if (loadPreviousSessionBtn) loadPreviousSessionBtn.disabled = false;
+  const selectedValue = historyDaySelect.options[1]?.value || "";
+  historyDaySelect.value = selectedValue;
+  renderHistorySessionList(sessions, selectedValue);
+  if (loadPreviousSessionBtn) loadPreviousSessionBtn.disabled = !selectedValue;
 }
 
 function getHistorySessionByKey(sessionKey) {
@@ -365,4 +488,3 @@ function getHistorySessionByKey(sessionKey) {
 // -------------------------
 // FUNCIÓN PARA EL SELECTOR DE DOLOR (SOLO EJERCICIOS DE HOY + "No identificado")
 // -------------------------
-
