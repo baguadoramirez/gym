@@ -16,7 +16,7 @@ function buildSessionData(container) {
     sensations: {
       general: senseGeneralInput.value,
       tiredness: senseTirednessInput.value,
-      weight: senseWeightInput.value,
+      weight: senseWeightInput?.value || "",
       pain: sensePainSelect.value,
       painZone: painZoneInput.value,
       painExercise: selectedPainExercise,
@@ -26,25 +26,16 @@ function buildSessionData(container) {
   };
 
   cards.forEach(card => {
-    const name = card.querySelector(".exercise-title")?.textContent.trim() || "";
+    const editableName = card.querySelector(".history-exercise-name-input")?.value.trim();
+    const name = editableName || card.querySelector(".exercise-title")?.textContent.trim() || "";
     
     let mus = "";
     let sec = "";
-    let hacer = "";
-    let noHacer = "";
-    let trucos = "";
-
     const metaElement = card.querySelector(".exercise-muscle-section");
     if (metaElement) {
         mus = metaElement.getAttribute("data-musculo") || "";
         sec = metaElement.getAttribute("data-seccion") || "";
     }
-    
-    const tpl = exerciseTemplates[name] || {};
-    hacer = tpl.hacer ?? "";
-    noHacer = tpl.noHacer ?? "";
-    trucos = tpl.trucos ?? "";
-
     
     const tbody = card.querySelector("tbody");
     const rows = tbody ? Array.from(tbody.querySelectorAll("tr")) : [];
@@ -89,9 +80,6 @@ function buildSessionData(container) {
       nombre: name,
       musculo: mus,
       seccion: sec,
-      hacer: hacer,
-      noHacer: noHacer,
-      trucos: trucos,
       calentamiento: card.dataset.calentamiento === "true",
       sets: sets,
       notes: exerciseNotes

@@ -219,7 +219,8 @@ function closeManageUserOverlay() {
 function openFavoritesOverlay() {
   if (!favoritesOverlay) return;
   renderFavoritesList();
-  openOverlay(favoritesOverlay, { initialFocus: favoritesGroupSelect || favoritesClose });
+  const firstGroup = favoritesGroupSelect?.querySelector(".favorites-group-btn");
+  openOverlay(favoritesOverlay, { initialFocus: firstGroup || favoritesClose });
 }
 
 function closeFavoritesOverlay() {
@@ -470,73 +471,67 @@ function renderFavoritesList() {
     return;
   }
 
+  const groups = Array.from(new Set(
+    allNames
+      .map(name => resolveExerciseGroup(exerciseTemplates[name]))
+      .filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b, getLocale()));
+
   if (favoritesGroupSelect) {
-    const currentValue = favoritesGroupSelect.value || "";
+    const currentValue = favoritesGroupSelect.dataset.selectedGroup || groups[0] || "";
     favoritesGroupSelect.innerHTML = "";
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = t("placeholder.selectGroup");
-    favoritesGroupSelect.appendChild(placeholder);
-    const groups = Array.from(new Set(
-      allNames
-        .map(name => resolveExerciseGroup(exerciseTemplates[name]))
-        .filter(Boolean)
-    )).sort((a, b) => a.localeCompare(b, getLocale()));
+    const nextValue = groups.includes(currentValue) ? currentValue : groups[0] || "";
+    favoritesGroupSelect.dataset.selectedGroup = nextValue;
     groups.forEach(group => {
-      const opt = document.createElement("option");
-      opt.value = group;
-      opt.textContent = group;
-      favoritesGroupSelect.appendChild(opt);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "favorites-group-btn";
+      button.textContent = translateGroupLabel(group);
+      button.dataset.group = group;
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", group === nextValue ? "true" : "false");
+      button.classList.toggle("is-active", group === nextValue);
+      button.addEventListener("click", () => {
+        favoritesGroupSelect.dataset.selectedGroup = group;
+        renderFavoritesList();
+      });
+      favoritesGroupSelect.appendChild(button);
     });
-    const nextValue = currentValue && groups.includes(currentValue) ? currentValue : "";
-    favoritesGroupSelect.value = nextValue;
   }
 
-  const selectedGroup = favoritesGroupSelect?.value || "";
-  if (!selectedGroup) {
-    const hint = document.createElement("div");
-    hint.className = "hint-text";
-    hint.textContent = t("placeholder.selectGroup");
-    favoritesList.appendChild(hint);
-    return;
-  }
-
-  const groupNames = allNames.filter(name => {
-    const tpl = exerciseTemplates[name];
-    return resolveExerciseGroup(tpl) === selectedGroup;
-  });
-  if (!groupNames.length) {
-    const hint = document.createElement("div");
-    hint.className = "hint-text";
-    hint.textContent = t("favorites.emptyOption");
-    favoritesList.appendChild(hint);
-    return;
-  }
-
+  const selectedGroup = favoritesGroupSelect?.dataset.selectedGroup || groups[0] || "";
+  const groupNames = allNames.filter(
+    name => resolveExerciseGroup(exerciseTemplates[name]) === selectedGroup
+  );
   const fragment = document.createDocumentFragment();
   groupNames.forEach(name => {
-    const label = document.createElement("label");
-    label.className = "favorite-item";
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = favorites.has(name);
-    checkbox.addEventListener("change", () => {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "favorite-item";
+    card.classList.toggle("is-active", favorites.has(name));
+    card.setAttribute("aria-pressed", favorites.has(name) ? "true" : "false");
+    card.addEventListener("click", () => {
       const updated = new Set(loadFavorites());
-      if (checkbox.checked) {
-        updated.add(name);
-      } else {
+      if (updated.has(name)) {
         updated.delete(name);
+      } else {
+        updated.add(name);
       }
       saveFavorites(Array.from(updated));
-      if (quickAddGroupSelect) {
-        populateQuickAddExercises(quickAddGroupSelect.value);
-      }
+      const active = updated.has(name);
+      card.classList.toggle("is-active", active);
+      card.setAttribute("aria-pressed", active ? "true" : "false");
     });
     const text = document.createElement("span");
+    text.className = "favorite-item-name";
     text.textContent = name;
-    label.appendChild(checkbox);
-    label.appendChild(text);
-    fragment.appendChild(label);
+    const star = document.createElement("span");
+    star.className = "favorite-item-star";
+    star.textContent = "★";
+    star.setAttribute("aria-hidden", "true");
+    card.appendChild(text);
+    card.appendChild(star);
+    fragment.appendChild(card);
   });
   favoritesList.appendChild(fragment);
 }
@@ -553,78 +548,6 @@ function openHistoryMenuOverlay() {
 function closeHistoryMenuOverlay() {
   if (!historyMenuOverlay) return;
   closeOverlay(historyMenuOverlay);
-}
-
-function getCurrentUserSessionsForBodyWeightEdit() {
-  const localSessions = getLocalHistory();
-  if (localSessions.length) return localSessions;
-  return collectSessionsFromSessionKeys(currentUserKey);
-}
-
-function getLatestBodyWeightSession(sessions) {
-  return sessions
-    .filter(session => session?.date)
-    .slice()
-    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0] || null;
-}
-
-async function editUserBodyWeight() {
-  if (!currentUserKey) {
-    alert(t("alert.selectValidUser"));
-    return;
-  }
-
-  const sessions = getCurrentUserSessionsForBodyWeightEdit();
-  if (!sessions.length) {
-    setUserHistoryStatus("No hay sesiones guardadas para modificar.");
-    return;
-  }
-
-  const latest = getLatestBodyWeightSession(sessions);
-  const defaultDate = latest?.date || dateInput?.value || "";
-  const dateStr = await promptForText("Fecha de la sesión (AAAA-MM-DD)", defaultDate);
-  if (!dateStr) return;
-
-  const matchingSessions = sessions.filter(session => session?.date === dateStr);
-  if (!matchingSessions.length) {
-    alert("No hay sesiones guardadas para esa fecha.");
-    return;
-  }
-
-  const currentWeight = matchingSessions.find(session => session?.sensations?.weight)?.sensations?.weight ?? "";
-  const weightText = await promptForText("Peso corporal (kg)", String(currentWeight ?? ""));
-  if (!weightText) return;
-
-  const parsedWeight = parseFloat(String(weightText).replace(",", "."));
-  if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
-    alert("Introduce un peso corporal válido.");
-    return;
-  }
-
-  const updatedSessions = sessions.map(session => {
-    if (session?.date !== dateStr) return session;
-    return {
-      ...session,
-      sensations: {
-        ...(session.sensations || {}),
-        weight: String(parsedWeight)
-      }
-    };
-  });
-
-  setLocalHistory(updatedSessions);
-  window.uploadedHistory = updatedSessions;
-  rebuildHistoryData(updatedSessions);
-  refreshHistoryUI();
-  refreshCharts();
-  renderUserStatsCharts();
-
-  if (dateInput?.value === dateStr && senseWeightInput) {
-    senseWeightInput.value = String(parsedWeight);
-    if (typeof persistSessionSafely === "function") persistSessionSafely();
-  }
-
-  setUserHistoryStatus(`Peso corporal actualizado para ${dateStr}: ${parsedWeight} kg.`);
 }
 
 if (importOverlayCancel) {
@@ -646,13 +569,6 @@ if (manageUserOverlay) {
 if (manageUserHistoryBtn) {
   manageUserHistoryBtn.addEventListener("click", () => {
     openHistoryMenuOverlay();
-  });
-}
-
-if (manageUserBodyWeightBtn) {
-  manageUserBodyWeightBtn.addEventListener("click", () => {
-    closeManageUserOverlay();
-    editUserBodyWeight();
   });
 }
 
@@ -715,12 +631,6 @@ if (logoutUserBtn) {
     closeImportOverlay();
   });
 }
-if (favoritesGroupSelect) {
-  favoritesGroupSelect.addEventListener("change", () => {
-    renderFavoritesList();
-  });
-}
-
 if (historyMenuClose) {
   historyMenuClose.addEventListener("click", closeHistoryMenuOverlay);
 }
@@ -754,14 +664,12 @@ if (historyViewBtn) {
   historyViewBtn.addEventListener("click", () => {
     const session = getSelectedHistorySession();
     if (!session) return;
-    if (!editingSessionContext) {
-      editingSessionContext = {
-        date: dateInput?.value || "",
-        week: weekSelect?.value || "",
-        day: daySelect?.value || "",
-        restoreOnExit: false
-      };
-    }
+    editingSessionContext = {
+      date: dateInput?.value || "",
+      week: weekSelect?.value || "",
+      day: daySelect?.value || "",
+      restoreOnExit: true
+    };
     if (editExercisesContainer) {
       exercisesContainer = editExercisesContainer;
       showAllExercises = true;
@@ -770,9 +678,18 @@ if (historyViewBtn) {
     isEditingHistory = true;
     appState.isEditingHistory = isEditingHistory;
     setHistoryEditorMode(false);
-    applyHistorySession(session, { silent: true, preserveAutoSave: true });
     const step7Index = stepPages.indexOf(step7);
-    if (step7Index >= 0) setActiveStep(step7Index);
+    if (step7Index >= 0) setActiveStep(step7Index, { force: true, ignoreMax: true });
+    const sessionExercises = typeof getExercisesArrayFromSession === "function"
+      ? getExercisesArrayFromSession(session)
+      : (session.exercises || []);
+    applyHistorySession(
+      { ...session, exercises: sessionExercises },
+      { silent: true, preserveAutoSave: true }
+    );
+    if (historyBodyWeightInput) {
+      historyBodyWeightInput.value = session.sensations?.weight ?? "";
+    }
     setHistoryEditorMode(false);
     closeHistoryMenuOverlay();
     closeManageUserOverlay();

@@ -1,6 +1,7 @@
 {
   "name": "Gym Tracker",
   "short_name": "Gym",
+  "version": "1.0 - ReLux",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b0b0b",

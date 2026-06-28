@@ -25,6 +25,7 @@ const quickAddCloseBtn = document.getElementById('quick-add-close-btn');
 const quickAddSearch = document.getElementById('quick-add-search');
 const quickAddGroups = document.getElementById('quick-add-groups');
 const quickAddResults = document.getElementById('quick-add-results');
+const quickAddMostUsed = document.getElementById('quick-add-most-used');
 const quickAddWarmup = document.getElementById('quick-add-warmup');
 const quickAddFavoritesOnly = document.getElementById('quick-add-favorites-only');
 const quickAddNoMaterialOnly = document.getElementById('quick-add-no-material');
@@ -41,7 +42,7 @@ const orderCancel = document.getElementById('order-cancel');
 const orderConfirm = document.getElementById('order-confirm');
 
 let quickAddSelectedGroup = "";
-let quickAddMode = "all";
+let quickAddMode = "popular";
 
 function updateDisplay() {
   const minutes = Math.floor(stopwatchTime / 60);
@@ -127,7 +128,7 @@ function closeStopwatchOverlay() {
 
 function openQuickAddOverlay() {
   if (!quickAddOverlay) return;
-  quickAddMode = "all";
+  quickAddMode = "popular";
   quickAddSelectedGroup = "";
   if (quickAddSearch) quickAddSearch.value = "";
   if (quickAddFavoritesOnly) quickAddFavoritesOnly.checked = true;
@@ -135,7 +136,8 @@ function openQuickAddOverlay() {
   if (quickAddWarmup) quickAddWarmup.checked = false;
   renderQuickAddGroups();
   renderQuickAddResults();
-  openOverlay(quickAddOverlay, { initialFocus: quickAddSearch || quickAddResults || quickAddCustomBtn });
+  const firstExercise = quickAddResults?.querySelector(".quick-result-item");
+  openOverlay(quickAddOverlay, { initialFocus: firstExercise || quickAddMostUsed || quickAddCustomBtn });
 }
 
 function closeQuickAddOverlay() {
@@ -182,12 +184,25 @@ function renderOrderList(items) {
       if (event.button !== 0 && event.pointerType === "mouse") return;
       event.preventDefault();
       const activePointerId = event.pointerId;
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const rowRect = row.getBoundingClientRect();
+      const dragGhost = row.cloneNode(true);
+      dragGhost.classList.add("order-drag-ghost");
+      dragGhost.classList.remove("is-dragging");
+      dragGhost.setAttribute("aria-hidden", "true");
+      dragGhost.style.left = `${rowRect.left}px`;
+      dragGhost.style.top = `${rowRect.top}px`;
+      dragGhost.style.width = `${rowRect.width}px`;
+      dragGhost.style.height = `${rowRect.height}px`;
+      document.body.appendChild(dragGhost);
       row.classList.add("is-dragging");
       document.body.classList.add("is-reordering");
 
       const moveRow = moveEvent => {
         if (moveEvent.pointerId !== activePointerId) return;
         moveEvent.preventDefault();
+        dragGhost.style.transform = `translate3d(${moveEvent.clientX - startX}px, ${moveEvent.clientY - startY}px, 0)`;
         const otherRows = Array.from(orderList.querySelectorAll(".order-item"))
           .filter(item => item !== row);
         const nextRow = otherRows.find(item => {
@@ -206,6 +221,7 @@ function renderOrderList(items) {
         if (finishEvent?.pointerId != null && finishEvent.pointerId !== activePointerId) return;
         row.classList.remove("is-dragging");
         document.body.classList.remove("is-reordering");
+        dragGhost.remove();
         items.splice(0, items.length, ...Array.from(orderList.children).map(item => item._orderEntry));
         document.removeEventListener("pointermove", moveRow);
         document.removeEventListener("pointerup", finishDragging);
@@ -337,7 +353,7 @@ function getQuickAddRecentNames(limit = 12) {
   return names.slice(0, limit);
 }
 
-function getQuickAddPopularNames(limit = 12) {
+function getQuickAddPopularNames() {
   const counts = new Map();
   const history = typeof getLocalHistory === "function" ? getLocalHistory() : [];
   history.forEach(session => {
@@ -347,10 +363,11 @@ function getQuickAddPopularNames(limit = 12) {
       counts.set(name, (counts.get(name) || 0) + 1);
     });
   });
-  return Array.from(counts.entries())
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], getLocale()))
-    .slice(0, limit)
-    .map(([name]) => name);
+  return Object.keys(exerciseTemplates)
+    .sort((a, b) => {
+      const countDifference = (counts.get(b) || 0) - (counts.get(a) || 0);
+      return countDifference || a.localeCompare(b, getLocale());
+    });
 }
 
 function getQuickAddPool() {
@@ -366,7 +383,7 @@ function getQuickAddMatches() {
   const noMaterialOnly = Boolean(quickAddNoMaterialOnly?.checked);
   const favorites = favoritesOnly ? new Set(loadFavorites()) : null;
 
-  return getQuickAddPool().filter(name => {
+  const matches = getQuickAddPool().filter(name => {
     const tpl = exerciseTemplates[name];
     if (!tpl) return false;
     const group = resolveExerciseGroup(tpl);
@@ -378,7 +395,10 @@ function getQuickAddMatches() {
     if (noMaterialOnly && !tpl?.sinMaterial) return false;
     if (searchText && !searchable.includes(searchText)) return false;
     return true;
-  }).sort((a, b) => a.localeCompare(b, getLocale()));
+  });
+  return quickAddMode === "popular"
+    ? matches
+    : matches.sort((a, b) => a.localeCompare(b, getLocale()));
 }
 
 function updateQuickFilterStates() {
@@ -389,10 +409,16 @@ function updateQuickFilterStates() {
 }
 
 function updateQuickShortcutStates() {
-  if (!quickAddShortcuts) return;
-  quickAddShortcuts.querySelectorAll(".quick-shortcut-btn").forEach(btn => {
-    btn.classList.toggle("is-active", btn.dataset.quickMode === quickAddMode);
-  });
+  if (quickAddShortcuts) {
+    quickAddShortcuts.querySelectorAll(".quick-shortcut-btn").forEach(btn => {
+      btn.classList.toggle("is-active", btn.dataset.quickMode === quickAddMode);
+    });
+  }
+  if (quickAddMostUsed) {
+    const active = quickAddMode === "popular";
+    quickAddMostUsed.classList.toggle("is-active", active);
+    quickAddMostUsed.setAttribute("aria-pressed", active ? "true" : "false");
+  }
 }
 
 function renderQuickAddGroups() {
@@ -428,7 +454,7 @@ function addQuickExercise(name) {
   if (!name) return;
   addExerciseFromTemplate(name, { calentamiento: quickAddWarmup?.checked === true });
   if (quickAddWarmup) quickAddWarmup.checked = false;
-  renderQuickAddResults();
+  closeQuickAddOverlay();
 }
 
 function renderQuickAddResults() {
@@ -506,6 +532,12 @@ if (quickAddShortcuts) {
     const btn = event.target.closest(".quick-shortcut-btn");
     if (!btn) return;
     quickAddMode = btn.dataset.quickMode || "all";
+    renderQuickAddResults();
+  });
+}
+if (quickAddMostUsed) {
+  quickAddMostUsed.addEventListener("click", () => {
+    quickAddMode = quickAddMode === "popular" ? "all" : "popular";
     renderQuickAddResults();
   });
 }

@@ -205,12 +205,42 @@ function hasHistoryForUser(userKey) {
   return false;
 }
 
+function stripExerciseTechnicalNotes(exercise) {
+  if (!exercise || typeof exercise !== "object") return exercise;
+  const { hacer, noHacer, trucos, ...cleanExercise } = exercise;
+  return cleanExercise;
+}
+
+function stripSessionTechnicalNotes(session) {
+  if (!session || typeof session !== "object") return session;
+  const cleanSession = { ...session };
+  if (Array.isArray(cleanSession.exercises)) {
+    cleanSession.exercises = cleanSession.exercises.map(stripExerciseTechnicalNotes);
+  }
+  if (Array.isArray(cleanSession.ejercicios)) {
+    cleanSession.ejercicios = cleanSession.ejercicios.map(stripExerciseTechnicalNotes);
+  }
+  if (Array.isArray(cleanSession.revisions)) {
+    cleanSession.revisions = cleanSession.revisions.map(stripSessionTechnicalNotes);
+  }
+  if (cleanSession.data && typeof cleanSession.data === "object") {
+    cleanSession.data = stripSessionTechnicalNotes(cleanSession.data);
+  }
+  if (cleanSession.session && typeof cleanSession.session === "object") {
+    cleanSession.session = stripSessionTechnicalNotes(cleanSession.session);
+  }
+  return cleanSession;
+}
+
 function setLocalHistory(sessions) {
-  storage.setItem(getHistoryStorageKey(), JSON.stringify(sessions));
+  storage.setItem(getHistoryStorageKey(), JSON.stringify(sessions.map(stripSessionTechnicalNotes)));
 }
 
 function setLocalHistoryForUser(userKey, sessions) {
-  storage.setItem(getHistoryStorageKeyForUser(userKey), JSON.stringify(sessions));
+  storage.setItem(
+    getHistoryStorageKeyForUser(userKey),
+    JSON.stringify(sessions.map(stripSessionTechnicalNotes))
+  );
 }
 
 function collectSessionsFromSessionKeys(userKey) {
@@ -361,7 +391,7 @@ function normalizeImportedHistoryPayload(payload) {
         }))
         .filter(ex => ex.nombre);
 
-      return {
+      return stripSessionTechnicalNotes({
         ...session,
         date,
         user: String(session.user || "").trim(),
@@ -379,7 +409,7 @@ function normalizeImportedHistoryPayload(payload) {
               comment: String(session.sensations.comment ?? "")
             }
           : {}
-      };
+      });
     })
     .filter(Boolean);
 
@@ -405,7 +435,7 @@ function mergeImportedHistory(imported) {
     if (!key) return;
     byKey.set(key, { ...item, key, user: item.user || currentUserName });
   });
-  const merged = Array.from(byKey.values());
+  const merged = Array.from(byKey.values()).map(stripSessionTechnicalNotes);
   setLocalHistory(merged);
   window.uploadedHistory = merged;
   rebuildHistoryData(merged);
@@ -427,7 +457,7 @@ function mergeImportedHistoryForUser(imported, userName, userKey) {
     if (!key) return;
     byKey.set(key, { ...item, key, user: item.user || userName });
   });
-  const merged = Array.from(byKey.values());
+  const merged = Array.from(byKey.values()).map(stripSessionTechnicalNotes);
   setLocalHistoryForUser(userKey, merged);
   refreshCharts();
   refreshHistoryUI();
@@ -436,7 +466,7 @@ function mergeImportedHistoryForUser(imported, userName, userKey) {
 function getExportHistoryForUser(userKey) {
   const sessions = getLocalHistoryForUser(userKey);
   const base = sessions.length ? sessions : collectSessionsFromSessionKeys(userKey);
-  return base.map(session => ({
+  return base.map(session => stripSessionTechnicalNotes({
     ...session,
     user: session.user || currentUserName,
     key: session.key || buildSessionKeyForUser(session, userKey)

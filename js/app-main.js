@@ -43,7 +43,6 @@ const importOverlayConfirm = document.getElementById("import-overlay-confirm");
 const manageUserOverlay = document.getElementById("manage-user-overlay");
 const manageUserClose = document.getElementById("manage-user-close");
 const manageUserHistoryBtn = document.getElementById("manage-user-history-btn");
-const manageUserBodyWeightBtn = document.getElementById("manage-user-body-weight-btn");
 const manageUserChartsBtn = document.getElementById("manage-user-charts-btn");
 const manageUserMuscleChartsBtn = document.getElementById("manage-user-muscle-charts-btn");
 const manageUserFavoritesBtn = document.getElementById("manage-user-favorites-btn");
@@ -80,6 +79,7 @@ const stepperNextBtn = document.getElementById("stepper-next");
 const stepperFooter = document.getElementById("stepper-footer");
 const stepperStepName = document.getElementById("stepper-step-name");
 const stepperStepPosition = document.getElementById("stepper-step-position");
+const appFooter = document.getElementById("app-footer");
 const subheader = document.getElementById("subheader");
 const toggleUserManageBtn = document.getElementById("toggle-user-manage");
 const currentUserNameLabel = document.getElementById("current-user-name");
@@ -109,6 +109,7 @@ const overwriteHistoryBtn = document.getElementById("overwrite-history-btn");
 const unlockHistoryEditBtn = document.getElementById("unlock-history-edit-btn");
 const historyEditorMode = document.getElementById("history-editor-mode");
 const editSessionActions = document.getElementById("edit-session-actions");
+const historyBodyWeightInput = document.getElementById("history-body-weight");
 const editSessionStatus = document.getElementById("edit-session-status");
 const promptOverlay = document.getElementById("prompt-overlay");
 const promptTitle = document.getElementById("prompt-title");
@@ -116,6 +117,14 @@ const promptLabel = document.getElementById("prompt-label");
 const promptInput = document.getElementById("prompt-input");
 const promptCancel = document.getElementById("prompt-cancel");
 const promptConfirm = document.getElementById("prompt-confirm");
+const historyExercisePickerOverlay = document.getElementById("history-exercise-picker-overlay");
+const historyExercisePickerClose = document.getElementById("history-exercise-picker-close");
+const historyExercisePickerSearch = document.getElementById("history-exercise-picker-search");
+const historyExercisePickerList = document.getElementById("history-exercise-picker-list");
+const historyExerciseCustomToggle = document.getElementById("history-exercise-custom-toggle");
+const historyExerciseCustomFields = document.getElementById("history-exercise-custom-fields");
+const historyExerciseCustomName = document.getElementById("history-exercise-custom-name");
+const historyExerciseCustomConfirm = document.getElementById("history-exercise-custom-confirm");
 const favoritesOverlay = document.getElementById("favorites-overlay");
 const favoritesList = document.getElementById("favorites-list");
 const favoritesClose = document.getElementById("favorites-close");
@@ -631,6 +640,7 @@ let showAllExercises = false;
 let sessionSaveKind = "none";
 let sessionIsDirty = false;
 let historyEditUnlocked = false;
+let historyExercisePickerTarget = null;
 let editingSessionContext = null;
 let isEditingHistory = appState.isEditingHistory;
 let allowGlobalChartsStep = false;
@@ -849,8 +859,25 @@ function setHistoryEditorMode(unlocked) {
   historyEditUnlocked = unlocked === true;
   if (!editExercisesContainer) return;
 
+  if (!historyEditUnlocked) {
+    if (historyExercisePickerOverlay?.getAttribute("aria-hidden") === "false") {
+      historyExercisePickerTarget = null;
+      closeOverlay(historyExercisePickerOverlay);
+    }
+    editExercisesContainer.querySelectorAll(".exercise-card").forEach(card => {
+      const nameInput = card.querySelector(".history-exercise-name-input");
+      const title = card.querySelector(".exercise-title");
+      if (nameInput && title && nameInput.value.trim()) {
+        title.textContent = nameInput.value.trim();
+      }
+    });
+  }
   editExercisesContainer.classList.toggle("history-readonly", !historyEditUnlocked);
   editExercisesContainer.classList.toggle("history-editing", historyEditUnlocked);
+  editExercisesContainer.querySelectorAll(".history-name-trigger").forEach(title => {
+    title.setAttribute("aria-disabled", historyEditUnlocked ? "false" : "true");
+    title.tabIndex = historyEditUnlocked ? 0 : -1;
+  });
   editExercisesContainer.querySelectorAll(".exercise-table td input").forEach(input => {
     let valueDisplay = input.parentElement.querySelector(".readonly-set-value");
     if (!valueDisplay) {
@@ -867,6 +894,9 @@ function setHistoryEditorMode(unlocked) {
   editExercisesContainer.querySelectorAll("input, textarea, select, button").forEach(control => {
     control.disabled = !historyEditUnlocked;
   });
+  if (historyBodyWeightInput) {
+    historyBodyWeightInput.disabled = !historyEditUnlocked;
+  }
   if (historyEditorMode) {
     historyEditorMode.textContent = historyEditUnlocked ? "Modo edición" : "Modo lectura";
   }
@@ -879,6 +909,120 @@ function setHistoryEditorMode(unlocked) {
     setVisible(editSessionActions, historyEditUnlocked, "flex");
   }
   setVisible(editSessionStatus, false);
+}
+
+function applyHistoryExerciseName(name, template = null) {
+  const card = historyExercisePickerTarget;
+  const nextName = String(name || "").trim();
+  if (!card || !nextName) return;
+  const title = card.querySelector(".exercise-title");
+  const nameInput = card.querySelector(".history-exercise-name-input");
+  if (title) {
+    title.textContent = nextName;
+    title.setAttribute("aria-label", `Cambiar ejercicio: ${nextName}`);
+  }
+  if (nameInput) nameInput.value = nextName;
+
+  if (template) {
+    const muscle = template.musculo || template.grupo || "N/A";
+    const section = template.seccion || "N/A";
+    const meta = card.querySelector(".exercise-muscle-section");
+    if (meta) {
+      meta.dataset.musculo = muscle;
+      meta.dataset.seccion = section;
+      meta.textContent = `${translateGroupLabel(muscle)} - ${section}`;
+    }
+    card.dataset.hacer = template.hacer || "";
+    card.dataset.noHacer = template.noHacer || "";
+    card.dataset.trucos = template.trucos || "";
+  }
+
+  historyExercisePickerTarget = null;
+  closeOverlay(historyExercisePickerOverlay);
+}
+
+function renderHistoryExercisePicker(filter = "") {
+  if (!historyExercisePickerList) return;
+  const query = String(filter || "").trim().toLocaleLowerCase(getLocale());
+  const targetType = historyExercisePickerTarget?.dataset.exerciseType || "strength";
+  const names = Object.keys(exerciseTemplates || {})
+    .filter(name => {
+      const template = exerciseTemplates[name] || {};
+      const templateType = String(template.musculo || template.grupo || "").toLowerCase() === "cardio"
+        ? "cardio"
+        : "strength";
+      return templateType === targetType;
+    })
+    .filter(name => !query || name.toLocaleLowerCase(getLocale()).includes(query))
+    .sort((a, b) => a.localeCompare(b, getLocale()));
+  historyExercisePickerList.replaceChildren();
+
+  names.forEach(name => {
+    const template = exerciseTemplates[name] || {};
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "history-exercise-picker-item";
+    button.setAttribute("role", "option");
+
+    const label = document.createElement("strong");
+    label.textContent = name;
+    const meta = document.createElement("span");
+    const muscle = template.musculo || template.grupo || "N/A";
+    meta.textContent = translateGroupLabel(muscle);
+    button.append(label, meta);
+    button.addEventListener("click", () => applyHistoryExerciseName(name, template));
+    historyExercisePickerList.appendChild(button);
+  });
+
+  if (!names.length) {
+    const empty = document.createElement("div");
+    empty.className = "hint-text history-exercise-picker-empty";
+    empty.textContent = "No hay ejercicios que coincidan.";
+    historyExercisePickerList.appendChild(empty);
+  }
+}
+
+function openHistoryExercisePicker(card) {
+  if (!historyEditUnlocked || !historyExercisePickerOverlay) return;
+  historyExercisePickerTarget = card;
+  if (historyExercisePickerSearch) historyExercisePickerSearch.value = "";
+  if (historyExerciseCustomName) historyExerciseCustomName.value = "";
+  setVisible(historyExerciseCustomFields, false);
+  renderHistoryExercisePicker();
+  openOverlay(historyExercisePickerOverlay, {
+    initialFocus: historyExercisePickerSearch || historyExercisePickerClose
+  });
+}
+
+if (historyExercisePickerSearch) {
+  historyExercisePickerSearch.addEventListener("input", () => {
+    renderHistoryExercisePicker(historyExercisePickerSearch.value);
+  });
+}
+if (historyExercisePickerClose) {
+  historyExercisePickerClose.addEventListener("click", () => {
+    historyExercisePickerTarget = null;
+    closeOverlay(historyExercisePickerOverlay);
+  });
+}
+if (historyExerciseCustomToggle) {
+  historyExerciseCustomToggle.addEventListener("click", () => {
+    const opening = historyExerciseCustomFields?.classList.contains("is-hidden");
+    setVisible(historyExerciseCustomFields, opening, "grid");
+    if (opening) historyExerciseCustomName?.focus();
+  });
+}
+if (historyExerciseCustomConfirm) {
+  historyExerciseCustomConfirm.addEventListener("click", () => {
+    applyHistoryExerciseName(historyExerciseCustomName?.value);
+  });
+}
+if (historyExerciseCustomName) {
+  historyExerciseCustomName.addEventListener("keydown", event => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    applyHistoryExerciseName(historyExerciseCustomName.value);
+  });
 }
 
 function deleteSelectedHistorySession() {
@@ -1287,6 +1431,9 @@ function getMaxStepIndex() {
         maxIndex = Math.max(maxIndex, step4Index);
       }
     }
+    if (editingSessionContext && step7Index >= 0) {
+      maxIndex = Math.max(maxIndex, step7Index);
+    }
     if (!editingSessionContext && step7Index >= 0 && step6Index >= 0) {
       maxIndex = Math.min(maxIndex, step6Index);
     }
@@ -1333,6 +1480,9 @@ function updateStepNavigation() {
 
   if (stepperFooter) {
     stepperFooter.style.display = activeStepIndex === 0 ? "none" : "grid";
+  }
+  if (appFooter) {
+    appFooter.hidden = activeStepIndex !== 0;
   }
   if (stepperStepName) {
     stepperStepName.textContent = stepNames.get(activeStep) || "Sesión";
@@ -1924,6 +2074,9 @@ function buildExerciseCard(exData) {
   const isWarmup = isWarmupExercise(exData);
   card.dataset.exerciseType = isCardio ? "cardio" : "strength";
   card.dataset.calentamiento = isWarmup ? "true" : "false";
+  card.dataset.hacer = exData.hacer || "";
+  card.dataset.noHacer = exData.noHacer || "";
+  card.dataset.trucos = exData.trucos || "";
 
   // ====== CABECERA ======
   const header = document.createElement("div");
@@ -1947,6 +2100,24 @@ function buildExerciseCard(exData) {
   const titleRow = document.createElement("div");
   titleRow.className = "exercise-title-row";
   titleRow.appendChild(titleEl);
+  if (isEditingHistory) {
+    titleEl.classList.add("history-name-trigger");
+    titleEl.setAttribute("role", "button");
+    titleEl.setAttribute("aria-label", `Cambiar ejercicio: ${exData.nombre}`);
+    titleEl.setAttribute("aria-disabled", historyEditUnlocked ? "false" : "true");
+    titleEl.tabIndex = historyEditUnlocked ? 0 : -1;
+    titleEl.addEventListener("click", () => openHistoryExercisePicker(card));
+    titleEl.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openHistoryExercisePicker(card);
+    });
+    const nameInput = document.createElement("input");
+    nameInput.type = "hidden";
+    nameInput.className = "history-exercise-name-input";
+    nameInput.value = exData.nombre;
+    titleRow.appendChild(nameInput);
+  }
   if (isWarmup) {
     const warmupBadge = document.createElement("span");
     warmupBadge.className = "exercise-warmup-badge";
@@ -1973,7 +2144,9 @@ function buildExerciseCard(exData) {
     deleteExerciseBtn.textContent = "Eliminar ejercicio";
     deleteExerciseBtn.addEventListener("click", () => {
       if (!historyEditUnlocked) return;
-      if (!confirm(`¿Eliminar completamente ${exData.nombre} de esta sesión?`)) return;
+      const currentName = card.querySelector(".history-exercise-name-input")?.value.trim() || exData.nombre;
+      const warning = `¿Eliminar “${currentName}” de esta sesión?\n\nSe eliminarán también todas sus series. El cambio será definitivo al sobrescribir la sesión.`;
+      if (!confirm(warning)) return;
       card.remove();
     });
     headerActions.appendChild(deleteExerciseBtn);
@@ -2316,6 +2489,7 @@ function applyHistorySession(session, options = {}) {
   const silent = options.silent === true;
   const preserveAutoSave = options.preserveAutoSave === true;
   const onlyFirstSet = options.onlyFirstSet === true;
+  const includeSensations = options.includeSensations !== false;
   if (!preserveAutoSave) {
     sessionSaveKind = "none";
   }
@@ -2324,9 +2498,10 @@ function applyHistorySession(session, options = {}) {
   exercisesContainer.innerHTML = "";
   senseGeneralInput.value = "";
   senseTirednessInput.value = "";
-  senseWeightInput.value = "";
+  if (senseWeightInput) senseWeightInput.value = "";
   sensePainSelect.value = "no";
   painZoneInput.value = "";
+  if (senseCommentInput) senseCommentInput.value = "";
   setVisible(painDetailsDiv, false);
 
   let currentExercises = [];
@@ -2375,10 +2550,10 @@ function applyHistorySession(session, options = {}) {
     currentExercises = session.exercises.map(ex => ex.nombre);
   }
 
-  if (session.sensations) {
+  if (includeSensations && session.sensations) {
     senseGeneralInput.value = session.sensations.general ?? "";
     senseTirednessInput.value = session.sensations.tiredness ?? "";
-    senseWeightInput.value = session.sensations.weight ?? "";
+    if (senseWeightInput) senseWeightInput.value = session.sensations.weight ?? "";
     sensePainSelect.value = session.sensations.pain ?? "no";
     painZoneInput.value = session.sensations.painZone ?? "";
     if (senseCommentInput) senseCommentInput.value = session.sensations.comment ?? "";
@@ -2460,7 +2635,7 @@ function loadSession(options = {}) {
     if (saved.sensations) {
       senseGeneralInput.value = saved.sensations.general ?? "";
       senseTirednessInput.value = saved.sensations.tiredness ?? "";
-      senseWeightInput.value = saved.sensations.weight ?? "";
+      if (senseWeightInput) senseWeightInput.value = saved.sensations.weight ?? "";
       sensePainSelect.value = saved.sensations.pain ?? "no";
       painZoneInput.value = saved.sensations.painZone ?? "";
       if (senseCommentInput) senseCommentInput.value = saved.sensations.comment ?? "";
@@ -2581,12 +2756,18 @@ function overwriteEditedSession() {
   setVisible(editSessionStatus, false);
   const dateStr = historyDateInput.value;
   if (!dateStr) return alert(t("alert.selectDay"));
-  if (!checkSensationsForm(true)) {
-    showSaveSessionError(t("status.postWorkoutSaveError"));
-    return;
+  let historyWeightValue = "";
+  if (historyBodyWeightInput) {
+    historyWeightValue = historyBodyWeightInput.value.trim();
+    const parsedWeight = historyWeightValue === "" ? null : Number(historyWeightValue);
+    if (historyWeightValue !== "" && (!Number.isFinite(parsedWeight) || parsedWeight <= 0)) {
+      alert("Introduce un peso corporal válido.");
+      return;
+    }
   }
   const saved = buildSessionData(editExercisesContainer);
   if (!saved) return alert(t("alert.noDataToday"));
+  saved.sensations.weight = historyWeightValue;
   const sessions = getLocalHistory();
   const index = sessions.findIndex(item => item.date === dateStr);
   if (index === -1) {
@@ -2604,6 +2785,8 @@ function overwriteEditedSession() {
   rebuildHistoryData(sessions);
   refreshHistoryUI();
   populateHistoryDaySelect();
+  refreshCharts();
+  if (typeof renderUserStatsCharts === "function") renderUserStatsCharts();
   setStatus(t("status.sessionSavedLocal"));
   showSaveSessionMessage();
   setHistoryEditorMode(false);
@@ -2637,7 +2820,7 @@ const persistSessionSafely = () => {
 };
 senseGeneralInput.addEventListener("input", persistSessionSafely);
 senseTirednessInput.addEventListener("input", persistSessionSafely);
-senseWeightInput.addEventListener("input", persistSessionSafely);
+if (senseWeightInput) senseWeightInput.addEventListener("input", persistSessionSafely);
 if (senseCommentInput) {
   senseCommentInput.addEventListener("input", persistSessionSafely);
   senseCommentInput.addEventListener("change", persistSessionSafely);
@@ -2730,7 +2913,15 @@ onReady(() => {
         ensureSelectValue(daySelect, session.day);
       }
       syncRoutineSelectFromWeekDay();
-      applyHistorySession(session, { onlyFirstSet: true });
+      exercisesContainer = mainExercisesContainer;
+      showAllExercises = false;
+      editingSessionContext = null;
+      historyEditUnlocked = false;
+      isEditingHistory = false;
+      appState.isEditingHistory = false;
+      applyHistorySession(session, { onlyFirstSet: true, includeSensations: false });
+      const step3Index = stepPages.indexOf(step3);
+      if (step3Index >= 0) setActiveStep(step3Index, { force: true });
     });
   }
   const initialFontScale = getFontScale();
@@ -2824,7 +3015,7 @@ onReady(() => {
   updateHeaderOffsets();
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js?v=20").then(reg => {
+    navigator.serviceWorker.register("./sw.js?v=1.0-relux").then(reg => {
       reg.update().catch(() => {});
     }).catch(() => {});
   }

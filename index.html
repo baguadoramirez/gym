@@ -9,10 +9,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="manifest" href="manifest.webmanifest?v=1.0-relux" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 
-  <link rel="stylesheet" href="styles.css?v=62" />
+  <link rel="stylesheet" href="styles.css?v=1.0-relux" />
 </head>
 
 <body>
@@ -82,32 +82,32 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text text-center">v0.8 - Lux UI</div>
+        <div class="hint-text text-center">v1.0 - ReLux</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
             <button id="welcome-info-btn" class="btn-secondary">Información relevante</button>
+            <div id="welcome-info" class="panel-offset is-hidden">
+              <span class="hint-text"><b>Privacidad:</b> no se guardan datos en la nube. Todo se almacena localmente en el dispositivo.</span>
+              <br>
+              <span class="hint-text"><b>Sin sincronización:</b> los datos no se comparten entre dispositivos salvo que exportes e importes manualmente.</span>
+              <br>
+              <span class="hint-text"><b>Importante:</b> si borras los datos del navegador o la app, se perderán. Exporta copias si quieres conservarlas.</span>
+              <br>
+              <span class="hint-text"><b>Acceso directo:</b> iOS → Compartir → “Añadir a pantalla de inicio”. Android → Menú → “Instalar app”.</span>
+            </div>
             <button id="welcome-legal-btn" class="btn-accent-alt">Avisos legales y médicos</button>
-          </div>
-          <div id="welcome-info" class="panel-offset is-hidden">
-            <span class="hint-text"><b>Privacidad:</b> no se guardan datos en la nube. Todo se almacena localmente en el dispositivo.</span>
-            <br>
-            <span class="hint-text"><b>Sin sincronización:</b> los datos no se comparten entre dispositivos salvo que exportes e importes manualmente.</span>
-            <br>
-            <span class="hint-text"><b>Importante:</b> si borras los datos del navegador o la app, se perderán. Exporta copias si quieres conservarlas.</span>
-            <br>
-            <span class="hint-text"><b>Acceso directo:</b> iOS → Compartir → “Añadir a pantalla de inicio”. Android → Menú → “Instalar app”.</span>
-          </div>
-          <div id="welcome-legal" class="panel-offset is-hidden">
-            <span class="hint-text"><b>Aviso legal:</b> GitHub Pages solo sirve archivos estáticos, sin base de datos ni servidor donde subir datos.</span>
-            <br>
-            <span class="hint-text"><b>Aviso médico:</b> esta aplicación no ofrece asesoramiento médico ni deportivo. Consulta a un profesional antes de hacer cambios en tu entrenamiento, especialmente si tienes lesiones o condiciones previas.</span>
-            <br>
-            <span class="hint-text"><b>Uso y responsabilidad:</b> usas la web bajo tu cuenta y riesgo. No se garantiza la disponibilidad ni la conservación de los datos si cambias de dispositivo, navegador o modo privado.</span>
-            <br>
-            <span class="hint-text"><b>Sin garantías:</b> la aplicación se ofrece “tal cual”, sin garantías de disponibilidad, continuidad o ausencia de errores.</span>
-            <br>
-            <span class="hint-text"><b>Limitación de responsabilidad:</b> el creador no se hace responsable de daños indirectos, pérdidas de beneficios o decisiones tomadas a partir de la información registrada.</span>
+            <div id="welcome-legal" class="panel-offset is-hidden">
+              <span class="hint-text"><b>Aviso legal:</b> GitHub Pages solo sirve archivos estáticos, sin base de datos ni servidor donde subir datos.</span>
+              <br>
+              <span class="hint-text"><b>Aviso médico:</b> esta aplicación no ofrece asesoramiento médico ni deportivo. Consulta a un profesional antes de hacer cambios en tu entrenamiento, especialmente si tienes lesiones o condiciones previas.</span>
+              <br>
+              <span class="hint-text"><b>Uso y responsabilidad:</b> usas la web bajo tu cuenta y riesgo. No se garantiza la disponibilidad ni la conservación de los datos si cambias de dispositivo, navegador o modo privado.</span>
+              <br>
+              <span class="hint-text"><b>Sin garantías:</b> la aplicación se ofrece “tal cual”, sin garantías de disponibilidad, continuidad o ausencia de errores.</span>
+              <br>
+              <span class="hint-text"><b>Limitación de responsabilidad:</b> el creador no se hace responsable de daños indirectos, pérdidas de beneficios o decisiones tomadas a partir de la información registrada.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -249,7 +249,7 @@
       </div>
     </div>
   </div>
-  
+
   <div id="exercises-container"></div>
   <div id="exercise-empty-state" class="exercise-empty-state" aria-live="polite">
     <div class="exercise-empty-state-title">Todavía no hay ejercicios</div>
@@ -289,13 +289,18 @@
     <div id="quick-add-popup" class="overlay-card">
       <input id="quick-add-search" class="quick-add-search" type="search" placeholder="Buscar ejercicio..." autocomplete="off">
       <div id="quick-add-groups" class="quick-add-groups" role="listbox" aria-label="Grupo muscular"></div>
+      <div class="quick-add-sort-row">
+        <span>Ordenar</span>
+        <button id="quick-add-most-used" class="quick-sort-btn is-active" type="button" aria-pressed="true">Más frecuente</button>
+      </div>
+      <div id="quick-add-results" class="quick-add-results" role="listbox" aria-label="Ejercicios"></div>
       <div class="quick-add-filters" aria-label="Filtros">
           <label class="quick-filter">
             <input type="checkbox" id="quick-add-favorites-only" checked>
             <span class="quick-filter-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 3.4l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8L12 3.4z"></path></svg>
             </span>
-            <span>Solo favoritos</span>
+            <span>Favoritos</span>
           </label>
           <label class="quick-filter">
             <input type="checkbox" id="quick-add-no-material">
@@ -309,10 +314,9 @@
             <span class="quick-filter-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 21c-3.2 0-5.8-2.4-5.8-5.8 0-2.1 1.1-4 3.1-5.7.9-.8 1.5-1.9 1.5-3.1 1.8.9 3.1 2.6 3.3 4.6.7-.5 1.2-1.3 1.4-2.2 1.5 1.2 2.3 3.1 2.3 5.6 0 4-2.6 6.6-5.8 6.6z"></path></svg>
             </span>
-            <span>Calentamiento</span>
+            <span>Calentar</span>
           </label>
       </div>
-      <div id="quick-add-results" class="quick-add-results" role="listbox" aria-label="Ejercicios"></div>
       <div class="overlay-actions quick-add-actions">
         <button id="quick-add-custom" class="btn-secondary">Personalizado</button>
         <button id="quick-add-close-btn" class="btn-secondary">Cerrar</button>
@@ -365,6 +369,10 @@
             <input type="date" id="date-input">
           </div>
           <div class="control-row">
+            <label for="sense-weight">Peso corporal (kg, opcional)</label>
+            <input type="number" id="sense-weight" min="0" step="0.1" inputmode="decimal" placeholder="Ej: 78,5">
+          </div>
+          <div class="control-row">
             <label for="sense-general">Sensaciones generales del entrenamiento 0-10 (muy mal - excelente)</label>
             <input type="number" id="sense-general" min="0" max="10" placeholder="Ex: 8">
           </div>
@@ -372,11 +380,6 @@
           <div class="control-row">
             <label for="sense-tiredness">Cansancio percibido 0-10</label>
             <input type="number" id="sense-tiredness" min="0" max="10" placeholder="Ex: 6">
-          </div>
-
-          <div class="control-row">
-            <label for="sense-weight">Peso corporal (kg) - Opcional</label>
-            <input type="number" id="sense-weight" min="0" step="0.1" placeholder="Ex: 78.5">
           </div>
 
           <div class="control-row">
@@ -454,6 +457,10 @@
       <div class="history-editor-header">
         <div id="history-editor-mode" class="hint-text">Modo lectura</div>
         <button id="unlock-history-edit-btn" class="btn-secondary" type="button" aria-pressed="false">🔒 Editar sesión</button>
+      </div>
+      <div class="history-session-fields">
+        <label for="history-body-weight">Peso corporal <span>(kg, opcional)</span></label>
+        <input id="history-body-weight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="—">
       </div>
       <div id="edit-exercises-container"></div>
       <div class="controls-row center-actions is-hidden" id="edit-session-actions">
@@ -535,10 +542,6 @@
         <span class="unicode-icon" aria-hidden="true">🕒</span>
         <span>Sesiones anteriores</span>
       </button>
-      <button id="manage-user-body-weight-btn" class="btn-secondary icon-text-btn" type="button" aria-label="Modificar peso corporal" title="Modificar peso corporal">
-        <span class="unicode-icon" aria-hidden="true">⚖️</span>
-        <span>Modificar peso corporal</span>
-      </button>
       <button id="manage-user-charts-btn" class="btn-secondary icon-text-btn" type="button" aria-label="Gráficos por ejercicio" title="Gráficos por ejercicio">
         <span class="unicode-icon" aria-hidden="true">🏋️</span>
         <span>Gráficos por ejercicio</span>
@@ -582,7 +585,7 @@
   <div class="overlay-card">
     <h3>Ejercicios favoritos</h3>
     <div class="favorites-select-row">
-      <select id="favorites-group-select"></select>
+      <div id="favorites-group-select" class="favorites-group-ribbon" role="tablist" aria-label="Grupo muscular"></div>
     </div>
     <div id="favorites-list" class="favorites-list"></div>
     <div class="overlay-actions">
@@ -631,7 +634,24 @@
   </div>
 </div>
 
-<footer>
+<div id="history-exercise-picker-overlay" class="overlay" aria-hidden="true">
+  <div class="overlay-card history-exercise-picker-card">
+    <div class="overlay-title-row">
+      <h3>Cambiar ejercicio</h3>
+      <button id="history-exercise-picker-close" class="overlay-close-btn" type="button" aria-label="Cerrar" title="Cerrar">×</button>
+    </div>
+    <input id="history-exercise-picker-search" type="search" placeholder="Buscar ejercicio..." autocomplete="off">
+    <div id="history-exercise-picker-list" class="history-exercise-picker-list" role="listbox" aria-label="Ejercicios predeterminados"></div>
+    <button id="history-exercise-custom-toggle" class="btn-secondary" type="button">Nombre personalizado</button>
+    <div id="history-exercise-custom-fields" class="history-exercise-custom-fields is-hidden">
+      <label for="history-exercise-custom-name">Nombre del ejercicio</label>
+      <input id="history-exercise-custom-name" type="text" autocomplete="off" placeholder="Ej: Remo unilateral">
+      <button id="history-exercise-custom-confirm" class="btn-primary" type="button">Usar este nombre</button>
+    </div>
+  </div>
+</div>
+
+<footer id="app-footer">
   <span>Web creada por</span>
   <a href="https://baguadoramirez.github.io/borjas_web/index.html" target="_blank">
     <img src="icons/bar_logo.png" alt="Logo de Borja Aguado" class="footer-logo">Borja Aguado
@@ -642,17 +662,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="ejercicios.js?v=19"></script>
-<script src="js/app-storage.js?v=15"></script>
-<script src="js/app-main.js?v=59"></script>
-<script src="js/app-history.js?v=18"></script>
-<script src="js/app-routines.js?v=16"></script>
-<script src="js/app-session.js?v=17"></script>
-<script src="js/app-export.js?v=16"></script>
-<script src="js/app-tools.js?v=24"></script>
-<script src="js/app-user.js?v=23"></script>
+<script src="ejercicios.js?v=1.0-relux"></script>
+<script src="js/app-storage.js?v=1.0-relux"></script>
+<script src="js/app-main.js?v=1.0-relux"></script>
+<script src="js/app-history.js?v=1.0-relux"></script>
+<script src="js/app-routines.js?v=1.0-relux"></script>
+<script src="js/app-session.js?v=1.0-relux"></script>
+<script src="js/app-export.js?v=1.0-relux"></script>
+<script src="js/app-tools.js?v=1.0-relux"></script>
+<script src="js/app-user.js?v=1.0-relux"></script>
 
-<script src="theme-charts.js?v=23"></script>
+<script src="theme-charts.js?v=1.0-relux"></script>
 
 </body>
 </html>
