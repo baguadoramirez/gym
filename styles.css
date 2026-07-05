@@ -809,25 +809,14 @@
     }
 
     .dashboard-actions {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.75rem;
     }
 
-    .dashboard-actions #dashboard-start-btn {
+    .dashboard-actions button {
       width: 100%;
-      min-height: 52px;
-    }
-
-    .dashboard-stats-link {
-      align-self: center;
-      width: auto !important;
-      min-height: 36px !important;
-      padding: 0.35rem 0.8rem !important;
-      border-color: transparent !important;
-      background: transparent !important;
-      color: var(--meta-text) !important;
-      font-size: 0.75rem;
+      min-height: 48px;
     }
 
     .dashboard-insights {
