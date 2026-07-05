@@ -1,4 +1,4 @@
-const CACHE_NAME = "gym-tracker-v1.0-relux";
+const CACHE_NAME = "gym-tracker-v1.0-relux-dashboard-trends";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,6 +7,8 @@ const ASSETS = [
   "./js/app-storage.js?v=1.0-relux",
   "./js/app-main.js?v=1.0-relux",
   "./js/app-history.js?v=1.0-relux",
+  "./js/app-metrics.js?v=1.0-relux",
+  "./js/app-dashboard.js?v=1.0-relux",
   "./js/app-routines.js?v=1.0-relux",
   "./js/app-session.js?v=1.0-relux",
   "./js/app-export.js?v=1.0-relux",

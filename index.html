@@ -82,7 +82,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text text-center">v1.0 - ReLux</div>
+        <div class="hint-text text-center">v1.0.1 - ReLux</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
@@ -142,6 +142,104 @@
   </details>
 
   <div id="app-content" class="is-hidden">
+  <details id="step-dashboard" class="step-section step-page" open>
+    <summary>
+      <span>Resumen</span>
+      <span class="step-status">Usuario</span>
+    </summary>
+    <div class="step-body dashboard-page">
+      <div class="dashboard-heading">
+        <div>
+          <p class="dashboard-eyebrow">Tu actividad</p>
+          <h2 id="dashboard-greeting">Resumen de entrenamiento</h2>
+          <p id="dashboard-subtitle" class="hint-text">Consulta tu progreso antes de empezar.</p>
+        </div>
+      </div>
+
+      <div class="dashboard-actions">
+        <button id="dashboard-start-btn" class="btn-primary" type="button">Empezar entrenamiento</button>
+        <button id="dashboard-stats-btn" class="btn-secondary" type="button">Ver estadísticas</button>
+      </div>
+
+      <div class="dashboard-summary-grid">
+        <article class="dashboard-card dashboard-session-card" aria-live="polite">
+          <span class="dashboard-card-icon" aria-hidden="true">🕒</span>
+          <div class="dashboard-card-content">
+            <span class="dashboard-card-label">Última sesión</span>
+            <strong id="dashboard-last-session" class="dashboard-card-value">—</strong>
+            <span id="dashboard-last-session-detail" class="dashboard-card-detail">Sin sesiones guardadas</span>
+          </div>
+        </article>
+
+        <article class="dashboard-card dashboard-goal-card" aria-live="polite">
+          <span class="dashboard-card-icon" aria-hidden="true">🔥</span>
+          <div class="dashboard-card-content">
+            <span class="dashboard-card-label">Objetivo semanal</span>
+            <strong class="dashboard-card-value"><span id="dashboard-week-frequency">0</span> de 3 sesiones</strong>
+            <span class="dashboard-card-detail"><span id="dashboard-week-streak">0</span> semanas seguidas</span>
+            <span class="dashboard-goal-track" role="progressbar" aria-label="Progreso del objetivo semanal" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0">
+              <span id="dashboard-goal-progress" class="dashboard-goal-progress"></span>
+            </span>
+          </div>
+        </article>
+      </div>
+
+      <div id="dashboard-empty" class="dashboard-empty is-hidden">
+        Guarda tu primer entrenamiento para empezar a ver tendencias y récords.
+      </div>
+
+      <section id="dashboard-alert-panel" class="dashboard-panel is-hidden">
+        <div class="dashboard-panel-heading">
+          <div>
+            <span class="dashboard-card-label">Revisión rápida</span>
+            <h3>Observaciones</h3>
+          </div>
+          <span class="dashboard-panel-icon" aria-hidden="true">💡</span>
+        </div>
+        <div id="dashboard-alerts" class="dashboard-alert-list"></div>
+      </section>
+
+      <div id="dashboard-insights" class="dashboard-insights">
+        <section class="dashboard-panel dashboard-panel-wide">
+          <div class="dashboard-panel-heading">
+            <div>
+              <span class="dashboard-card-label">Tendencia</span>
+              <h3>Últimos 30 días vs. anteriores</h3>
+            </div>
+            <span class="dashboard-panel-icon" aria-hidden="true">↗️</span>
+          </div>
+          <div id="dashboard-comparison" class="dashboard-comparison"></div>
+          <p class="dashboard-panel-note">El volumen estimado considera carga externa, peso corporal y asistencia. El cardio se muestra por separado en sus gráficos.</p>
+        </section>
+
+        <section class="dashboard-panel dashboard-panel-wide">
+          <div class="dashboard-panel-heading">
+            <div>
+              <span class="dashboard-card-label">Últimos 30 días</span>
+              <h3>Distribución muscular</h3>
+            </div>
+            <span class="dashboard-panel-icon" aria-hidden="true">💪</span>
+          </div>
+          <div id="dashboard-muscle-balance" class="dashboard-muscle-list"></div>
+          <p id="dashboard-muscle-empty" class="dashboard-panel-note">Aún no hay series clasificadas.</p>
+        </section>
+
+        <section class="dashboard-panel dashboard-panel-wide">
+          <div class="dashboard-panel-heading">
+            <div>
+              <span class="dashboard-card-label">Mejores cargas registradas</span>
+              <h3>Récords recientes <span id="dashboard-records" class="dashboard-heading-count">0</span></h3>
+            </div>
+            <span class="dashboard-panel-icon" aria-hidden="true">🏅</span>
+          </div>
+          <div id="dashboard-record-list" class="dashboard-record-list"></div>
+          <p id="dashboard-record-empty" class="dashboard-panel-note">Los récords aparecerán cuando superes una marca anterior.</p>
+        </section>
+
+      </div>
+    </div>
+  </details>
+
   <details id="step-2" class="step-section step-page" open>
     <summary>
       <span>Paso 2: ¿Cómo quieres iniciar la sesión?</span>
@@ -666,6 +764,8 @@
 <script src="js/app-storage.js?v=1.0-relux"></script>
 <script src="js/app-main.js?v=1.0-relux"></script>
 <script src="js/app-history.js?v=1.0-relux"></script>
+<script src="js/app-metrics.js?v=1.0-relux"></script>
+<script src="js/app-dashboard.js?v=1.0-relux"></script>
 <script src="js/app-routines.js?v=1.0-relux"></script>
 <script src="js/app-session.js?v=1.0-relux"></script>
 <script src="js/app-export.js?v=1.0-relux"></script>

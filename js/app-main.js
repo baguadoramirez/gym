@@ -56,6 +56,7 @@ const historyMenuOverlay = document.getElementById("history-menu-overlay");
 const historyMenuClose = document.getElementById("history-menu-close");
 const step0 = document.getElementById("step-0");
 const step1 = document.getElementById("step-1");
+const stepDashboard = document.getElementById("step-dashboard");
 const step2 = document.getElementById("step-2");
 const step3 = document.getElementById("step-3");
 const step4 = document.getElementById("step-4");
@@ -631,7 +632,7 @@ document.addEventListener("keydown", event => {
 
 let currentUserName = appState.currentUserName;
 let currentUserKey = appState.currentUserKey;
-const stepPages = [step0, step1, step2, step3, step4, step5, step6, step7, step8, step9].filter(Boolean);
+const stepPages = [step0, step1, stepDashboard, step2, step3, step4, step5, step6, step7, step8, step9].filter(Boolean);
 let activeStepIndex = appState.activeStepIndex;
 let pendingStartStepIndex = null;
 let activeExerciseIndex = 0;
@@ -748,6 +749,9 @@ function markSessionDirty() {
 function refreshCharts() {
   if (typeof window.loadChartExercises === "function") {
     window.loadChartExercises();
+  }
+  if (typeof window.renderDashboard === "function") {
+    window.renderDashboard();
   }
 }
 
@@ -1268,10 +1272,16 @@ function activateSelectedUser(userKey) {
   if (typeof window.loadChartExercises === "function") {
     window.loadChartExercises();
   }
+  if (typeof window.renderDashboard === "function") {
+    window.renderDashboard();
+  }
   if (pendingStartStepIndex != null) {
     const targetIndex = pendingStartStepIndex;
     pendingStartStepIndex = null;
     setActiveStep(targetIndex);
+  } else if (activeStepIndex === stepPages.indexOf(step1)) {
+    const dashboardIndex = stepPages.indexOf(stepDashboard);
+    if (dashboardIndex >= 0) setActiveStep(dashboardIndex);
   }
 }
 
@@ -1468,6 +1478,7 @@ function updateStepNavigation() {
   const stepNames = new Map([
     [step0, "Inicio"],
     [step1, "Usuario"],
+    [stepDashboard, "Resumen"],
     [step2, "Preparar sesión"],
     [step3, "Ejercicios"],
     [step4, "Cuestionario"],
@@ -1492,9 +1503,12 @@ function updateStepNavigation() {
   }
 
   if (subheader) {
+    const dashboardIndex = stepPages.indexOf(stepDashboard);
     const step2Index = stepPages.indexOf(step2);
     const step3Index = stepPages.indexOf(step3);
-    const showFromStep2 = step2Index >= 0 && activeStepIndex >= step2Index;
+    const showFromStep2 = dashboardIndex >= 0
+      ? activeStepIndex >= dashboardIndex
+      : step2Index >= 0 && activeStepIndex >= step2Index;
     const isStep3 = step3Index >= 0 && activeStepIndex === step3Index;
     subheader.classList.toggle("is-visible", showFromStep2);
 
@@ -2966,9 +2980,23 @@ onReady(() => {
 
   initializeForUserSelection();
   initializeStepper();
+  const dashboardStartBtn = document.getElementById("dashboard-start-btn");
+  const dashboardStatsBtn = document.getElementById("dashboard-stats-btn");
+  if (dashboardStartBtn) {
+    dashboardStartBtn.addEventListener("click", () => {
+      const sessionIndex = stepPages.indexOf(step2);
+      if (sessionIndex >= 0) setActiveStep(sessionIndex);
+    });
+  }
+  if (dashboardStatsBtn) {
+    dashboardStatsBtn.addEventListener("click", () => {
+      const statsIndex = stepPages.indexOf(step8);
+      if (statsIndex >= 0) setActiveStep(statsIndex, { force: true, ignoreMax: true });
+    });
+  }
   if (welcomeStartBtn) {
     const startIndex = stepPages.indexOf(step1);
-    const sessionIndex = stepPages.indexOf(step2);
+    const sessionIndex = stepPages.indexOf(stepDashboard);
     welcomeStartBtn.addEventListener("click", () => {
       if (currentUserKey && sessionIndex >= 0) {
         setActiveStep(sessionIndex);
