@@ -88,6 +88,11 @@
     maximumFractionDigits: 0
   }).format(value);
 
+  const formatCompactNumber = value => {
+    if (Math.abs(value) < 1000) return formatNumber(value);
+    return `${(value / 1000).toLocaleString("es-ES", { maximumFractionDigits: 1 })}k`;
+  };
+
   const formatDate = date => new Intl.DateTimeFormat("es-ES", {
     day: "numeric",
     month: "short",
@@ -270,12 +275,15 @@
       const label = document.createElement("span");
       label.textContent = metric.label;
       const value = document.createElement("strong");
-      value.textContent = `${formatNumber(metric.current)}${metric.suffix}`;
+      const formattedValue = metric.label === "Volumen estimado"
+        ? formatCompactNumber(metric.current)
+        : formatNumber(metric.current);
+      value.textContent = `${formattedValue}${metric.suffix}`;
       const delta = document.createElement("div");
       delta.className = "dashboard-comparison-delta";
       if (metric.prior > 0) {
         const percent = Math.round(((metric.current - metric.prior) / metric.prior) * 100);
-        delta.textContent = `${percent > 0 ? "+" : ""}${percent}% frente al periodo anterior`;
+        delta.textContent = `${percent > 0 ? "+" : ""}${percent}%`;
       } else {
         delta.textContent = metric.current > 0 ? "Nuevo periodo" : "Sin cambios";
       }
