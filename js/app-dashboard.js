@@ -88,11 +88,6 @@
     maximumFractionDigits: 0
   }).format(value);
 
-  const formatCompactNumber = value => {
-    if (Math.abs(value) < 1000) return formatNumber(value);
-    return `${(value / 1000).toLocaleString("es-ES", { maximumFractionDigits: 1 })}k`;
-  };
-
   const formatDate = date => new Intl.DateTimeFormat("es-ES", {
     day: "numeric",
     month: "short",
@@ -246,41 +241,26 @@
     elements.recordEmpty?.classList.toggle("is-hidden", records.length > 0);
   };
 
-  const renderComparison = (recent, previous, sessions) => {
+  const renderComparison = (recent, previous) => {
     if (!elements.comparison) return;
-    const currentWeekStart = startOfWeek(new Date());
-    const weeks = [3, 2, 1, 0].map(offset => {
-      const start = new Date(currentWeekStart);
-      start.setDate(start.getDate() - (offset * 7));
-      const end = new Date(start);
-      end.setDate(end.getDate() + 7);
-      return {
-        start,
-        end,
-        sessions: sessions.filter(item => item.date >= start && item.date < end)
-      };
-    });
     const metrics = [
       {
         label: "Sesiones",
         current: recent.length,
         prior: previous.length,
-        suffix: "",
-        weeklyValue: items => items.length
+        suffix: ""
       },
       {
         label: "Series registradas",
         current: recent.reduce((sum, item) => sum + sessionSets(item.session), 0),
         prior: previous.reduce((sum, item) => sum + sessionSets(item.session), 0),
-        suffix: "",
-        weeklyValue: items => items.reduce((sum, item) => sum + sessionSets(item.session), 0)
+        suffix: ""
       },
       {
         label: "Volumen estimado",
         current: recent.reduce((sum, item) => sum + sessionVolume(item.session), 0),
         prior: previous.reduce((sum, item) => sum + sessionVolume(item.session), 0),
-        suffix: " kg",
-        weeklyValue: items => items.reduce((sum, item) => sum + sessionVolume(item.session), 0)
+        suffix: " kg"
       }
     ];
     elements.comparison.replaceChildren();
@@ -291,39 +271,15 @@
       label.textContent = metric.label;
       const value = document.createElement("strong");
       value.textContent = `${formatNumber(metric.current)}${metric.suffix}`;
-      const weeklyValues = weeks.map(week => metric.weeklyValue(week.sessions));
-      const weeklyMax = Math.max(...weeklyValues, 1);
-      const miniChart = document.createElement("div");
-      miniChart.className = "dashboard-mini-chart";
-      miniChart.setAttribute("role", "img");
-      miniChart.setAttribute(
-        "aria-label",
-        `${metric.label}, de la semana más antigua a la actual: ${weeklyValues.map(formatNumber).join(", ")}`
-      );
-      weeks.forEach((week, index) => {
-        const barWrap = document.createElement("span");
-        barWrap.className = "dashboard-mini-bar-wrap";
-        const rawValue = document.createElement("small");
-        rawValue.className = "dashboard-mini-value";
-        rawValue.textContent = formatCompactNumber(weeklyValues[index]);
-        const bar = document.createElement("span");
-        bar.className = "dashboard-mini-bar";
-        bar.style.height = `${Math.max(weeklyValues[index] > 0 ? 24 : 18, (weeklyValues[index] / weeklyMax) * 100)}%`;
-        const weekLabel = `${formatDate(week.start)}–${formatDate(new Date(week.end.getTime() - 86400000))}`;
-        barWrap.title = `${weekLabel}: ${formatNumber(weeklyValues[index])}${metric.suffix}`;
-        bar.appendChild(rawValue);
-        barWrap.appendChild(bar);
-        miniChart.appendChild(barWrap);
-      });
       const delta = document.createElement("div");
       delta.className = "dashboard-comparison-delta";
       if (metric.prior > 0) {
-        const difference = metric.current - metric.prior;
-        delta.textContent = `${difference > 0 ? "+" : ""}${formatNumber(difference)}${metric.suffix} frente al periodo anterior`;
+        const percent = Math.round(((metric.current - metric.prior) / metric.prior) * 100);
+        delta.textContent = `${percent > 0 ? "+" : ""}${percent}% frente al periodo anterior`;
       } else {
         delta.textContent = metric.current > 0 ? "Nuevo periodo" : "Sin cambios";
       }
-      item.append(label, value, miniChart, delta);
+      item.append(label, value, delta);
       elements.comparison.appendChild(item);
     });
   };
@@ -398,7 +354,7 @@
 
     renderMuscleBalance(sessions.filter(({ date }) => date >= cutoff));
     renderRecordList(records);
-    renderComparison(recentPeriod, previousPeriod, sessions);
+    renderComparison(recentPeriod, previousPeriod);
     renderAlerts(sessions, recentPeriod, previousPeriod);
 
     const latest = sessions[0];
