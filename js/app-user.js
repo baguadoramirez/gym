@@ -10,6 +10,7 @@ function escapeCsvCell(value) {
   return text;
 }
 
+
 function buildCsvForUser(sessions) {
   const header = [
     t("csv.usuario"),
