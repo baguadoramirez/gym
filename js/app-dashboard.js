@@ -281,10 +281,7 @@
         ? formatCompactNumber(metric.current)
         : formatNumber(metric.current);
       value.textContent = `${formattedValue}${metric.suffix}`;
-      const delta = document.createElement("div");
-      delta.className = "dashboard-comparison-delta";
-      delta.textContent = "Últimos 30 días";
-      item.append(label, value, delta);
+      item.append(label, value);
       elements.comparison.appendChild(item);
     });
   };

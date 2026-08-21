@@ -936,7 +936,7 @@
 
     .dashboard-comparison {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 0.65rem;
       margin-top: 0.85rem;
     }
@@ -962,6 +962,18 @@
     .dashboard-comparison-delta {
       color: var(--meta-text);
       font-size: 0.68rem;
+    }
+
+    .chart-session-actions {
+      display: grid;
+      grid-template-columns: minmax(0, auto) 1fr;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .chart-session-actions button {
+      min-height: 38px;
+      white-space: nowrap;
     }
 
     .dashboard-alert-list {
@@ -1001,10 +1013,14 @@
 
     @media (max-width: 430px) {
       .dashboard-comparison {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
       }
 
       .dashboard-alert-list {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-session-actions {
         grid-template-columns: 1fr;
       }
     }

@@ -3091,7 +3091,7 @@ onReady(() => {
   updateHeaderOffsets();
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js?v=1.0.2-reluciente").then(reg => {
+    navigator.serviceWorker.register("./sw.js?v=1.0.4-reluciente").then(reg => {
       reg.update().catch(() => {});
     }).catch(() => {});
   }

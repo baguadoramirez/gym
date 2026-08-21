@@ -1,7 +1,7 @@
 {
   "name": "Gym Tracker",
   "short_name": "Gym",
-  "version": "1.0.2 - ReLuciente",
+  "version": "ReLuciente v.1.0.4",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b0b0b",

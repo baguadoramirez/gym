@@ -60,6 +60,10 @@
     const globalChartMetricButtons = document.getElementById("global-chart-metric-buttons");
     const globalChartCanvas = document.getElementById("global-progress-chart");
     const globalChartNoDataMsg = document.getElementById("global-chart-no-data-msg");
+    const globalChartShowAll = document.getElementById("global-chart-show-all");
+    const globalChartOpenSession = document.getElementById("global-chart-open-session");
+    const globalChartSelectedSession = document.getElementById("global-chart-selected-session");
+    if (globalChartShowAll) globalChartShowAll.checked = false;
     const BODY_WEIGHT_KEY = "__body_weight__";
     const setHidden = (element, isHidden) => {
       if (!element) return;
@@ -94,6 +98,16 @@
       if (!session || typeof session !== "object") return [];
       if (Array.isArray(session.exercises)) return session.exercises;
       if (Array.isArray(session.ejercicios)) return session.ejercicios;
+      if (Array.isArray(session.data?.exercises)) return session.data.exercises;
+      if (Array.isArray(session.data?.ejercicios)) return session.data.ejercicios;
+      if (Array.isArray(session.session?.exercises)) return session.session.exercises;
+      if (Array.isArray(session.session?.ejercicios)) return session.session.ejercicios;
+      return [];
+    };
+
+    const getExerciseSets = exercise => {
+      if (Array.isArray(exercise?.sets)) return exercise.sets;
+      if (Array.isArray(exercise?.series)) return exercise.series;
       return [];
     };
 
@@ -215,9 +229,69 @@
       return Array.from(names);
     };
 
-    const createChartSection = ({ selectEl, metricButtonsEl, canvasEl, noDataMsgEl, allowBodyWeight, getExerciseNames }) => {
+    const parseSessionDate = value => {
+      if (!value) return null;
+      const date = new Date(`${value}T12:00:00`);
+      return Number.isNaN(date.getTime()) ? null : date;
+    };
+
+    const getThreeMonthsCutoff = () => {
+      const cutoff = new Date();
+      cutoff.setHours(0, 0, 0, 0);
+      cutoff.setMonth(cutoff.getMonth() - 3);
+      return cutoff;
+    };
+
+    const getRecentExerciseCounts = sessions => {
+      const cutoff = getThreeMonthsCutoff();
+      const counts = new Map();
+      sessions.forEach(session => {
+        const date = parseSessionDate(session?.date);
+        if (!date || date < cutoff) return;
+        const namesInSession = new Set();
+        getSessionExercises(session).forEach(ex => {
+          if (isWarmup(ex)) return;
+          const name = getExerciseName(ex);
+          if (name) namesInSession.add(name);
+        });
+        namesInSession.forEach(name => {
+          counts.set(name, (counts.get(name) || 0) + 1);
+        });
+      });
+      return counts;
+    };
+
+    const formatChartPointDate = date => {
+      if (!date) return "";
+      const parsed = new Date(`${date}T12:00:00`);
+      if (Number.isNaN(parsed.getTime())) return date;
+      return parsed.toLocaleDateString(getChartLocale(), {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+    };
+
+    const openHistorySessionFromChart = point => {
+      if (!point?.date || typeof window.openGymHistorySession !== "function") return;
+      window.openGymHistorySession(point);
+    };
+
+    const createChartSection = ({ selectEl, metricButtonsEl, canvasEl, noDataMsgEl, allowBodyWeight, getExerciseNames, simpleFilterControl, openSessionButton, selectedSessionLabel }) => {
       let chartInstance;
       let currentMode = METRIC_MODES.maxWeight;
+      let chartPoints = [];
+      let selectedPoint = null;
+
+      const setSelectedPoint = point => {
+        selectedPoint = point || null;
+        if (openSessionButton) openSessionButton.disabled = !selectedPoint;
+        if (selectedSessionLabel) {
+          selectedSessionLabel.textContent = selectedPoint
+            ? `Seleccionada: ${formatChartPointDate(selectedPoint.date)}`
+            : "Toca un punto del gráfico para seleccionar un día.";
+        }
+      };
 
       const getMetricLabel = (mode) => {
         if (mode === METRIC_MODES.meanWeight) return tChart("chart.metric.meanWeight");
@@ -248,26 +322,27 @@
           if (isBodyWeight) {
             const weight = getBodyWeightValue(session);
             if (weight == null) return;
-            dateMap.set(date, { value: weight, count: 1 });
+            dateMap.set(date, { value: weight, count: 1, key: session.key || "" });
             return;
           }
 
           const exercises = getSessionExercises(session);
           const ex = exercises.find(item => getExerciseName(item) === exerciseName && !isWarmup(item));
-          if (!ex || !Array.isArray(ex.sets)) return;
+          const sets = getExerciseSets(ex);
+          if (!ex || !sets.length) return;
           const bodyWeight = getNearestBodyWeightValue(sessions, sessionIndex);
 
           const metrics = {
-            meanWeight: getMeanWeightFromSets(ex.sets, ex, bodyWeight),
-            maxWeight: getMaxWeightFromSets(ex.sets, ex, bodyWeight),
-            volume: getVolumeFromSets(ex.sets, ex, bodyWeight),
-            totalVolume: getTotalVolumeFromSets(ex.sets, ex, bodyWeight)
+            meanWeight: getMeanWeightFromSets(sets, ex, bodyWeight),
+            maxWeight: getMaxWeightFromSets(sets, ex, bodyWeight),
+            volume: getVolumeFromSets(sets, ex, bodyWeight),
+            totalVolume: getTotalVolumeFromSets(sets, ex, bodyWeight)
           };
 
           const value = getMetricValue(mode, metrics);
           if (value == null) return;
 
-          const current = dateMap.get(date) || { meanWeightSum: 0, meanWeightCount: 0, maxWeight: null, volumeSum: 0, volumeCount: 0, totalVolume: 0 };
+          const current = dateMap.get(date) || { meanWeightSum: 0, meanWeightCount: 0, maxWeight: null, volumeSum: 0, volumeCount: 0, totalVolume: 0, key: session.key || "" };
           if (mode === METRIC_MODES.meanWeight) {
             current.meanWeightSum += value;
             current.meanWeightCount += 1;
@@ -287,9 +362,15 @@
           setHidden(noDataMsgEl, false);
           if (chartInstance) chartInstance.destroy();
           chartInstance = null;
+          chartPoints = [];
+          setSelectedPoint(null);
           return;
         }
         setHidden(noDataMsgEl, true);
+        chartPoints = sortedDates.map(date => ({
+          date,
+          key: dateMap.get(date)?.key || ""
+        }));
 
         const labels = sortedDates.map(date => new Date(date).toLocaleDateString(getChartLocale()));
         const values = sortedDates.map(date => {
@@ -333,7 +414,9 @@
                 backgroundColor: "#f9731620",
                 fill: false,
                 tension: 0.25,
-                pointRadius: 4
+                pointRadius: 4,
+                pointHoverRadius: 7,
+                pointHitRadius: 16
               },
               {
                 label: "Tendencia",
@@ -352,6 +435,20 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            onClick: (_event, activeElements) => {
+              if (!activeElements?.length) return;
+              const index = activeElements[0]?.index;
+              setSelectedPoint(chartPoints[index]);
+            },
+            onHover: (event, activeElements) => {
+              if (event?.native?.target) {
+                event.native.target.style.cursor = activeElements?.length ? "pointer" : "default";
+              }
+            },
+            interaction: {
+              mode: "nearest",
+              intersect: false
+            },
             plugins: {
               legend: { display: false }
             },
@@ -397,10 +494,18 @@
 
       const loadExercises = () => {
         if (!selectEl) return;
+        const previousValue = selectEl.value || "";
+        setSelectedPoint(null);
         const sessions = getHistorySessions()
           .slice()
           .sort((a, b) => new Date(a?.date || 0) - new Date(b?.date || 0));
-        const exercises = new Set(getExerciseNames());
+        const simpleFilterEnabled = simpleFilterControl && !simpleFilterControl.checked;
+        const recentExerciseCounts = simpleFilterEnabled ? getRecentExerciseCounts(sessions) : new Map();
+        const exercises = new Set(
+          getExerciseNames().filter(name => (
+            !simpleFilterEnabled || (recentExerciseCounts.get(name) || 0) > 2
+          ))
+        );
 
         const maxByExercise = new Map();
         sessions.forEach((session, sessionIndex) => {
@@ -408,9 +513,10 @@
           exercisesList.forEach(ex => {
             if (isWarmup(ex)) return;
             const name = getExerciseName(ex);
-            if (!name || !Array.isArray(ex.sets) || !exercises.has(name)) return;
+            const sets = getExerciseSets(ex);
+            if (!name || !sets.length || !exercises.has(name)) return;
             const bodyWeight = getNearestBodyWeightValue(sessions, sessionIndex);
-            const maxWeight = getMaxWeightFromSets(ex.sets, ex, bodyWeight);
+            const maxWeight = getMaxWeightFromSets(sets, ex, bodyWeight);
             if (maxWeight == null) return;
             const current = maxByExercise.get(name);
             if (current == null || maxWeight > current) {
@@ -465,10 +571,13 @@
           setHidden(noDataMsgEl, false);
           if (chartInstance) chartInstance.destroy();
           chartInstance = null;
+          setSelectedPoint(null);
           return;
         }
 
-        let defaultValue = Array.from(exercises)[0] || "";
+        let defaultValue = (previousValue === BODY_WEIGHT_KEY && hasBodyWeight) || Array.from(exercises).includes(previousValue)
+          ? previousValue
+          : Array.from(exercises)[0] || "";
         if (!defaultValue && hasBodyWeight) defaultValue = BODY_WEIGHT_KEY;
         if (defaultValue) {
           selectEl.value = defaultValue;
@@ -479,6 +588,14 @@
       if (selectEl) {
         selectEl.addEventListener("change", () => {
           if (selectEl.value) renderChart(selectEl.value, currentMode);
+        });
+      }
+      if (simpleFilterControl) {
+        simpleFilterControl.addEventListener("change", loadExercises);
+      }
+      if (openSessionButton) {
+        openSessionButton.addEventListener("click", () => {
+          openHistorySessionFromChart(selectedPoint);
         });
       }
 
@@ -500,7 +617,10 @@
       canvasEl: globalChartCanvas,
       noDataMsgEl: globalChartNoDataMsg,
       allowBodyWeight: true,
-      getExerciseNames: getAllHistoryExerciseNames
+      getExerciseNames: getAllHistoryExerciseNames,
+      simpleFilterControl: globalChartShowAll,
+      openSessionButton: globalChartOpenSession,
+      selectedSessionLabel: globalChartSelectedSession
     });
 
     const loadChartExercises = () => {
