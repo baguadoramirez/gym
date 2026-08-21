@@ -645,6 +645,28 @@ let historyExercisePickerTarget = null;
 let editingSessionContext = null;
 let isEditingHistory = appState.isEditingHistory;
 let allowGlobalChartsStep = false;
+let stepHistoryInitialized = false;
+
+function getStepHistoryState(index = activeStepIndex) {
+  return {
+    ...(history.state && typeof history.state === "object" ? history.state : {}),
+    gymTrackerStep: true,
+    stepIndex: index
+  };
+}
+
+function replaceStepHistory(index = activeStepIndex) {
+  if (!window.history?.replaceState) return;
+  history.replaceState(getStepHistoryState(index), "", window.location.href);
+  stepHistoryInitialized = true;
+}
+
+function pushStepHistory(index = activeStepIndex) {
+  if (!stepHistoryInitialized || !window.history?.pushState) return;
+  const currentState = history.state;
+  if (currentState?.gymTrackerStep && currentState.stepIndex === index) return;
+  history.pushState(getStepHistoryState(index), "", window.location.href);
+}
 
 function openPromptDialog(title, defaultValue = "") {
   if (!promptOverlay || !promptInput || !promptTitle || !promptLabel || !promptConfirm || !promptCancel) {
@@ -1718,44 +1740,74 @@ function setActiveStep(index, options = {}) {
     maybePromptSaveRoutine();
   }
   updateStepNavigation();
+  if (options.replaceHistory || (activeStepIndex === 0 && !options.fromBrowserHistory)) {
+    replaceStepHistory(activeStepIndex);
+  } else if (!options.fromBrowserHistory) {
+    pushStepHistory(activeStepIndex);
+  }
 }
+
+function navigateToPreviousStep(options = {}) {
+  const step7Index = stepPages.indexOf(step7);
+  const step8Index = stepPages.indexOf(step8);
+  const step9Index = stepPages.indexOf(step9);
+  const step6Index = stepPages.indexOf(step6);
+  const step5Index = stepPages.indexOf(step5);
+  const step2Index = stepPages.indexOf(step2);
+  const navOptions = { force: true, ignoreMax: true, ...options };
+  if (step2Index >= 0) {
+    if (activeStepIndex === step7Index || activeStepIndex === step8Index || activeStepIndex === step9Index) {
+      setActiveStep(step2Index, navOptions);
+      return;
+    }
+    if (activeStepIndex === step7Index && isEditingHistory) {
+      setActiveStep(step2Index, navOptions);
+      return;
+    }
+  }
+  if (step6Index >= 0 && step5Index >= 0 && activeStepIndex === step6Index) {
+    setActiveStep(step5Index, navOptions);
+    return;
+  }
+  if (!editingSessionContext) {
+    if (step8Index >= 0 && step6Index >= 0 && activeStepIndex === step8Index) {
+      setActiveStep(step6Index, navOptions);
+      return;
+    }
+    if (step9Index >= 0 && step8Index >= 0 && activeStepIndex === step9Index) {
+      setActiveStep(step8Index, navOptions);
+      return;
+    }
+  }
+  setActiveStep(activeStepIndex - 1, navOptions);
+}
+
+window.addEventListener("popstate", event => {
+  if (!stepHistoryInitialized || activeStepIndex === 0) return;
+  const targetIndex = event.state?.gymTrackerStep
+    ? Number(event.state.stepIndex)
+    : activeStepIndex - 1;
+  if (Number.isInteger(targetIndex) && targetIndex >= 0 && targetIndex < stepPages.length) {
+    setActiveStep(targetIndex, {
+      force: true,
+      ignoreMax: true,
+      fromBrowserHistory: true,
+      skipScroll: true
+    });
+    return;
+  }
+  navigateToPreviousStep({
+    fromBrowserHistory: true,
+    skipScroll: true
+  });
+});
 
 function initializeStepper() {
   if (!stepPages.length) return;
 
   if (stepperPrevBtn) {
     stepperPrevBtn.addEventListener("click", () => {
-      const step7Index = stepPages.indexOf(step7);
-      const step8Index = stepPages.indexOf(step8);
-      const step9Index = stepPages.indexOf(step9);
-      const step6Index = stepPages.indexOf(step6);
-      const step5Index = stepPages.indexOf(step5);
-      const step2Index = stepPages.indexOf(step2);
-      if (step2Index >= 0) {
-        if (activeStepIndex === step7Index || activeStepIndex === step8Index || activeStepIndex === step9Index) {
-          setActiveStep(step2Index, { force: true, ignoreMax: true });
-          return;
-        }
-        if (activeStepIndex === step7Index && isEditingHistory) {
-          setActiveStep(step2Index, { force: true, ignoreMax: true });
-          return;
-        }
-      }
-      if (step6Index >= 0 && step5Index >= 0 && activeStepIndex === step6Index) {
-        setActiveStep(step5Index, { force: true });
-        return;
-      }
-      if (!editingSessionContext) {
-        if (step8Index >= 0 && step6Index >= 0 && activeStepIndex === step8Index) {
-          setActiveStep(step6Index);
-          return;
-        }
-        if (step9Index >= 0 && step8Index >= 0 && activeStepIndex === step9Index) {
-          setActiveStep(step8Index);
-          return;
-        }
-      }
-      setActiveStep(activeStepIndex - 1, { force: true, ignoreMax: true });
+      navigateToPreviousStep();
     });
   }
   if (stepperNextBtn) {
@@ -1766,7 +1818,7 @@ function initializeStepper() {
     dateInput.addEventListener("input", updateSessionHeaderDate);
   }
 
-  setActiveStep(activeStepIndex, { skipScroll: true });
+  setActiveStep(activeStepIndex, { skipScroll: true, replaceHistory: true });
 }
 
 // CAMPOS DE SENSACIONES
@@ -3091,7 +3143,7 @@ onReady(() => {
   updateHeaderOffsets();
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js?v=1.0.4-reluciente").then(reg => {
+    navigator.serviceWorker.register("./sw.js?v=1.0.5-reluciente").then(reg => {
       reg.update().catch(() => {});
     }).catch(() => {});
   }
