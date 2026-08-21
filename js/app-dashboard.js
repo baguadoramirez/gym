@@ -246,25 +246,27 @@
     elements.recordEmpty?.classList.toggle("is-hidden", records.length > 0);
   };
 
-  const renderComparison = (recent, previous) => {
+  const renderComparison = recent => {
     if (!elements.comparison) return;
     const metrics = [
       {
         label: "Sesiones",
         current: recent.length,
-        prior: previous.length,
         suffix: ""
       },
       {
         label: "Series registradas",
         current: recent.reduce((sum, item) => sum + sessionSets(item.session), 0),
-        prior: previous.reduce((sum, item) => sum + sessionSets(item.session), 0),
+        suffix: ""
+      },
+      {
+        label: "Ejercicios",
+        current: recent.reduce((sum, item) => sum + getExercises(item.session).filter(exercise => !isWarmup(exercise)).length, 0),
         suffix: ""
       },
       {
         label: "Volumen estimado",
         current: recent.reduce((sum, item) => sum + sessionVolume(item.session), 0),
-        prior: previous.reduce((sum, item) => sum + sessionVolume(item.session), 0),
         suffix: " kg"
       }
     ];
@@ -281,34 +283,34 @@
       value.textContent = `${formattedValue}${metric.suffix}`;
       const delta = document.createElement("div");
       delta.className = "dashboard-comparison-delta";
-      if (metric.prior > 0) {
-        const percent = Math.round(((metric.current - metric.prior) / metric.prior) * 100);
-        delta.textContent = `${percent > 0 ? "+" : ""}${percent}%`;
-      } else {
-        delta.textContent = metric.current > 0 ? "Nuevo periodo" : "Sin cambios";
-      }
+      delta.textContent = "Últimos 30 días";
       item.append(label, value, delta);
       elements.comparison.appendChild(item);
     });
   };
 
-  const renderAlerts = (sessions, recent, previous) => {
+  const renderAlerts = sessions => {
     if (!elements.alerts) return;
     const alerts = [];
     const latest = sessions[0];
     if (latest) {
       const daysSinceLastSession = Math.max(0, Math.floor((new Date() - latest.date) / 86400000));
       if (daysSinceLastSession >= 7) {
-        alerts.push(`Han pasado ${daysSinceLastSession} días desde la última sesión.`);
+        alerts.push({
+          label: "Última sesión",
+          value: `${daysSinceLastSession} días`,
+          detail: "Sin entrenamientos registrados recientemente."
+        });
       }
-    }
-    if (previous.length >= 2 && recent.length < previous.length) {
-      alerts.push(`La frecuencia bajó de ${previous.length} a ${recent.length} sesiones respecto al periodo anterior.`);
     }
     const latestFive = sessions.slice(0, 5);
     const painSessions = latestFive.filter(({ session }) => session?.sensations?.pain === "si");
     if (painSessions.length >= 2) {
-      alerts.push(`Registraste dolor en ${painSessions.length} de las últimas ${latestFive.length} sesiones. Si persiste, consulta a un profesional sanitario.`);
+      alerts.push({
+        label: "Dolor registrado",
+        value: `${painSessions.length}/${latestFive.length}`,
+        detail: "Aparece en varias sesiones recientes."
+      });
     }
     const tirednessValues = sessions.slice(0, 3)
       .map(({ session }) => Number.parseFloat(session?.sensations?.tiredness))
@@ -316,16 +318,26 @@
     if (tirednessValues.length >= 2) {
       const averageTiredness = tirednessValues.reduce((sum, value) => sum + value, 0) / tirednessValues.length;
       if (averageTiredness >= 8) {
-        alerts.push(`El cansancio medio reciente es ${averageTiredness.toLocaleString("es-ES", { maximumFractionDigits: 1 })}/10.`);
+        alerts.push({
+          label: "Cansancio reciente",
+          value: `${averageTiredness.toLocaleString("es-ES", { maximumFractionDigits: 1 })}/10`,
+          detail: "Media de las últimas sesiones registradas."
+        });
       }
     }
     const hasObservations = alerts.length > 0;
     elements.alertPanel?.classList.toggle("is-hidden", !hasObservations);
     elements.alerts.replaceChildren();
-    alerts.forEach(text => {
+    alerts.forEach(item => {
       const alert = document.createElement("div");
       alert.className = "dashboard-alert";
-      alert.textContent = text;
+      const label = document.createElement("span");
+      label.textContent = item.label;
+      const value = document.createElement("strong");
+      value.textContent = item.value;
+      const detail = document.createElement("span");
+      detail.textContent = item.detail;
+      alert.append(label, value, detail);
       elements.alerts.appendChild(alert);
     });
   };
@@ -340,12 +352,11 @@
     const cutoff = new Date(now);
     cutoff.setHours(0, 0, 0, 0);
     cutoff.setDate(cutoff.getDate() - 29);
-    const previousCutoff = new Date(cutoff);
-    previousCutoff.setDate(previousCutoff.getDate() - 30);
+    const sevenDayCutoff = new Date(now);
+    sevenDayCutoff.setHours(0, 0, 0, 0);
+    sevenDayCutoff.setDate(sevenDayCutoff.getDate() - 6);
     const recentPeriod = sessions.filter(({ date }) => date >= cutoff);
-    const previousPeriod = sessions.filter(({ date }) => date >= previousCutoff && date < cutoff);
-    const currentWeekStart = startOfWeek(now);
-    const recentSessions = sessions.filter(({ date }) => date >= currentWeekStart);
+    const recentSessions = sessions.filter(({ date }) => date >= sevenDayCutoff);
 
     const userName = window.gymState?.currentUserName || "";
     elements.greeting.textContent = userName ? `Hola, ${userName}` : "Resumen de entrenamiento";
@@ -355,15 +366,15 @@
     const records = getRecentRecords(sessions.map(item => item.session));
     elements.records.textContent = String(records.length);
     elements.weekFrequency.textContent = String(recentSessions.length);
-    elements.weekStreak.textContent = String(getWeekStreak(sessions));
+    if (elements.weekStreak) elements.weekStreak.textContent = "3";
     const weeklyGoalProgress = Math.min(100, (recentSessions.length / 3) * 100);
     if (elements.goalProgress) elements.goalProgress.style.width = `${weeklyGoalProgress}%`;
     elements.goalTrack?.setAttribute("aria-valuenow", String(Math.min(3, recentSessions.length)));
 
     renderMuscleBalance(sessions.filter(({ date }) => date >= cutoff));
     renderRecordList(records);
-    renderComparison(recentPeriod, previousPeriod);
-    renderAlerts(sessions, recentPeriod, previousPeriod);
+    renderComparison(recentPeriod);
+    renderAlerts(sessions);
 
     const latest = sessions[0];
     if (latest) {

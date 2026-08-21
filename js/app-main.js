@@ -859,6 +859,54 @@ function getSelectedHistorySession() {
   return sorted[0];
 }
 
+function openHistorySession(session) {
+  if (!session || !editExercisesContainer) return false;
+  const step7Index = stepPages.indexOf(step7);
+  if (step7Index < 0) return false;
+
+  if (historyDateInput) {
+    historyDateInput.value = session.date || "";
+    updateHistoryButtons();
+  }
+
+  editingSessionContext = {
+    date: dateInput?.value || "",
+    week: weekSelect?.value || "",
+    day: daySelect?.value || "",
+    restoreOnExit: true
+  };
+  isEditingHistory = true;
+  appState.isEditingHistory = true;
+  exercisesContainer = editExercisesContainer;
+  editExercisesContainer.innerHTML = "";
+  const sessionExercises = typeof getExercisesArrayFromSession === "function"
+    ? getExercisesArrayFromSession(session)
+    : (session.exercises || []);
+  applyHistorySession(
+    { ...session, exercises: sessionExercises },
+    { includeSensations: true, preserveAutoSave: true }
+  );
+  if (historyBodyWeightInput) {
+    historyBodyWeightInput.value = session?.sensations?.weight ?? "";
+  }
+  setHistoryEditorMode(false);
+  if (historyMenuOverlay?.getAttribute("aria-hidden") === "false") {
+    closeOverlay(historyMenuOverlay);
+  }
+  setActiveStep(step7Index, { force: true, ignoreMax: true });
+  return true;
+}
+
+window.openGymHistorySession = ({ date, key } = {}) => {
+  const sessions = window.uploadedHistory || [];
+  const selected = sessions.find(session => {
+    const sessionKeyValue = session.key || buildSessionKey(session);
+    if (key && sessionKeyValue === key) return true;
+    return date && session.date === date;
+  });
+  return openHistorySession(selected || null);
+};
+
 function setHistoryEditorMode(unlocked) {
   historyEditUnlocked = unlocked === true;
   if (!editExercisesContainer) return;

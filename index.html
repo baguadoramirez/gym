@@ -174,9 +174,9 @@
         <article class="dashboard-card dashboard-goal-card" aria-live="polite">
           <span class="dashboard-card-icon" aria-hidden="true">🔥</span>
           <div class="dashboard-card-content">
-            <span class="dashboard-card-label">Objetivo semanal</span>
+            <span class="dashboard-card-label">Últimos 7 días</span>
             <strong class="dashboard-card-value"><span id="dashboard-week-frequency">0</span> de 3 sesiones</strong>
-            <span class="dashboard-card-detail"><span id="dashboard-week-streak">0</span> semanas seguidas</span>
+            <span class="dashboard-card-detail">Objetivo móvil de 7 días</span>
             <span class="dashboard-goal-track" role="progressbar" aria-label="Progreso del objetivo semanal" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0">
               <span id="dashboard-goal-progress" class="dashboard-goal-progress"></span>
             </span>
@@ -204,7 +204,7 @@
           <div class="dashboard-panel-heading">
             <div>
               <span class="dashboard-card-label">Tendencia</span>
-              <h3>Últimos 30 días vs. anteriores</h3>
+              <h3>Últimos 30 días</h3>
             </div>
             <span class="dashboard-panel-icon" aria-hidden="true">↗️</span>
           </div>
@@ -578,6 +578,10 @@
           <label for="global-chart-exercise-select">Ejercicio</label>
           <select id="global-chart-exercise-select"></select>
         </div>
+        <label class="chart-filter-toggle" for="global-chart-show-all">
+          <input id="global-chart-show-all" type="checkbox">
+          <span>Mostrar ejercicios con pocos registros</span>
+        </label>
         <div id="global-chart-metric-buttons" class="chart-metric-buttons" role="group" aria-label="Métrica del gráfico"></div>
       </div>
       <p id="global-chart-no-data-msg" class="meta-text is-hidden">Aún no hay datos de este usuario. Guarda sesiones o importa datos para ver los gráficos.</p>

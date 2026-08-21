@@ -665,34 +665,7 @@ if (historyViewBtn) {
   historyViewBtn.addEventListener("click", () => {
     const session = getSelectedHistorySession();
     if (!session) return;
-    editingSessionContext = {
-      date: dateInput?.value || "",
-      week: weekSelect?.value || "",
-      day: daySelect?.value || "",
-      restoreOnExit: true
-    };
-    if (editExercisesContainer) {
-      exercisesContainer = editExercisesContainer;
-      showAllExercises = true;
-      editExercisesContainer.innerHTML = "";
-    }
-    isEditingHistory = true;
-    appState.isEditingHistory = isEditingHistory;
-    setHistoryEditorMode(false);
-    const step7Index = stepPages.indexOf(step7);
-    if (step7Index >= 0) setActiveStep(step7Index, { force: true, ignoreMax: true });
-    const sessionExercises = typeof getExercisesArrayFromSession === "function"
-      ? getExercisesArrayFromSession(session)
-      : (session.exercises || []);
-    applyHistorySession(
-      { ...session, exercises: sessionExercises },
-      { silent: true, preserveAutoSave: true }
-    );
-    if (historyBodyWeightInput) {
-      historyBodyWeightInput.value = session.sensations?.weight ?? "";
-    }
-    setHistoryEditorMode(false);
-    closeHistoryMenuOverlay();
+    openHistorySession(session);
     closeManageUserOverlay();
   });
 }
