@@ -969,6 +969,7 @@
       grid-template-columns: minmax(0, auto) 1fr;
       align-items: center;
       gap: 0.6rem;
+      margin-top: 1.25rem;
     }
 
     .chart-session-actions button {
@@ -1563,15 +1564,15 @@
     }
 
     .chart-metric-buttons {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.45rem;
       width: 100%;
       margin-top: 0;
     }
 
     .chart-metric-btn {
-      flex: 1 1 110px;
+      width: 100%;
       min-height: 36px;
       border: 1px solid var(--card-border);
       border-radius: 999px;
@@ -2632,7 +2633,6 @@
     .quick-add-search {
       width: 100%;
       min-height: 46px;
-      margin-bottom: 0.7rem;
       padding: 0.65rem 0.8rem;
       border: 1px solid var(--card-border);
       border-radius: 8px;
@@ -2701,10 +2701,10 @@
     }
 
     .quick-add-sort-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
+      gap: 0.6rem;
       margin-bottom: 0.55rem;
       color: var(--meta-text);
       font-size: 0.76rem;
@@ -2719,6 +2719,7 @@
       background: var(--control-bg);
       color: var(--text);
       font-size: 0.78rem;
+      white-space: nowrap;
     }
 
     .quick-sort-btn.is-active {

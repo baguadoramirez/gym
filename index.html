@@ -9,10 +9,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <link rel="manifest" href="manifest.webmanifest?v=1.0.5-reluciente" />
+  <link rel="manifest" href="manifest.webmanifest?v=1.0.5-ui" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 
-  <link rel="stylesheet" href="styles.css?v=1.0.5-reluciente" />
+  <link rel="stylesheet" href="styles.css?v=1.0.5-ui" />
 </head>
 
 <body>
@@ -384,11 +384,10 @@
   </div>
   <div id="quick-add-overlay" class="overlay" aria-hidden="true">
     <div id="quick-add-popup" class="overlay-card">
-      <input id="quick-add-search" class="quick-add-search" type="search" placeholder="Buscar ejercicio..." autocomplete="off">
       <div id="quick-add-groups" class="quick-add-groups" role="listbox" aria-label="Grupo muscular"></div>
       <div class="quick-add-sort-row">
-        <span>Ordenar</span>
-        <button id="quick-add-most-used" class="quick-sort-btn is-active" type="button" aria-pressed="true">Más frecuente</button>
+        <input id="quick-add-search" class="quick-add-search" type="search" placeholder="Buscar ejercicio..." autocomplete="off">
+        <button id="quick-add-most-used" class="quick-sort-btn is-active" type="button" aria-pressed="true">Frecuentes</button>
       </div>
       <div id="quick-add-results" class="quick-add-results" role="listbox" aria-label="Ejercicios"></div>
       <div class="quick-add-filters" aria-label="Filtros">
@@ -580,7 +579,7 @@
         </div>
         <label class="chart-filter-toggle" for="global-chart-show-all">
           <input id="global-chart-show-all" type="checkbox">
-          <span>Mostrar ejercicios con pocos registros</span>
+          <span>Ver todos</span>
         </label>
         <div id="global-chart-metric-buttons" class="chart-metric-buttons" role="group" aria-label="Métrica del gráfico"></div>
       </div>
@@ -767,19 +766,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="ejercicios.js?v=1.0.5-reluciente"></script>
-<script src="js/app-storage.js?v=1.0.5-reluciente"></script>
-<script src="js/app-main.js?v=1.0.5-reluciente"></script>
-<script src="js/app-history.js?v=1.0.5-reluciente"></script>
-<script src="js/app-metrics.js?v=1.0.5-reluciente"></script>
-<script src="js/app-dashboard.js?v=1.0.5-reluciente"></script>
-<script src="js/app-routines.js?v=1.0.5-reluciente"></script>
-<script src="js/app-session.js?v=1.0.5-reluciente"></script>
-<script src="js/app-export.js?v=1.0.5-reluciente"></script>
-<script src="js/app-tools.js?v=1.0.5-reluciente"></script>
-<script src="js/app-user.js?v=1.0.5-reluciente"></script>
+<script src="ejercicios.js?v=1.0.5-ui"></script>
+<script src="js/app-storage.js?v=1.0.5-ui"></script>
+<script src="js/app-main.js?v=1.0.5-ui"></script>
+<script src="js/app-history.js?v=1.0.5-ui"></script>
+<script src="js/app-metrics.js?v=1.0.5-ui"></script>
+<script src="js/app-dashboard.js?v=1.0.5-ui"></script>
+<script src="js/app-routines.js?v=1.0.5-ui"></script>
+<script src="js/app-session.js?v=1.0.5-ui"></script>
+<script src="js/app-export.js?v=1.0.5-ui"></script>
+<script src="js/app-tools.js?v=1.0.5-ui"></script>
+<script src="js/app-user.js?v=1.0.5-ui"></script>
 
-<script src="theme-charts.js?v=1.0.5-reluciente"></script>
+<script src="theme-charts.js?v=1.0.5-ui"></script>
 
 </body>
 </html>
