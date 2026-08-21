@@ -3141,9 +3141,14 @@ onReady(() => {
   if (saveSessionBtn) saveSessionBtn.disabled = true;
   checkSensationsForm();
   updateHeaderOffsets();
+  const appVersionLabel = document.getElementById("app-version-label");
+  if (appVersionLabel && window.GYM_APP_VERSION) {
+    appVersionLabel.textContent = window.GYM_APP_VERSION;
+  }
   window.addEventListener("resize", updateHeaderOffsets);
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js?v=1.0.5-ui").then(reg => {
+    const assetVersion = encodeURIComponent(window.GYM_ASSET_VERSION || "dev");
+    navigator.serviceWorker.register(`./sw.js?v=${assetVersion}`).then(reg => {
       reg.update().catch(() => {});
     }).catch(() => {});
   }

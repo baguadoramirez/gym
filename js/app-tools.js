@@ -131,7 +131,7 @@ function openQuickAddOverlay() {
   quickAddMode = "popular";
   quickAddSelectedGroup = "";
   if (quickAddSearch) quickAddSearch.value = "";
-  if (quickAddFavoritesOnly) quickAddFavoritesOnly.checked = true;
+  if (quickAddFavoritesOnly) quickAddFavoritesOnly.checked = false;
   if (quickAddNoMaterialOnly) quickAddNoMaterialOnly.checked = false;
   if (quickAddWarmup) quickAddWarmup.checked = false;
   renderQuickAddGroups();
@@ -353,7 +353,7 @@ function getQuickAddRecentNames(limit = 12) {
   return names.slice(0, limit);
 }
 
-function getQuickAddPopularNames() {
+function getQuickAddUsageCounts() {
   const counts = new Map();
   const history = typeof getLocalHistory === "function" ? getLocalHistory() : [];
   history.forEach(session => {
@@ -363,6 +363,11 @@ function getQuickAddPopularNames() {
       counts.set(name, (counts.get(name) || 0) + 1);
     });
   });
+  return counts;
+}
+
+function getQuickAddPopularNames() {
+  const counts = getQuickAddUsageCounts();
   return Object.keys(exerciseTemplates)
     .sort((a, b) => {
       const countDifference = (counts.get(b) || 0) - (counts.get(a) || 0);
@@ -381,7 +386,8 @@ function getQuickAddMatches() {
   const searchText = getQuickAddSearchText();
   const favoritesOnly = Boolean(quickAddFavoritesOnly?.checked);
   const noMaterialOnly = Boolean(quickAddNoMaterialOnly?.checked);
-  const favorites = favoritesOnly ? new Set(loadFavorites()) : null;
+  const favorites = new Set(loadFavorites());
+  const usageCounts = getQuickAddUsageCounts();
 
   const matches = getQuickAddPool().filter(name => {
     const tpl = exerciseTemplates[name];
@@ -391,14 +397,20 @@ function getQuickAddMatches() {
     const muscle = tpl?.musculo || "";
     const searchable = normalizeQuickAddText(`${name} ${group} ${muscle} ${section}`);
     if (quickAddSelectedGroup && group !== quickAddSelectedGroup) return false;
-    if (favoritesOnly && favorites && !favorites.has(name)) return false;
+    if (favoritesOnly && !favorites.has(name)) return false;
     if (noMaterialOnly && !tpl?.sinMaterial) return false;
     if (searchText && !searchable.includes(searchText)) return false;
     return true;
   });
-  return quickAddMode === "popular"
-    ? matches
-    : matches.sort((a, b) => a.localeCompare(b, getLocale()));
+  return matches.sort((a, b) => {
+    const favoriteDifference = Number(favorites.has(b)) - Number(favorites.has(a));
+    if (favoriteDifference) return favoriteDifference;
+    if (quickAddMode === "popular") {
+      const countDifference = (usageCounts.get(b) || 0) - (usageCounts.get(a) || 0);
+      if (countDifference) return countDifference;
+    }
+    return a.localeCompare(b, getLocale());
+  });
 }
 
 function updateQuickFilterStates() {
@@ -463,6 +475,7 @@ function renderQuickAddResults() {
   updateQuickFilterStates();
   const matches = getQuickAddMatches();
   const favorites = new Set(loadFavorites());
+  const usageCounts = getQuickAddUsageCounts();
   quickAddResults.innerHTML = "";
   if (!matches.length) {
     const empty = document.createElement("div");
@@ -481,6 +494,7 @@ function renderQuickAddResults() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "quick-result-item";
+    button.classList.toggle("is-favorite", favorites.has(name));
     button.addEventListener("click", () => addQuickExercise(name));
 
     const title = document.createElement("span");
@@ -497,6 +511,13 @@ function renderQuickAddResults() {
       const badge = document.createElement("span");
       badge.className = "quick-result-badge";
       badge.textContent = "★";
+      badges.appendChild(badge);
+    }
+    const usageCount = usageCounts.get(name) || 0;
+    if (usageCount > 0) {
+      const badge = document.createElement("span");
+      badge.className = "quick-result-badge quick-result-badge-usage";
+      badge.textContent = `${usageCount}x`;
       badges.appendChild(badge);
     }
     if (tpl.sinMaterial) {

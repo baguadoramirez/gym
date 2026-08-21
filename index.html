@@ -9,10 +9,23 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <link rel="manifest" href="manifest.webmanifest?v=1.0.5-ui" />
+  <link rel="manifest" href="manifest.webmanifest" data-versioned />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 
-  <link rel="stylesheet" href="styles.css?v=1.0.5-ui" />
+  <link rel="stylesheet" href="styles.css" data-versioned />
+  <script src="version.js"></script>
+  <script>
+    (() => {
+      const version = window.GYM_ASSET_VERSION || "dev";
+      document.querySelectorAll("[data-versioned]").forEach(element => {
+        const attr = element.tagName === "LINK" ? "href" : "src";
+        const value = element.getAttribute(attr);
+        if (!value) return;
+        const separator = value.includes("?") ? "&" : "?";
+        element.setAttribute(attr, `${value}${separator}v=${encodeURIComponent(version)}`);
+      });
+    })();
+  </script>
 </head>
 
 <body>
@@ -82,7 +95,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div class="hint-text text-center">ReLuciente v.1.0.5</div>
+        <div id="app-version-label" class="hint-text text-center">ReLuciente v.1.0.6</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
@@ -392,7 +405,7 @@
       <div id="quick-add-results" class="quick-add-results" role="listbox" aria-label="Ejercicios"></div>
       <div class="quick-add-filters" aria-label="Filtros">
           <label class="quick-filter">
-            <input type="checkbox" id="quick-add-favorites-only" checked>
+            <input type="checkbox" id="quick-add-favorites-only">
             <span class="quick-filter-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 3.4l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8L12 3.4z"></path></svg>
             </span>
@@ -766,19 +779,26 @@
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="ejercicios.js?v=1.0.5-ui"></script>
-<script src="js/app-storage.js?v=1.0.5-ui"></script>
-<script src="js/app-main.js?v=1.0.5-ui"></script>
-<script src="js/app-history.js?v=1.0.5-ui"></script>
-<script src="js/app-metrics.js?v=1.0.5-ui"></script>
-<script src="js/app-dashboard.js?v=1.0.5-ui"></script>
-<script src="js/app-routines.js?v=1.0.5-ui"></script>
-<script src="js/app-session.js?v=1.0.5-ui"></script>
-<script src="js/app-export.js?v=1.0.5-ui"></script>
-<script src="js/app-tools.js?v=1.0.5-ui"></script>
-<script src="js/app-user.js?v=1.0.5-ui"></script>
-
-<script src="theme-charts.js?v=1.0.5-ui"></script>
+<script>
+  (() => {
+    const version = encodeURIComponent(window.GYM_ASSET_VERSION || "dev");
+    const scripts = [
+      "ejercicios.js",
+      "js/app-storage.js",
+      "js/app-main.js",
+      "js/app-history.js",
+      "js/app-metrics.js",
+      "js/app-dashboard.js",
+      "js/app-routines.js",
+      "js/app-session.js",
+      "js/app-export.js",
+      "js/app-tools.js",
+      "js/app-user.js",
+      "theme-charts.js"
+    ];
+    document.write(scripts.map(src => `<script src="${src}?v=${version}"><\/script>`).join(""));
+  })();
+</script>
 
 </body>
 </html>

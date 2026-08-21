@@ -1,21 +1,26 @@
-const CACHE_NAME = "gym-tracker-v1.0.5-ui";
+importScripts("./version.js");
+
+const ASSET_VERSION = self.GYM_ASSET_VERSION || "dev";
+const CACHE_NAME = `gym-tracker-v${ASSET_VERSION}`;
+const withVersion = path => `${path}?v=${encodeURIComponent(ASSET_VERSION)}`;
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=1.0.5-ui",
-  "./theme-charts.js?v=1.0.5-ui",
-  "./js/app-storage.js?v=1.0.5-ui",
-  "./js/app-main.js?v=1.0.5-ui",
-  "./js/app-history.js?v=1.0.5-ui",
-  "./js/app-metrics.js?v=1.0.5-ui",
-  "./js/app-dashboard.js?v=1.0.5-ui",
-  "./js/app-routines.js?v=1.0.5-ui",
-  "./js/app-session.js?v=1.0.5-ui",
-  "./js/app-export.js?v=1.0.5-ui",
-  "./js/app-tools.js?v=1.0.5-ui",
-  "./js/app-user.js?v=1.0.5-ui",
-  "./ejercicios.js?v=1.0.5-ui",
-  "./manifest.webmanifest?v=1.0.5-ui",
+  "./version.js",
+  withVersion("./styles.css"),
+  withVersion("./theme-charts.js"),
+  withVersion("./js/app-storage.js"),
+  withVersion("./js/app-main.js"),
+  withVersion("./js/app-history.js"),
+  withVersion("./js/app-metrics.js"),
+  withVersion("./js/app-dashboard.js"),
+  withVersion("./js/app-routines.js"),
+  withVersion("./js/app-session.js"),
+  withVersion("./js/app-export.js"),
+  withVersion("./js/app-tools.js"),
+  withVersion("./js/app-user.js"),
+  withVersion("./ejercicios.js"),
+  withVersion("./manifest.webmanifest"),
   "./icons/bar_logo.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

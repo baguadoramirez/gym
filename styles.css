@@ -2808,6 +2808,11 @@
       outline: none;
     }
 
+    .quick-result-item.is-favorite {
+      border-color: rgba(249, 115, 22, 0.55);
+      background: color-mix(in srgb, var(--card-bg) 82%, var(--accent-soft));
+    }
+
     .quick-result-body {
       display: flex;
       flex-direction: column;
@@ -2846,6 +2851,11 @@
       font-size: 0.68rem;
       font-weight: 800;
       white-space: nowrap;
+    }
+
+    .quick-result-badge-usage {
+      color: var(--accent-text);
+      background: var(--accent-soft);
     }
 
     .quick-add-empty {
