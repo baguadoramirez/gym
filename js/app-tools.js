@@ -335,6 +335,11 @@ function getQuickAddSearchText() {
   return normalizeQuickAddText(quickAddSearch?.value).trim();
 }
 
+function quickAddMatchesSearch(searchable, searchText) {
+  if (!searchText) return true;
+  return searchText.split(/\s+/).filter(Boolean).every(term => searchable.includes(term));
+}
+
 function getQuickAddRecentNames(limit = 12) {
   const history = typeof getLocalHistory === "function" ? getLocalHistory() : [];
   const seen = new Set();
@@ -399,7 +404,7 @@ function getQuickAddMatches() {
     if (quickAddSelectedGroup && group !== quickAddSelectedGroup) return false;
     if (favoritesOnly && !favorites.has(name)) return false;
     if (noMaterialOnly && !tpl?.sinMaterial) return false;
-    if (searchText && !searchable.includes(searchText)) return false;
+    if (!quickAddMatchesSearch(searchable, searchText)) return false;
     return true;
   });
   return matches.sort((a, b) => {

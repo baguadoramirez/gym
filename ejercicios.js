@@ -89,6 +89,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Experimenta con la altura del asiento: si el agarre queda a la altura del pecho, se enfoca más en la sección media. Si está ligeramente más bajo, puedes sentir más la activación superior. <b>Bloquea los pies firmemente en el suelo</b> para generar más estabilidad y fuerza.",
       "sinMaterial": false
     },
+    "Press convergente en máquina": {
+      "musculo": "Pectoral",
+      "grupo": "Pecho",
+      "seccion": "Media (Convergente)",
+      "hacer": "Ajusta el asiento para que los agarres queden a la altura del pecho. Empuja siguiendo la trayectoria convergente de la máquina y <b>mantén las escápulas retraídas</b>.",
+      "noHacer": "<b>No adelantes los hombros</b> al final del empuje. Evita bloquear los codos o despegar la espalda del respaldo.",
+      "trucos": "Piensa en <b>acercar los bíceps entre sí</b> mientras empujas para mejorar la contracción del pectoral.",
+      "sinMaterial": false
+    },
+    "Press inclinado en máquina": {
+      "musculo": "Pectoral",
+      "grupo": "Pecho",
+      "seccion": "Superior (Clavicular)",
+      "hacer": "Ajusta el asiento para que el empuje salga desde la parte alta del pecho. Mantén el pecho elevado y empuja en diagonal hacia arriba con control.",
+      "noHacer": "<b>No eleves los hombros</b> ni arquees la zona lumbar para terminar la repetición.",
+      "trucos": "Usa una pausa breve abajo para evitar rebote y sentir mejor el pectoral superior.",
+      "sinMaterial": false
+    },
     "Aperturas inclinadas": {
       "musculo": "Pectoral",
       "grupo": "Pecho",
@@ -96,6 +114,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Banco ajustado a 30-45°. <b>Brazos semiflexionados</b>, desciende las mancuernas a los lados lentamente, sintiendo el estiramiento en la parte alta del pecho. Junta las mancuernas en un arco amplio por encima del pecho.",
       "noHacer": "No dejes caer los codos por debajo del nivel del banco. <b>No arquees la lumbar</b> al descender el peso.",
       "trucos": "Enfócate en <b>separar las manos en la fase excéntrica</b> (bajando) para maximizar el estiramiento del haz clavicular. Piensa en juntar los bíceps, no las manos.",
+      "sinMaterial": false
+    },
+    "Aperturas en polea alta": {
+      "musculo": "Pectoral",
+      "grupo": "Pecho",
+      "seccion": "Inferior/Media",
+      "hacer": "Coloca las poleas altas, da un paso al frente y cruza los brazos hacia abajo y al centro manteniendo los codos semiflexionados.",
+      "noHacer": "<b>No flexiones y extiendas los codos</b> como si fuera un press. Evita encoger los hombros.",
+      "trucos": "Piensa en <b>abrazar hacia abajo</b> y haz una pausa al juntar las manos.",
+      "sinMaterial": false
+    },
+    "Aperturas en polea baja": {
+      "musculo": "Pectoral",
+      "grupo": "Pecho",
+      "seccion": "Superior (Clavicular)",
+      "hacer": "Coloca las poleas bajas y lleva las manos hacia arriba y al centro con brazos semiflexionados, buscando la contracción de la parte alta del pecho.",
+      "noHacer": "<b>No tires con bíceps</b> ni balancees el torso. Evita subir por encima de una línea cómoda para el hombro.",
+      "trucos": "Cruza ligeramente las manos al final y aprieta el pecho 1 segundo.",
       "sinMaterial": false
     },
     "Press neutral grip mancuernas": {
@@ -143,6 +179,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Piensa en <b>verter agua de un jarro</b>: la parte del <b>codo debe estar 'más alta' que la mano</b>. Esto asegura que el deltoides lateral, y no el anterior, sea el motor principal.",
       "sinMaterial": false
     },
+    "Elevaciones laterales con mancuernas": {
+      "musculo": "Deltoides",
+      "grupo": "Hombros",
+      "seccion": "Lateral (Medial)",
+      "hacer": "De pie o sentado con una mancuerna en cada mano. Mantén una ligera flexión de codo y <b>eleva liderando con los codos</b> hasta la altura del hombro. Baja de forma controlada.",
+      "noHacer": "<b>No balancees el tronco</b> ni subas los hombros hacia las orejas. Evita elevar las manos por encima de los codos.",
+      "trucos": "Usa un peso que permita <b>controlar la bajada</b>. Piensa en alejar los codos del cuerpo, no en levantar las manos.",
+      "sinMaterial": false
+    },
+    "Elevaciones laterales en máquina": {
+      "musculo": "Deltoides",
+      "grupo": "Hombros",
+      "seccion": "Lateral (Medial)",
+      "hacer": "Ajusta el asiento para que el eje de la máquina quede alineado con el hombro. Empuja las almohadillas con los brazos y <b>eleva de forma controlada</b> hasta la altura del hombro.",
+      "noHacer": "<b>No encogas los hombros</b> ni uses impulso. Evita despegar el torso del respaldo.",
+      "trucos": "Mantén una <b>pausa breve arriba</b> y baja lento para sostener la tensión en el deltoide lateral.",
+      "sinMaterial": false
+    },
     "Elevaciones laterales a una mano": {
       "musculo": "Deltoides",
       "grupo": "Hombros",
@@ -170,6 +224,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Para una activación óptima, mantén el <b>cable detrás del cuerpo</b> (si te colocas frente a la polea) o el agarre <b>cruzado</b> (si estás de lado). Esto crea un ángulo de resistencia más limpio desde el inicio.",
       "sinMaterial": false
     },
+    "Elevaciones laterales en polea unilateral": {
+      "musculo": "Deltoides",
+      "grupo": "Hombros",
+      "seccion": "Lateral (Unilateral)",
+      "hacer": "Colócate de lado a la polea baja y cruza el cable por delante o por detrás del cuerpo. Eleva liderando con el codo hasta la altura del hombro.",
+      "noHacer": "<b>No balancees el torso</b> ni encogas el trapecio. Evita tirar con la mano.",
+      "trucos": "Mantén tensión desde abajo y controla mucho la bajada.",
+      "sinMaterial": false
+    },
+    "Press hombro en máquina": {
+      "musculo": "Deltoides",
+      "grupo": "Hombros",
+      "seccion": "Anterior/Lateral",
+      "hacer": "Ajusta el asiento para que los agarres empiecen a la altura de la oreja o ligeramente por debajo. Empuja arriba con core activo y control.",
+      "noHacer": "<b>No arquees la espalda</b> ni bloquees los codos de forma agresiva.",
+      "trucos": "Mantén los codos ligeramente por delante del torso para proteger el hombro.",
+      "sinMaterial": false
+    },
     "Jalón al pecho": {
       "musculo": "Dorsal",
       "grupo": "Espalda",
@@ -195,6 +267,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Utiliza el agarre V (triángulo). <b>Pecho arriba</b>, realiza un tirón vertical limpio hacia el esternón bajo o el abdomen superior. <b>Retrae y deprime las escápulas</b> al final del movimiento.",
       "noHacer": "<b>No te eches demasiado hacia atrás</b> ni te balancees; el torso debe moverse ligeramente, pero no debe ser el motor. Evita mirar hacia arriba, lo que podría desalinear el cuello.",
       "trucos": "Mantén una <b>mirada neutra (recta)</b> y la cabeza alineada. En la fase excéntrica, <b>permite que las escápulas se estiren</b> ligeramente hacia arriba para un rango de movimiento completo y un mayor estiramiento del dorsal.",
+      "sinMaterial": false
+    },
+    "Jalón agarre neutro": {
+      "musculo": "Dorsal",
+      "grupo": "Espalda",
+      "seccion": "Ancho (Agarre neutro)",
+      "hacer": "Usa agarres paralelos. Mantén el pecho alto y tira llevando los <b>codos hacia abajo</b> sin balancear el torso.",
+      "noHacer": "<b>No tires con los bíceps</b> ni dejes que los hombros suban hacia las orejas.",
+      "trucos": "Piensa en meter los codos en los bolsillos para activar mejor el dorsal.",
+      "sinMaterial": false
+    },
+    "Jalón agarre estrecho": {
+      "musculo": "Dorsal",
+      "grupo": "Espalda",
+      "seccion": "Inferior (Estrecho)",
+      "hacer": "Utiliza un agarre estrecho y tira hacia el pecho bajo o esternón manteniendo una ligera inclinación atrás.",
+      "noHacer": "<b>No conviertas el tirón en remo</b> echándote demasiado hacia atrás. Evita perder el control de la subida.",
+      "trucos": "Deja que los hombros se eleven ligeramente arriba para estirar y deprime las escápulas antes de tirar.",
       "sinMaterial": false
     },
     "Remo polea sentado": {
@@ -233,6 +323,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Piensa en llevar los <b>codos a los bolsillos</b> para activar más el dorsal.",
       "sinMaterial": false
     },
+    "Remo alto en máquina": {
+      "musculo": "Espalda media",
+      "grupo": "Espalda",
+      "seccion": "Alta (Romboides y Trapecio Medio)",
+      "hacer": "Ajusta el asiento para que los agarres queden a la altura del pecho alto. Tira llevando los <b>codos abiertos hacia atrás</b> y junta las escápulas al final.",
+      "noHacer": "<b>No eleves los hombros</b> ni conviertas el movimiento en un encogimiento. Evita despegar el pecho del soporte.",
+      "trucos": "Piensa en <b>abrir el pecho contra el soporte</b> y hacer una pausa de 1 segundo en la retracción escapular.",
+      "sinMaterial": false
+    },
     "Jalón en máquina convergente": {
       "musculo": "Dorsal",
       "grupo": "Espalda",
@@ -269,6 +368,33 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Mantén los <b>codos por encima de las manos</b> durante la mayor parte del recorrido. Esto asegura que el plano de movimiento se centre en la retracción horizontal, maximizando la activación de la espalda media.",
       "sinMaterial": false
     },
+    "Remo T-bar": {
+      "musculo": "Dorsal/Espalda media",
+      "grupo": "Espalda",
+      "seccion": "Grosor",
+      "hacer": "Apoya el pecho si la máquina lo permite o mantén el torso estable. Tira del agarre hacia el abdomen, juntando escápulas al final.",
+      "noHacer": "<b>No redondees la espalda</b> ni uses tirones de cadera. Evita acortar el recorrido.",
+      "trucos": "Prueba agarre neutro para dorsal y agarre más abierto para espalda media.",
+      "sinMaterial": false
+    },
+    "Remo unilateral en máquina": {
+      "musculo": "Dorsal",
+      "grupo": "Espalda",
+      "seccion": "Unilateral",
+      "hacer": "Siéntate estable y tira con un brazo llevando el codo hacia atrás y hacia la cadera. Mantén el torso quieto.",
+      "noHacer": "<b>No gires el tronco</b> para ayudar. Evita encoger el hombro al tirar.",
+      "trucos": "Permite un estiramiento controlado al frente antes de cada repetición.",
+      "sinMaterial": false
+    },
+    "Remo Hammer": {
+      "musculo": "Dorsal/Espalda media",
+      "grupo": "Espalda",
+      "seccion": "Máquina convergente",
+      "hacer": "Ajusta el pecho al soporte y tira de los agarres con recorrido completo, manteniendo el pecho pegado.",
+      "noHacer": "<b>No levantes el torso</b> del apoyo ni tires sólo con los brazos.",
+      "trucos": "Haz una pausa atrás y controla la fase excéntrica para aprovechar la trayectoria convergente.",
+      "sinMaterial": false
+    },
     "Remo inclinado a dos manos": {
       "musculo": "Dorsal",
       "grupo": "Espalda",
@@ -287,6 +413,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "<b>Inclina ligeramente el torso hacia adelante</b> (15°-20°) y mantente firme. Esto facilita un rango de movimiento más amplio y un <b>estiramiento brutal del dorsal</b> en la posición superior.",
       "sinMaterial": false
     },
+    "Pullover en polea unilateral": {
+      "musculo": "Dorsal",
+      "grupo": "Espalda",
+      "seccion": "Unilateral (Estiramiento)",
+      "hacer": "Usa un agarre de una mano en polea alta. Con el brazo casi recto, lleva la mano hacia la cadera sin flexionar el codo.",
+      "noHacer": "<b>No gires el tronco</b> ni conviertas el movimiento en un jalón de tríceps.",
+      "trucos": "Trabaja lado a lado para igualar sensaciones y busca una pausa abajo.",
+      "sinMaterial": false
+    },
     "Reverse fly máquina": {
       "musculo": "Deltoides posterior",
       "grupo": "Hombros",
@@ -303,6 +438,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Utiliza cuerda y polea alta, agarre a dos manos. <b>Tira de la cuerda hacia la cara</b>, enfocándote en **rotar externamente los hombros** al finalizar el tirón. Los codos deben apuntar hacia afuera.",
       "noHacer": "No tires únicamente con los brazos. <b>No permitas que los codos caigan</b> por debajo del nivel de los hombros.",
       "trucos": "Al finalizar el movimiento, imagina que quieres **tocar la pared de atrás con los codos**. Esto maximiza la rotación externa y la activación del manguito rotador y deltoide posterior.",
+      "sinMaterial": false
+    },
+    "Face pull unilateral": {
+      "musculo": "Deltoides posterior / Manguito rotador",
+      "grupo": "Hombros",
+      "seccion": "Posterior (Unilateral)",
+      "hacer": "Usa una polea alta con agarre individual. Tira hacia la cara abriendo el codo y rotando externamente el hombro al final.",
+      "noHacer": "<b>No gires el tronco</b> ni dejes caer el codo. Evita tirar sólo con bíceps.",
+      "trucos": "Hazlo lento y controlado para sentir el deltoide posterior y el manguito rotador.",
+      "sinMaterial": false
+    },
+    "Pájaros en polea": {
+      "musculo": "Deltoides posterior",
+      "grupo": "Hombros",
+      "seccion": "Posterior",
+      "hacer": "Cruza las poleas o usa una polea a la altura del pecho. Abre los brazos con codos semiflexionados hasta alinear con el torso.",
+      "noHacer": "<b>No encogas los hombros</b> ni uses impulso. Evita flexionar y extender los codos.",
+      "trucos": "Piensa en separar los codos y pausa al final de la apertura.",
       "sinMaterial": false
     },
     "Pájaros mancuernas": {
@@ -341,6 +494,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Piensa en <b>estirar el bíceps abajo</b> antes de cada repetición. Pausa 1 segundo en la parte baja y aprieta arriba sin perder el control.",
       "sinMaterial": false
     },
+    "Curl bayesian con mancuernas": {
+      "musculo": "Bíceps",
+      "grupo": "Brazos",
+      "seccion": "Cabeza larga (Estiramiento)",
+      "hacer": "Colócate con el brazo ligeramente por detrás del torso, usando un banco inclinado o una posición estable. Realiza el curl manteniendo el <b>codo atrás</b> para enfatizar el estiramiento del bíceps.",
+      "noHacer": "<b>No adelantes el codo</b> durante la subida ni balancees el tronco. Evita recortar la bajada.",
+      "trucos": "Usa una carga moderada y busca una <b>excéntrica lenta</b>. La clave es mantener tensión con el bíceps en posición alargada.",
+      "sinMaterial": false
+    },
+    "Curl bayesian máquina": {
+      "musculo": "Bíceps",
+      "grupo": "Brazos",
+      "seccion": "Cabeza larga (Polea/Máquina)",
+      "hacer": "Coloca la polea o máquina baja por detrás del cuerpo. Da un paso al frente, deja el brazo ligeramente retrasado y realiza el curl sin mover el hombro.",
+      "noHacer": "<b>No lleves el codo hacia delante</b> para completar la repetición. Evita girar el torso o perder tensión abajo.",
+      "trucos": "Mantén el cable alineado con el antebrazo y aprieta 1 segundo arriba sin perder el codo retrasado.",
+      "sinMaterial": false
+    },
     "Curl concentrado": {
       "musculo": "Bíceps",
       "grupo": "Brazos",
@@ -359,6 +530,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Mantén la <b>muñeca en posición neutra</b> (recta) durante todo el curl para evitar sobrecargar los flexores del antebrazo y dirigir la tensión al bíceps.",
       "sinMaterial": false
     },
+    "Curl predicador": {
+      "musculo": "Bíceps",
+      "grupo": "Brazos",
+      "seccion": "Aislamiento (Preacher Curl)",
+      "hacer": "Apoya los brazos en el banco predicador con la axila cerca del borde superior. Realiza el curl con <b>rango completo</b> y controlando especialmente la bajada.",
+      "noHacer": "<b>No levantes los brazos del apoyo</b> ni bloquees de forma brusca abajo. Evita usar impulso con el torso.",
+      "trucos": "Mantén la muñeca neutra y piensa en <b>empujar el brazo contra el apoyo</b> para aislar mejor el bíceps.",
+      "sinMaterial": false
+    },
     "Curl martillo": {
       "musculo": "Bíceps/Antebrazo",
       "grupo": "Brazos",
@@ -366,6 +546,51 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Agarre neutro (palmas enfrentadas)</b>. Mantén el codo pegado al costado y realiza el curl de forma estricta. Este ejercicio desarrolla el grosor del brazo.",
       "noHacer": "<b>No gires el torso</b> ni te inclines para ayudar el movimiento.",
       "trucos": "Para enfatizar más el braquial y el braquiorradial, piensa en <b>elevar el codo ligeramente hacia adelante</b> al subir. Esto cambia el ángulo y maximiza la tensión en esos músculos.",
+      "sinMaterial": false
+    },
+    "Curl en polea baja": {
+      "musculo": "Bíceps",
+      "grupo": "Brazos",
+      "seccion": "General (Tensión constante)",
+      "hacer": "Coloca la polea baja con barra recta o EZ. Mantén los codos fijos junto al cuerpo y realiza el curl sin balanceo.",
+      "noHacer": "<b>No adelantes los codos</b> ni uses la espalda para iniciar la subida.",
+      "trucos": "Aprovecha la tensión constante y aprieta 1 segundo arriba.",
+      "sinMaterial": false
+    },
+    "Curl en polea unilateral": {
+      "musculo": "Bíceps",
+      "grupo": "Brazos",
+      "seccion": "Unilateral",
+      "hacer": "Usa un agarre individual en polea baja. Mantén el codo estable y sube supinando si el agarre lo permite.",
+      "noHacer": "<b>No gires el tronco</b> ni adelantes el hombro para terminar la repetición.",
+      "trucos": "Trabaja cada brazo con el mismo tempo para corregir diferencias.",
+      "sinMaterial": false
+    },
+    "Curl martillo en cuerda": {
+      "musculo": "Bíceps/Antebrazo",
+      "grupo": "Brazos",
+      "seccion": "Braquial y Braquiorradial",
+      "hacer": "Coloca cuerda en polea baja y realiza curl con agarre neutro, manteniendo los codos cerca del cuerpo.",
+      "noHacer": "<b>No abras los codos</b> ni balancees el torso.",
+      "trucos": "Separa ligeramente la cuerda arriba para apretar mejor el braquial.",
+      "sinMaterial": false
+    },
+    "Curl spider": {
+      "musculo": "Bíceps",
+      "grupo": "Brazos",
+      "seccion": "Cabeza corta (Aislamiento)",
+      "hacer": "Apoya el pecho en un banco inclinado y deja los brazos colgar. Realiza el curl sin despegar el pecho del banco.",
+      "noHacer": "<b>No balancees los brazos</b> ni muevas los hombros hacia atrás.",
+      "trucos": "Pausa arriba para enfatizar la contracción máxima del bíceps.",
+      "sinMaterial": false
+    },
+    "Curl máquina": {
+      "musculo": "Bíceps",
+      "grupo": "Brazos",
+      "seccion": "Aislamiento",
+      "hacer": "Ajusta el asiento para que el eje de la máquina coincida con el codo. Flexiona con control y baja hasta estirar sin perder tensión.",
+      "noHacer": "<b>No levantes los codos</b> del apoyo ni uses impulso.",
+      "trucos": "Mantén la muñeca neutra y usa recorrido completo.",
       "sinMaterial": false
     },
     "Tríceps en polea": {
@@ -404,6 +629,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Piensa en <b>'empujar la espada'</b> hacia arriba manteniendo el codo fijo. Una <b>ligera inclinación del torso</b> adelante ayuda a alinear el cable con el antebrazo y aumentar el estiramiento.",
       "sinMaterial": false
     },
+    "Tríceps katana bilateral": {
+      "musculo": "Tríceps",
+      "grupo": "Brazos",
+      "seccion": "Cabeza larga (Bilateral)",
+      "hacer": "Colócate de espaldas a la polea alta con cuerda o agarres. Lleva ambos codos arriba y extiende los brazos hacia delante/arriba manteniendo los hombros estables.",
+      "noHacer": "<b>No abras los codos</b> ni arquees la espalda para terminar la repetición. Evita perder tensión en la parte baja.",
+      "trucos": "Inclínate ligeramente hacia delante y busca un <b>estiramiento profundo</b> de la cabeza larga antes de extender.",
+      "sinMaterial": false
+    },
     "Tríceps katana cuerda": {
       "musculo": "Tríceps",
       "grupo": "Brazos",
@@ -411,6 +645,42 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Polea alta con cuerda. De espaldas a la polea, coloca la cuerda detrás de la cabeza con los codos apuntando arriba. <b>Extiende ambos codos</b> hacia arriba y ligeramente al frente, separando la cuerda al final.",
       "noHacer": "<b>No abras los codos</b> ni dejes que los hombros suban. Evita balancear el torso para ayudar.",
       "trucos": "Mantén el <b>pecho elevado</b> y el core firme. Haz una <b>pausa breve</b> arriba para enfatizar la cabeza larga.",
+      "sinMaterial": false
+    },
+    "Extensión tríceps overhead cuerda": {
+      "musculo": "Tríceps",
+      "grupo": "Brazos",
+      "seccion": "Cabeza larga",
+      "hacer": "Coloca la cuerda en polea alta, de espaldas a la polea. Lleva los codos arriba y extiende hacia delante/arriba sin mover los hombros.",
+      "noHacer": "<b>No abras los codos</b> ni arquees la espalda. Evita perder tensión al flexionar.",
+      "trucos": "Busca un estiramiento claro detrás de la cabeza antes de extender.",
+      "sinMaterial": false
+    },
+    "Extensión tríceps overhead unilateral": {
+      "musculo": "Tríceps",
+      "grupo": "Brazos",
+      "seccion": "Cabeza larga (Unilateral)",
+      "hacer": "Usa un agarre individual en polea alta. De espaldas a la polea, flexiona el codo detrás de la cabeza y extiende sin mover el hombro.",
+      "noHacer": "<b>No gires el tronco</b> ni dejes que el codo se abra hacia fuera.",
+      "trucos": "Ajusta la posición del cuerpo para que el cable siga la línea del antebrazo.",
+      "sinMaterial": false
+    },
+    "Fondos en máquina": {
+      "musculo": "Tríceps/Pectoral",
+      "grupo": "Brazos",
+      "seccion": "Empuje asistido",
+      "hacer": "Ajusta el asiento y empuja los agarres hacia abajo manteniendo hombros bajos y pecho estable.",
+      "noHacer": "<b>No subas los hombros</b> ni rebotes abajo.",
+      "trucos": "Torso más vertical enfatiza tríceps; torso algo inclinado enfatiza pectoral.",
+      "sinMaterial": false
+    },
+    "Patada de tríceps en polea": {
+      "musculo": "Tríceps",
+      "grupo": "Brazos",
+      "seccion": "Aislamiento",
+      "hacer": "Coloca la polea baja, inclina ligeramente el torso y extiende el codo hacia atrás manteniendo el brazo fijo.",
+      "noHacer": "<b>No balancees el hombro</b> ni acortes la extensión final.",
+      "trucos": "Haz una pausa atrás y vuelve lento para mantener tensión constante.",
       "sinMaterial": false
     },
     "Prensa de piernas": {
@@ -467,6 +737,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "<b>Aprieta los glúteos</b> antes y durante el movimiento. Esto bloquea la cadera y desactiva la participación de otros músculos, aislando de forma estricta el femoral.",
       "sinMaterial": false
     },
+    "Curl femoral tumbado": {
+      "musculo": "Femoral",
+      "grupo": "Piernas",
+      "seccion": "Isquiosurales (Tumbado)",
+      "hacer": "Túmbate con la rodilla alineada con el eje de la máquina. Mantén la cadera pegada al banco y lleva los talones hacia el glúteo con control.",
+      "noHacer": "<b>No levantes la cadera</b> ni arquees la zona lumbar para mover más peso. Evita soltar la bajada.",
+      "trucos": "Haz una <b>pausa breve en la contracción</b> y baja lento para mantener tensión en el femoral durante todo el recorrido.",
+      "sinMaterial": false
+    },
     "Curl femoral sentado": {
       "musculo": "Femoral",
       "grupo": "Piernas",
@@ -474,6 +753,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Alinea la rodilla con el eje de rotación</b>. Realiza un recorrido completo, permitiendo el estiramiento máximo del femoral en la fase excéntrica.",
       "noHacer": "<b>No rebotes</b> al iniciar el movimiento desde la posición de estiramiento.",
       "trucos": "<b>Inclina ligeramente el torso hacia adelante</b> al inicio de la repetición. Esta flexión de cadera permite un <b>mejor estiramiento inicial</b> del isquiotibial, lo que resulta en una contracción final más poderosa.",
+      "sinMaterial": false
+    },
+    "Curl femoral de pie": {
+      "musculo": "Femoral",
+      "grupo": "Piernas",
+      "seccion": "Unilateral (De pie)",
+      "hacer": "Alinea la rodilla con el eje de la máquina y flexiona llevando el talón hacia el glúteo sin mover la cadera.",
+      "noHacer": "<b>No inclines el torso</b> ni gires la pelvis para ayudar.",
+      "trucos": "Mantén una pausa arriba y baja lento para igualar ambas piernas.",
       "sinMaterial": false
     },
     "Curl femoral 1 pierna": {
@@ -501,6 +789,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Pies juntos y colocados en la parte más alta</b> de la plataforma. Esto maximiza la flexión de cadera y el estiramiento de los femorales y glúteos. Baja hasta el punto donde la lumbar no se despegue.",
       "noHacer": "<b>No levantes la zona lumbar</b> del respaldo. No rebotes.",
       "trucos": "Imagina que estás empujando la plataforma <b>principalmente con los talones</b>. Esto dirige el esfuerzo hacia los glúteos y los isquiotibiales, en lugar de los cuádriceps.",
+      "sinMaterial": false
+    },
+    "Sentadilla búlgara": {
+      "musculo": "Glúteo/Cuádriceps",
+      "grupo": "Piernas",
+      "seccion": "Unilateral",
+      "hacer": "Apoya el pie trasero en un banco y baja en vertical con el pie delantero firme. Mantén la rodilla alineada con la punta del pie.",
+      "noHacer": "<b>No empujes con la pierna trasera</b> ni dejes que la rodilla delantera colapse hacia dentro.",
+      "trucos": "Paso más largo enfatiza glúteo; torso más vertical enfatiza cuádriceps.",
       "sinMaterial": false
     },
     "Zancadas mancuernas": {
@@ -537,6 +834,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Sienta el cuerpo</b> con el rango de movimiento controlado y abre las piernas hasta la máxima aducción sin perder la postura. Vuelve lentamente a la posición inicial sin dejar que el peso golpee.",
       "noHacer": "<b>No arquees la espalda</b> ni uses impulso al abrir o cerrar. Evita forzar la articulación más allá del rango cómodo.",
       "trucos": "Mantén una <b>pausa breve en la apertura</b> para sentir el trabajo de los aductores y controla la bajada para mayor activación.",
+      "sinMaterial": false
+    },
+    "Aductores máquina": {
+      "musculo": "Aductores",
+      "grupo": "Piernas",
+      "seccion": "Medial (Cadera)",
+      "hacer": "Siéntate con la espalda apoyada y cierra las piernas contra la resistencia de la máquina con control.",
+      "noHacer": "<b>No rebotes</b> ni fuerces el rango si molesta la cadera.",
+      "trucos": "Haz una pausa al cerrar y vuelve lento para mantener tensión.",
       "sinMaterial": false
     },
     "Flexiones": {
@@ -620,6 +926,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "<b>Coloca los pies sobre la plataforma</b> con los talones fuera del borde y las rodillas ligeramente flexionadas. Eleva los talones hasta una <b>contracción completa</b> y baja controladamente hasta el estiramiento máximo.",
       "noHacer": "<b>No uses impulso</b> ni permitas que la espalda se despegue de la prensa. Evita acortar el rango de movimiento.",
       "trucos": "Mantén una <b>pausa breve arriba</b> para sentir la tensión en los gemelos y usa un peso que te permita controlar la bajada.",
+      "sinMaterial": false
+    },
+    "Gemelo en prensa": {
+      "grupo": "Piernas",
+      "musculo": "Gemelos",
+      "seccion": "Sóleo y Gastrocnemio",
+      "hacer": "Coloca las puntas de los pies en la plataforma de la prensa con los talones libres. Eleva y baja los talones con recorrido completo y control.",
+      "noHacer": "<b>No rebotes</b> ni bloquees las rodillas de forma agresiva.",
+      "trucos": "Haz una pausa arriba y busca estiramiento abajo sin perder control.",
+      "sinMaterial": false
+    },
+    "Gemelo sentado": {
+      "grupo": "Piernas",
+      "musculo": "Gemelos",
+      "seccion": "Sóleo",
+      "hacer": "Siéntate en la máquina con las rodillas flexionadas y los pies apoyados en la plataforma. Eleva los talones y baja lentamente hasta estirar.",
+      "noHacer": "<b>No rebotes</b> abajo ni acortes el recorrido.",
+      "trucos": "La posición sentada enfatiza el sóleo; usa pausas arriba y abajo para mayor control.",
       "sinMaterial": false
     },
     "Sentadillas": {
@@ -776,6 +1100,15 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "trucos": "Mantén la <b>mirada al frente</b> para mantener la espalda neutra. Siente el estiramiento en los isquiotibiales al bajar. Usa peso moderado para técnica perfecta.",
       "sinMaterial": false
     },
+    "Peso muerto rumano barra": {
+      "grupo": "Piernas",
+      "musculo": "Femoral",
+      "seccion": "Isquiotibiales (Barra)",
+      "hacer": "<b>De pie con barra</b>, baja deslizando la barra cerca de las piernas mientras llevas la cadera atrás. Mantén rodillas ligeramente flexionadas y espalda neutra.",
+      "noHacer": "<b>No redondees la espalda</b> ni alejes la barra del cuerpo. Evita convertirlo en una sentadilla.",
+      "trucos": "Piensa en cerrar una puerta con la cadera y subir empujando el suelo con los talones.",
+      "sinMaterial": false
+    },
     "Peso muerto rumano con mancuernas": {
       "grupo": "Piernas",
       "musculo": "Femoral",
@@ -837,6 +1170,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "hacer": "Apoya las escápulas en un banco y coloca la barra sobre la pelvis. Con los pies firmes, <b>empuja la cadera hacia el techo</b> hasta que el cuerpo forme una línea recta. Aprieta los glúteos 1 segundo arriba.",
       "noHacer": "<b>No arquees la espalda lumbar</b> arriba; el movimiento debe nacer de la pelvis. Evita que las rodillas se cierren hacia adentro.",
       "trucos": "Mantén la <b>mirada siempre hacia adelante</b> (al frente), no hacia el techo. Esto ayuda a mantener la columna en una posición segura y maximiza la contracción del glúteo.",
+      "sinMaterial": false
+    },
+    "Hip thrust barra": {
+      "grupo": "Piernas",
+      "musculo": "Glúteo",
+      "seccion": "Glúteo Mayor (Barra)",
+      "hacer": "Apoya las escápulas en un banco, coloca la barra sobre la pelvis y extiende la cadera hasta alinear rodillas, cadera y hombros.",
+      "noHacer": "<b>No hiperextiendas la lumbar</b> ni dejes que las rodillas se cierren hacia dentro.",
+      "trucos": "Mantén la barbilla ligeramente recogida y aprieta glúteos 1 segundo arriba.",
+      "sinMaterial": false
+    },
+    "Hip thrust máquina": {
+      "grupo": "Piernas",
+      "musculo": "Glúteo",
+      "seccion": "Glúteo Mayor (Máquina)",
+      "hacer": "Ajusta el apoyo y el cinturón/rodillo de la máquina. Empuja la cadera hacia arriba con pies firmes y controla la bajada.",
+      "noHacer": "<b>No arquees la espalda</b> ni uses impulso. Evita perder contacto con el respaldo.",
+      "trucos": "Ajusta los pies para que la tibia quede casi vertical arriba y busca máxima contracción de glúteo.",
       "sinMaterial": false
     },
     "Extensión de cadera en máquina": {
@@ -983,6 +1334,24 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "noHacer": "<b>No tires con los brazos</b>. Evita mover la cadera hacia atrás.",
       "trucos": "Mantén los codos fijos y enfócate en la contracción del abdomen. Controla la subida.",
       "sinMaterial": false
+    },
+    "Crunch máquina": {
+      "grupo": "Core",
+      "musculo": "Abdominales",
+      "seccion": "Recto",
+      "hacer": "Ajusta la máquina para que el eje coincida con la flexión del tronco. Flexiona llevando las costillas hacia la pelvis y vuelve con control.",
+      "noHacer": "<b>No tires con brazos o cuello</b>. Evita soltar el peso de golpe.",
+      "trucos": "Exhala al cerrar y mantén una pausa breve en la contracción.",
+      "sinMaterial": false
+    },
+    "Elevación de piernas": {
+      "grupo": "Core",
+      "musculo": "Abdominales/Flexores de cadera",
+      "seccion": "Inferior",
+      "hacer": "Colgado o en paralelas, eleva las piernas o rodillas controlando la pelvis y evitando balanceo.",
+      "noHacer": "<b>No uses impulso</b> ni arquees la zona lumbar al bajar.",
+      "trucos": "Piensa en enrollar la pelvis al final para implicar más el abdomen.",
+      "sinMaterial": true
     },
     "Correr en cinta": {
       "grupo": "Cardio",

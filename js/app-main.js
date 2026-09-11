@@ -1021,7 +1021,12 @@ function applyHistoryExerciseName(name, template = null) {
 
 function renderHistoryExercisePicker(filter = "") {
   if (!historyExercisePickerList) return;
-  const query = String(filter || "").trim().toLocaleLowerCase(getLocale());
+  const normalizePickerText = value => String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase(getLocale());
+  const query = normalizePickerText(filter).trim();
+  const queryTerms = query.split(/\s+/).filter(Boolean);
   const targetType = historyExercisePickerTarget?.dataset.exerciseType || "strength";
   const names = Object.keys(exerciseTemplates || {})
     .filter(name => {
@@ -1031,7 +1036,12 @@ function renderHistoryExercisePicker(filter = "") {
         : "strength";
       return templateType === targetType;
     })
-    .filter(name => !query || name.toLocaleLowerCase(getLocale()).includes(query))
+    .filter(name => {
+      if (!queryTerms.length) return true;
+      const template = exerciseTemplates[name] || {};
+      const searchable = normalizePickerText(`${name} ${template.grupo || ""} ${template.musculo || ""} ${template.seccion || ""}`);
+      return queryTerms.every(term => searchable.includes(term));
+    })
     .sort((a, b) => a.localeCompare(b, getLocale()));
   historyExercisePickerList.replaceChildren();
 
