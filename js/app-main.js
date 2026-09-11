@@ -322,6 +322,7 @@ const TEXT_STRINGS = {
     "chart.alert.selectExercise": "Selecciona al menos un ejercicio.",
     "chart.axis.date": "Fecha",
     "chart.axis.weight": "Peso (kg)",
+    "chart.axis.estimated1rm": "1RM estimado (kg)",
     "chart.axis.load": "Carga (kg*reps)",
     "chart.axis.intensity": "Intensidad (1-10)",
     "chart.axis.time": "Tiempo (min)",
@@ -334,7 +335,8 @@ const TEXT_STRINGS = {
     "chart.metric.meanWeight": "Media de peso por día",
     "chart.metric.maxWeight": "Máximo de peso por día",
     "chart.metric.meanVolume": "Volumen medio por día",
-    "chart.metric.totalVolume": "Volumen total por día",
+    "chart.metric.performance": "Rendimiento estimado por día",
+    "chart.metric.retention": "Retención (%)",
     "exercise.counter.empty": "Ejercicio 0 de 0",
     "exercise.counter.all": "Ejercicios: {total}",
     "exercise.counter.current": "Ejercicio {current} de {total}",
@@ -347,6 +349,7 @@ const TEXT_STRINGS = {
     "session.table.weightIntensity": "Peso/<br>Intensidad",
     "session.table.repsTime": "Reps/<br>Tiempo",
     "session.table.failure": "Fallo",
+    "session.table.rir": "RIR",
     "session.table.failureReps": "Reps de fallo",
     "session.table.notes": "Notas",
     "session.table.series": "Series",
@@ -454,7 +457,7 @@ const TEXT_STRINGS = {
     "exercise.suggestion.down": "Ajuste suave: baja un poco para asegurar técnica ✅",
     "exercise.suggestion.up": "Buen trabajo: sube un paso y apunta a 10 reps 🔥",
     "exercise.table.cardio": "<th>Serie</th><th>Intensidad</th><th>Tiempo (min)</th><th class=\"set-action-col\"></th>",
-    "exercise.table.strength": "<th>Serie</th><th>Peso</th><th>Reps</th><th>Fallo</th><th class=\"set-action-col\"></th>",
+    "exercise.table.strength": "<th>Serie</th><th>Peso</th><th>Reps</th><th>RIR</th><th>Fallo</th><th class=\"set-action-col\"></th>",
     "exercise.notes.general": "Notas",
     "exercise.addSet": "Añadir serie",
     "exercise.removeSet": "Eliminar serie",
@@ -514,6 +517,7 @@ const TEXT_STRINGS = {
     "csv.serie": "serie",
     "csv.peso": "peso",
     "csv.reps": "reps",
+    "csv.rir": "rir",
     "csv.fallo": "fallo",
     "csv.reps_fallo": "reps_fallo",
     "csv.intensidad": "intensidad",
@@ -1197,42 +1201,33 @@ function deleteUserHistory(userKey) {
   if (!ok) return;
 
   storage.removeItem(getHistoryStorageKeyForUser(entry.key));
+  window.invalidateGymHistoryCache?.();
   const prefix = `gym_${entry.key}_`;
   for (let i = storage.length - 1; i >= 0; i--) {
     const key = storage.key(i) || "";
     if (key.startsWith(prefix)) {
       storage.removeItem(key);
+      window.invalidateGymHistoryCache?.();
       continue;
     }
     if (!key.startsWith("gym_")) continue;
-    try {
-      const raw = storage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.user && parsed.user === entry.name) {
-        storage.removeItem(key);
-      }
-    } catch (err) {
-      // Ignore malformed entries.
+    const parsed = readStorageJSON(key, null);
+    if (parsed && parsed.user && parsed.user === entry.name) {
+      storage.removeItem(key);
+      window.invalidateGymHistoryCache?.();
     }
   }
 
   const legacyKey = "gym_history_v1";
-  const legacyRaw = storage.getItem(legacyKey);
-  if (legacyRaw) {
-    try {
-      const legacyParsed = JSON.parse(legacyRaw);
-      if (Array.isArray(legacyParsed)) {
-        const filtered = legacyParsed.filter(item => item?.user !== entry.name);
-        if (filtered.length === 0) {
-          storage.removeItem(legacyKey);
-        } else {
-          storage.setItem(legacyKey, JSON.stringify(filtered));
-        }
-      }
-    } catch (err) {
-      // Ignore malformed legacy entries.
+  const legacyParsed = readStorageJSON(legacyKey, null);
+  if (Array.isArray(legacyParsed)) {
+    const filtered = legacyParsed.filter(item => item?.user !== entry.name);
+    if (filtered.length === 0) {
+      storage.removeItem(legacyKey);
+    } else {
+      writeStorageJSON(legacyKey, filtered);
     }
+    window.invalidateGymHistoryCache?.();
   }
 
   userList.splice(entryIndex, 1);
@@ -2061,6 +2056,7 @@ const strengthSetFields = [
   { key: "serie", type: "static" },
   { key: "peso", type: "number", step: "0.5" },
   { key: "reps", type: "number", step: "1" },
+  { key: "rir", type: "number", step: "1", min: "0", max: "10" },
   { key: "fallo", type: "checkbox" }
 ];
 
@@ -2100,6 +2096,7 @@ function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetField
         const prevInput = prevInputs[inputIndex];
         inputIndex += 1;
         if (!prevInput) return;
+        if (f.key === "rir") return;
         if (f.type === "checkbox") {
           if (prevInput.checked) copied[f.key] = true;
           return;
@@ -2133,6 +2130,8 @@ function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetField
       input.value = resolvedSetData[f.key] ?? "";
     }
     if (f.step && f.type === "number") input.step = f.step;
+    if (f.min != null && f.type === "number") input.min = f.min;
+    if (f.max != null && f.type === "number") input.max = f.max;
     if (isSuggested) {
       input.title = t("exercise.suggestionApplied", {
         weight: resolvedSetData.peso ?? "-",
@@ -2335,14 +2334,19 @@ function buildExerciseCard(exData) {
     }
   }
 
+  const notesDetails = document.createElement("details");
+  notesDetails.className = "exercise-toggle-section exercise-notes-panel";
+  const notesSummary = document.createElement("summary");
+  notesSummary.innerHTML = `<span class="exercise-toggle-icon" aria-hidden="true">✎</span><span>${escapeHtml(t("exercise.notes.general"))}</span>`;
+  notesDetails.appendChild(notesSummary);
+
   const notesWrap = document.createElement("div");
   notesWrap.className = "exercise-general-notes";
-  const notesLabel = document.createElement("label");
-  notesLabel.textContent = t("exercise.notes.general");
   const notesInput = document.createElement("textarea");
   notesInput.className = "exercise-notes-input";
   notesInput.rows = 2;
   notesInput.value = exerciseNotesValue || "";
+  notesInput.setAttribute("aria-label", t("exercise.notes.general"));
   const persistSessionSafely = () => {
     if (typeof saveSession === "function") {
       saveSession();
@@ -2350,12 +2354,12 @@ function buildExerciseCard(exData) {
   };
   notesInput.addEventListener("input", persistSessionSafely);
   notesInput.addEventListener("change", persistSessionSafely);
-  notesWrap.appendChild(notesLabel);
   notesWrap.appendChild(notesInput);
-  card.appendChild(notesWrap);
+  notesDetails.appendChild(notesWrap);
+  card.appendChild(notesDetails);
 
   const addBtn = document.createElement("button");
-  addBtn.textContent = "+";
+  addBtn.textContent = "+ Serie";
   addBtn.className = "add-set-btn";
   addBtn.setAttribute("aria-label", t("exercise.addSet"));
   addBtn.onclick = () => {
@@ -2363,19 +2367,16 @@ function buildExerciseCard(exData) {
     markSessionDirty();
     saveSession();
   };
-
-  const headerRow = table.querySelector("thead tr");
-  const actionHeader = headerRow?.querySelector(".set-action-col") || headerRow?.lastElementChild;
-  if (actionHeader) {
-    actionHeader.innerHTML = "";
-    actionHeader.appendChild(addBtn);
-  }
+  const addSetActions = document.createElement("div");
+  addSetActions.className = "set-footer-actions";
+  addSetActions.appendChild(addBtn);
+  seriesBlock.appendChild(addSetActions);
 
   // ====== ÚLTIMA REFERENCIA ======
   const historyDetails = document.createElement("details");
-  historyDetails.className = "exercise-history";
+  historyDetails.className = "exercise-history exercise-toggle-section";
   const historySummary = document.createElement("summary");
-  historySummary.textContent = t("exercise.history.label");
+  historySummary.innerHTML = `<span class="exercise-toggle-icon" aria-hidden="true">↺</span><span>${escapeHtml(t("exercise.history.label"))}</span>`;
   historyDetails.appendChild(historySummary);
 
   const historyContent = document.createElement("div");
@@ -2397,7 +2398,7 @@ function buildExerciseCard(exData) {
     historyTable.className = "exercise-table exercise-history-table";
     const headerLabels = lastReference.isCardio
       ? ["Serie", "Intensidad", "Tiempo (min)"]
-      : ["Serie", "Peso", "Reps", "Fallo"];
+      : ["Serie", "Peso", "Reps", "RIR", "Fallo"];
     const tableHead = document.createElement("thead");
     const historyHeaderRow = document.createElement("tr");
     headerLabels.forEach(label => {
@@ -2417,10 +2418,11 @@ function buildExerciseCard(exData) {
             set.intensidad ?? set.peso ?? "",
             set.tiempo ?? set.reps ?? ""
           ]
-        : [
+          : [
             set.serie ?? index + 1,
             set.peso ?? "",
             set.reps ?? "",
+            set.rir ?? "",
             set.fallo === true || set.fallo === "true" ? "*" : ""
           ];
       values.forEach(value => {
@@ -2441,14 +2443,26 @@ function buildExerciseCard(exData) {
   const notes = document.createElement("div");
   notes.className = "exercise-notes";
   notes.innerHTML = `
-    <details>
-      <summary><b>${t("exercise.notes.title")}</b></summary>
-      <p><b>${t("exercise.notes.how")}</b> ${hacerDisplay}</p>
-      <p><b>${t("exercise.notes.avoid")}</b> ${noHacerDisplay}</p>
-      <p><b>${t("exercise.notes.tips")}</b> ${trucosDisplay}</p>
+    <details class="exercise-toggle-section">
+      <summary><span class="exercise-toggle-icon" aria-hidden="true">ⓘ</span><span>${escapeHtml(t("exercise.notes.title"))}</span></summary>
+      <div class="exercise-technique-content">
+        <p><b>${escapeHtml(t("exercise.notes.how"))}</b> ${escapeHtml(hacerDisplay)}</p>
+        <p><b>${escapeHtml(t("exercise.notes.avoid"))}</b> ${escapeHtml(noHacerDisplay)}</p>
+        <p><b>${escapeHtml(t("exercise.notes.tips"))}</b> ${escapeHtml(trucosDisplay)}</p>
+      </div>
     </details>
   `;
   card.appendChild(notes);
+
+  const exclusiveDetails = card.querySelectorAll(".exercise-toggle-section");
+  exclusiveDetails.forEach(details => {
+    details.addEventListener("toggle", () => {
+      if (!details.open) return;
+      exclusiveDetails.forEach(other => {
+        if (other !== details) other.open = false;
+      });
+    });
+  });
 
   return card;
 }
@@ -2695,7 +2709,7 @@ function loadSession(options = {}) {
   const preserveAutoSave = options.preserveAutoSave === true;
   const preserveExerciseIndex = options.preserveExerciseIndex === true;
   const key = sessionKey();
-  const saved = JSON.parse(storage.getItem(key) || "null");
+  const saved = readStorageJSON(key, null);
   if (!preserveAutoSave) {
     lastAutoSaveTime = null;
   }
@@ -2832,7 +2846,7 @@ exportBtn.onclick = () => {
   saveSession();
 
   const key = sessionKey();
-  const saved = JSON.parse(storage.getItem(key) || "null");
+  const saved = readStorageJSON(key, null);
   if (!saved) return alert(t("alert.noDataToday"));
 
   const exportDiv = buildExportContent(saved, { variant: "png" });
@@ -2856,7 +2870,7 @@ if (saveSessionBtn) {
     }
     saveSession({ source: "manual" });
     const key = sessionKey();
-    const saved = JSON.parse(storage.getItem(key) || "null");
+    const saved = readStorageJSON(key, null);
     if (!saved) return alert(t("alert.noDataToday"));
     upsertLocalHistory(saved);
     updateStepStatus();
@@ -2987,7 +3001,10 @@ if (deleteRoutineBtn) {
 
 function onReady(callback) {
   const run = () => {
-    Promise.resolve(window.exerciseDataReady).finally(callback);
+    Promise.resolve(window.GYM_SCRIPT_LOADER_READY)
+      .catch(() => {})
+      .then(() => Promise.resolve(window.exerciseDataReady))
+      .finally(callback);
   };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", run, { once: true });
@@ -3146,12 +3163,7 @@ onReady(() => {
     appVersionLabel.textContent = window.GYM_APP_VERSION;
   }
   window.addEventListener("resize", updateHeaderOffsets);
-  if ("serviceWorker" in navigator) {
-    const assetVersion = encodeURIComponent(window.GYM_ASSET_VERSION || "dev");
-    navigator.serviceWorker.register(`./sw.js?v=${assetVersion}`).then(reg => {
-      reg.update().catch(() => {});
-    }).catch(() => {});
-  }
+  window.registerGymServiceWorker?.();
   window.__gymAppReady = true;
 });
 

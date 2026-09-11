@@ -29,6 +29,22 @@ function getSafeStorage() {
 
 const storage = getSafeStorage();
 
+function safeParseJSON(raw, fallback = null) {
+  if (raw == null || raw === "") return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    return fallback;
+  }
+}
+
+function readStorageJSON(key, fallback = null) {
+  return safeParseJSON(storage.getItem(key), fallback);
+}
+
+function writeStorageJSON(key, value) {
+  storage.setItem(key, JSON.stringify(value));
+}
 
 function normalizeUserName(name) {
   return name.trim().replace(/\s+/g, "_");
@@ -37,20 +53,15 @@ function normalizeUserName(name) {
 function loadUserList() {
   let list = [];
   let changed = false;
-  try {
-    const raw = storage.getItem(USER_LIST_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    if (Array.isArray(parsed)) {
-      if (parsed.length && typeof parsed[0] === "string") {
-        list = parsed
-          .filter(item => typeof item === "string" && item.trim())
-          .map(item => ({ name: item.trim(), key: normalizeUserName(item.trim()) }));
-      } else {
-        list = parsed.filter(item => item && typeof item.name === "string" && typeof item.key === "string");
-      }
+  const parsed = readStorageJSON(USER_LIST_KEY, []);
+  if (Array.isArray(parsed)) {
+    if (parsed.length && typeof parsed[0] === "string") {
+      list = parsed
+        .filter(item => typeof item === "string" && item.trim())
+        .map(item => ({ name: item.trim(), key: normalizeUserName(item.trim()) }));
+    } else {
+      list = parsed.filter(item => item && typeof item.name === "string" && typeof item.key === "string");
     }
-  } catch (err) {
-    list = [];
   }
 
   for (let i = 0; i < storage.length; i++) {
@@ -90,14 +101,14 @@ function loadUserList() {
   }
 
   if (changed) {
-    storage.setItem(USER_LIST_KEY, JSON.stringify(list));
+    writeStorageJSON(USER_LIST_KEY, list);
   }
 
   return list;
 }
 
 function saveUserList(list) {
-  storage.setItem(USER_LIST_KEY, JSON.stringify(list));
+  writeStorageJSON(USER_LIST_KEY, list);
 }
 
 function getFavoritesKey(userKey = currentUserKey) {
@@ -108,23 +119,17 @@ function getFavoritesKey(userKey = currentUserKey) {
 function loadFavorites(userKey = currentUserKey) {
   const key = getFavoritesKey(userKey);
   if (!key) return [];
-  try {
-    const raw = storage.getItem(key);
-    const parsed = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) return [];
-    const cleaned = parsed
-      .filter(item => typeof item === "string" && item.trim())
-      .map(item => item.trim());
-    return Array.from(new Set(cleaned));
-  } catch (err) {
-    return [];
-  }
+  const parsed = readStorageJSON(key, []);
+  if (!Array.isArray(parsed)) return [];
+  const cleaned = parsed
+    .filter(item => typeof item === "string" && item.trim())
+    .map(item => item.trim());
+  return Array.from(new Set(cleaned));
 }
 
 function saveFavorites(list, userKey = currentUserKey) {
   const key = getFavoritesKey(userKey);
   if (!key) return;
   const cleaned = Array.from(new Set((list || []).filter(Boolean).map(item => String(item).trim()).filter(Boolean)));
-  storage.setItem(key, JSON.stringify(cleaned));
+  writeStorageJSON(key, cleaned);
 }
-

@@ -74,7 +74,7 @@
       meanWeight: "meanWeight",
       maxWeight: "maxWeight",
       meanVolume: "meanVolume",
-      totalVolume: "totalVolume"
+      performance: "performance"
     };
     const TREND_ALPHA = 0.35;
 
@@ -178,30 +178,60 @@
       return volumes.reduce((sum, value) => sum + value, 0) / volumes.length;
     };
 
-    const getTotalVolumeFromSets = (sets, exercise, bodyWeight) => {
+    const getPerformanceMetricsFromSets = (sets, exercise, bodyWeight) => {
       if (!Array.isArray(sets) || !sets.length) return null;
-      const volumes = sets
+      if (window.GymMetrics?.calculateExercisePerformance) {
+        return window.GymMetrics.calculateExercisePerformance({ ...exercise, sets }, {
+          bodyWeight,
+          templates: window.exerciseTemplates || {}
+        });
+      }
+      const values = sets
         .map(set => {
           const peso = getSetWeightValue(set, exercise, bodyWeight);
           const reps = getSetRepsValue(set);
           return Number.isFinite(peso) && Number.isFinite(reps) && reps > 0
-            ? peso * reps
+            ? peso * (1 + (reps / 30))
             : null;
         })
         .filter(value => value != null);
 
-      if (!volumes.length) return null;
-      return volumes.reduce((sum, value) => sum + value, 0);
+      if (!values.length) return null;
+      const best = Math.max(...values);
+      const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+      return {
+        best,
+        retention: best > 0 ? (average / best) * 100 : null
+      };
     };
 
     const getTrendValues = (values) => {
-      let previous = null;
-      return values.map(value => {
-        if (!Number.isFinite(value)) return null;
-        previous = previous == null
+      const smoothForward = values.map(() => null);
+      let previousForward = null;
+      values.forEach((value, index) => {
+        if (!Number.isFinite(value)) return;
+        previousForward = previousForward == null
           ? value
-          : (TREND_ALPHA * value) + ((1 - TREND_ALPHA) * previous);
-        return previous;
+          : (TREND_ALPHA * value) + ((1 - TREND_ALPHA) * previousForward);
+        smoothForward[index] = previousForward;
+      });
+      const smoothBackward = values.map(() => null);
+      let previousBackward = null;
+      for (let index = values.length - 1; index >= 0; index -= 1) {
+        const value = values[index];
+        if (!Number.isFinite(value)) continue;
+        previousBackward = previousBackward == null
+          ? value
+          : (TREND_ALPHA * value) + ((1 - TREND_ALPHA) * previousBackward);
+        smoothBackward[index] = previousBackward;
+      }
+      return values.map((value, index) => {
+        if (!Number.isFinite(value)) return null;
+        const forward = smoothForward[index];
+        const backward = smoothBackward[index];
+        if (!Number.isFinite(forward)) return Number.isFinite(backward) ? backward : null;
+        if (!Number.isFinite(backward)) return forward;
+        return (forward + backward) / 2;
       });
     };
 
@@ -296,14 +326,14 @@
       const getMetricLabel = (mode) => {
         if (mode === METRIC_MODES.meanWeight) return tChart("chart.metric.meanWeight");
         if (mode === METRIC_MODES.meanVolume) return tChart("chart.metric.meanVolume");
-        if (mode === METRIC_MODES.totalVolume) return tChart("chart.metric.totalVolume");
+        if (mode === METRIC_MODES.performance) return tChart("chart.metric.performance");
         return tChart("chart.metric.maxWeight");
       };
 
       const getMetricValue = (mode, metrics) => {
         if (mode === METRIC_MODES.meanWeight) return metrics.meanWeight;
         if (mode === METRIC_MODES.meanVolume) return metrics.volume;
-        if (mode === METRIC_MODES.totalVolume) return metrics.totalVolume;
+        if (mode === METRIC_MODES.performance) return metrics.performance;
         return metrics.maxWeight;
       };
 
@@ -336,20 +366,27 @@
             meanWeight: getMeanWeightFromSets(sets, ex, bodyWeight),
             maxWeight: getMaxWeightFromSets(sets, ex, bodyWeight),
             volume: getVolumeFromSets(sets, ex, bodyWeight),
-            totalVolume: getTotalVolumeFromSets(sets, ex, bodyWeight)
+            performance: getPerformanceMetricsFromSets(sets, ex, bodyWeight)
           };
 
           const value = getMetricValue(mode, metrics);
-          if (value == null) return;
+          if (mode === METRIC_MODES.performance) {
+            if (!value || value.best == null) return;
+          } else if (value == null) {
+            return;
+          }
 
-          const current = dateMap.get(date) || { meanWeightSum: 0, meanWeightCount: 0, maxWeight: null, volumeSum: 0, volumeCount: 0, totalVolume: 0, key: session.key || "" };
+          const current = dateMap.get(date) || { meanWeightSum: 0, meanWeightCount: 0, maxWeight: null, volumeSum: 0, volumeCount: 0, performance: null, retention: null, key: session.key || "" };
           if (mode === METRIC_MODES.meanWeight) {
             current.meanWeightSum += value;
             current.meanWeightCount += 1;
           } else if (mode === METRIC_MODES.maxWeight) {
             current.maxWeight = current.maxWeight == null ? value : Math.max(current.maxWeight, value);
-          } else if (mode === METRIC_MODES.totalVolume) {
-            current.totalVolume += value;
+          } else if (mode === METRIC_MODES.performance) {
+            if (current.performance == null || value.best > current.performance) {
+              current.performance = value.best;
+              current.retention = value.retention;
+            }
           } else {
             current.volumeSum += value;
             current.volumeCount += 1;
@@ -378,9 +415,12 @@
           if (isBodyWeight) return current?.value ?? null;
           if (mode === METRIC_MODES.meanWeight) return current?.meanWeightCount ? current.meanWeightSum / current.meanWeightCount : null;
           if (mode === METRIC_MODES.meanVolume) return current?.volumeCount ? current.volumeSum / current.volumeCount : null;
-          if (mode === METRIC_MODES.totalVolume) return current?.totalVolume ?? null;
+          if (mode === METRIC_MODES.performance) return current?.performance ?? null;
           return current?.maxWeight ?? null;
         });
+        const retentionValues = mode === METRIC_MODES.performance
+          ? sortedDates.map(date => dateMap.get(date)?.retention ?? null)
+          : [];
         const trendValues = getTrendValues(values);
         const chartValues = values.concat(trendValues).filter(value => Number.isFinite(value));
         const maxValue = Math.max(...chartValues);
@@ -399,38 +439,61 @@
           : `${exerciseName} · ${getMetricLabel(mode)}`;
         const yAxisTitle = isBodyWeight
           ? tChart("chart.axis.bodyWeight")
-          : (mode === METRIC_MODES.meanVolume || mode === METRIC_MODES.totalVolume ? tChart("chart.axis.load") : tChart("chart.axis.weight"));
+          : (mode === METRIC_MODES.meanVolume
+            ? tChart("chart.axis.load")
+            : mode === METRIC_MODES.performance
+              ? tChart("chart.axis.estimated1rm")
+              : tChart("chart.axis.weight"));
+        const datasets = [
+          {
+            label: datasetLabel,
+            data: values,
+            borderColor: "#f97316",
+            backgroundColor: "#f9731620",
+            fill: false,
+            tension: 0.25,
+            pointRadius: 4,
+            pointHoverRadius: 7,
+            pointHitRadius: 16,
+            yAxisID: "y"
+          },
+          {
+            label: "Tendencia",
+            data: trendValues,
+            borderColor: "#2563eb",
+            backgroundColor: "transparent",
+            borderDash: [6, 4],
+            borderWidth: 2,
+            fill: false,
+            tension: 0.35,
+            pointRadius: 0,
+            spanGaps: true,
+            yAxisID: "y"
+          }
+        ];
+        if (mode === METRIC_MODES.performance) {
+          datasets.push({
+            label: tChart("chart.metric.retention"),
+            data: retentionValues,
+            borderColor: "#16a34a",
+            backgroundColor: "#16a34a20",
+            borderWidth: 2,
+            fill: false,
+            tension: 0.25,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            pointHitRadius: 16,
+            spanGaps: true,
+            yAxisID: "y1"
+          });
+        }
 
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(canvasEl, {
           type: "line",
           data: {
             labels,
-            datasets: [
-              {
-                label: datasetLabel,
-                data: values,
-                borderColor: "#f97316",
-                backgroundColor: "#f9731620",
-                fill: false,
-                tension: 0.25,
-                pointRadius: 4,
-                pointHoverRadius: 7,
-                pointHitRadius: 16
-              },
-              {
-                label: "Tendencia",
-                data: trendValues,
-                borderColor: "#2563eb",
-                backgroundColor: "transparent",
-                borderDash: [6, 4],
-                borderWidth: 2,
-                fill: false,
-                tension: 0.35,
-                pointRadius: 0,
-                spanGaps: true
-              }
-            ]
+            datasets
           },
           options: {
             responsive: true,
@@ -450,7 +513,7 @@
               intersect: false
             },
             plugins: {
-              legend: { display: false }
+              legend: { display: mode === METRIC_MODES.performance }
             },
             scales: {
               x: {
@@ -463,7 +526,20 @@
                 max: yMax,
                 title: { display: true, text: yAxisTitle, font: { size: 16 } },
                 ticks: { font: { size: 14 } }
-              }
+              },
+              ...(mode === METRIC_MODES.performance ? {
+                y1: {
+                  position: "right",
+                  min: 0,
+                  max: 105,
+                  grid: { drawOnChartArea: false },
+                  title: { display: true, text: tChart("chart.metric.retention"), font: { size: 16 } },
+                  ticks: {
+                    font: { size: 14 },
+                    callback: value => `${value}%`
+                  }
+                }
+              } : {})
             }
           }
         });
@@ -476,12 +552,13 @@
           [METRIC_MODES.meanWeight, "Media"],
           [METRIC_MODES.maxWeight, "Máximo"],
           [METRIC_MODES.meanVolume, "Vol. medio"],
-          [METRIC_MODES.totalVolume, "Vol. total"]
+          [METRIC_MODES.performance, "Rendimiento"]
         ];
         options.forEach(([value, label]) => {
           const btn = document.createElement("button");
           btn.type = "button";
           btn.className = `chart-metric-btn${value === currentMode ? " active" : ""}`;
+          btn.setAttribute("aria-pressed", value === currentMode ? "true" : "false");
           btn.textContent = label;
           btn.addEventListener("click", () => {
             currentMode = value;

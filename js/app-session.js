@@ -56,8 +56,9 @@ function buildSessionData(container) {
           setData[key] = null;
           return;
         }
-        if (key === "reps" || key === "repsFallo") {
-          setData[key] = parseInt(raw, 10) || null;
+        if (key === "reps" || key === "repsFallo" || key === "rir") {
+          const parsed = parseInt(raw, 10);
+          setData[key] = Number.isNaN(parsed) ? null : parsed;
           return;
         }
         if (key === "peso" || key === "tiempo" || key === "intensidad") {

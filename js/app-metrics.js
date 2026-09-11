@@ -89,6 +89,26 @@
     }, 0);
   };
 
+  const calculateSetPerformance = (set, exercise, options = {}) => {
+    const reps = numberOrNull(set?.reps ?? set?.repeticiones);
+    const load = getSetEffectiveLoad(set, exercise, options.bodyWeight, options.templates);
+    return reps != null && reps > 0 && load != null ? load * (1 + (reps / 30)) : null;
+  };
+
+  const calculateExercisePerformance = (exercise, options = {}) => {
+    if (!exercise || isWarmup(exercise) || isCardio(exercise, options.templates)) return null;
+    const values = getSets(exercise)
+      .map(set => calculateSetPerformance(set, exercise, options))
+      .filter(value => value != null);
+    if (!values.length) return null;
+    const best = Math.max(...values);
+    const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+    return {
+      best,
+      retention: best > 0 ? (average / best) * 100 : null
+    };
+  };
+
   const calculateSessionVolume = (session, options = {}) => {
     const sessions = Array.isArray(options.sessions) ? options.sessions : [];
     const bodyWeight = getNearestBodyWeight(session, sessions);
@@ -109,6 +129,8 @@
     isLoadImprovement,
     isCardio,
     calculateExerciseVolume,
+    calculateSetPerformance,
+    calculateExercisePerformance,
     calculateSessionVolume
   };
 

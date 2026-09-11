@@ -1,4 +1,6 @@
 let historyData = {}; // {exerciseName: [weights]}
+let historySessionsCache = null;
+let historySessionsCacheUserKey = "";
 window.uploadedHistory = []; // Array of sessions
 
 function getHistoryStorageKey() {
@@ -22,42 +24,44 @@ function buildSessionKey(session) {
   return buildSessionKeyForUser(session, currentUserKey);
 }
 
+function invalidateHistorySessionsCache() {
+  historySessionsCache = null;
+  historySessionsCacheUserKey = "";
+}
+
+window.invalidateGymHistoryCache = invalidateHistorySessionsCache;
+
+function isUsableHistorySession(session) {
+  if (!session || typeof session !== "object") return false;
+  const exercises = getExercisesArrayFromSession(session);
+  return Boolean(session.date || exercises.length);
+}
+
 function getLocalHistory() {
-  const raw = storage.getItem(getHistoryStorageKey());
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    return [];
-  }
+  const parsed = readStorageJSON(getHistoryStorageKey(), []);
+  if (!Array.isArray(parsed)) return [];
+  return parsed.filter(session => {
+    if (!isUsableHistorySession(session)) return false;
+    return !session.user || !currentUserName || session.user === currentUserName;
+  });
 }
 
 function getLegacyHistoryForCurrentUser() {
-  const raw = storage.getItem(LOCAL_HISTORY_KEY);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    if (!currentUserName) return parsed;
-    return parsed.filter(session => {
-      if (!session || typeof session !== "object") return false;
-      if (!session.user) return true;
-      return session.user === currentUserName;
-    });
-  } catch (err) {
-    return [];
-  }
+  const parsed = readStorageJSON(LOCAL_HISTORY_KEY, []);
+  if (!Array.isArray(parsed) || !currentUserName) return [];
+  return parsed.filter(session => isUsableHistorySession(session) && session.user === currentUserName);
 }
 
 function getHistorySessionsForCharts() {
+  if (!currentUserKey) return [];
+  if (historySessionsCache && historySessionsCacheUserKey === currentUserKey) {
+    return historySessionsCache.slice();
+  }
   const sources = [];
   const stored = getLocalHistory();
   if (stored.length) sources.push(stored);
   const fromKeys = collectSessionsFromSessionKeys(currentUserKey);
   if (fromKeys.length) sources.push(fromKeys);
-  const localKeys = collectSessionsFromSessionKeys("local");
-  if (localKeys.length) sources.push(localKeys);
   const legacy = getLegacyHistoryForCurrentUser();
   if (legacy.length) sources.push(legacy);
   const merged = new Map();
@@ -68,45 +72,9 @@ function getHistorySessionsForCharts() {
       || `${session.date || ""}|${session.week || ""}|${session.day || ""}|${session.user || ""}`;
     if (!merged.has(key)) merged.set(key, session);
   });
-  if (!merged.size) {
-    const scanned = collectSessionsFromStorage();
-    scanned.forEach(session => {
-      const key = session.key
-        || buildSessionKey(session)
-        || `${session.date || ""}|${session.week || ""}|${session.day || ""}|${session.user || ""}`;
-      if (!merged.has(key)) merged.set(key, session);
-    });
-  }
-  return Array.from(merged.values());
-}
-
-function collectSessionsFromStorage() {
-  const sessions = [];
-  for (let i = 0; i < storage.length; i++) {
-    const key = storage.key(i) || "";
-    if (!key.startsWith("gym_")) continue;
-    try {
-      const raw = storage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object") continue;
-      if (Array.isArray(parsed)) {
-        parsed.forEach(item => {
-          if (!item || typeof item !== "object") return;
-          const hasExercises = Array.isArray(item.exercises) || Array.isArray(item.ejercicios);
-          if (!hasExercises) return;
-          sessions.push({ ...item, key: item.key || key });
-        });
-        continue;
-      }
-      const hasExercises = Array.isArray(parsed.exercises) || Array.isArray(parsed.ejercicios);
-      if (!hasExercises) continue;
-      sessions.push({ ...parsed, key: parsed.key || key });
-    } catch (err) {
-      // Ignore malformed entries.
-    }
-  }
-  return sessions;
+  historySessionsCache = Array.from(merged.values());
+  historySessionsCacheUserKey = currentUserKey;
+  return historySessionsCache.slice();
 }
 
 window.getGymHistorySessions = () => getHistorySessionsForCharts();
@@ -138,59 +106,14 @@ function getGymHistoryExerciseNames() {
     });
   };
   sessions.forEach(collectFromSession);
-  if (names.size) return Array.from(names);
-  const fromStorage = collectExerciseNamesFromStorage();
-  return fromStorage.length ? fromStorage : Array.from(names);
+  return Array.from(names);
 }
 
 window.getGymHistoryExerciseNames = getGymHistoryExerciseNames;
 
-function collectExerciseNamesFromStorage() {
-  const names = new Set();
-  const seen = new WeakSet();
-  const visit = (value, depth = 0) => {
-    if (depth > 4 || value == null) return;
-    if (Array.isArray(value)) {
-      value.forEach(item => visit(item, depth + 1));
-      return;
-    }
-    if (typeof value !== "object") return;
-    if (seen.has(value)) return;
-    seen.add(value);
-    const exercises = value.exercises || value.ejercicios || value.data?.exercises || value.data?.ejercicios || value.session?.exercises || value.session?.ejercicios;
-    if (Array.isArray(exercises)) {
-      exercises.forEach(entry => {
-        if (isWarmupExercise(entry)) return;
-        const name = getExerciseNameFromEntry(entry);
-        if (name) names.add(name);
-      });
-    }
-    Object.values(value).forEach(child => visit(child, depth + 1));
-  };
-  for (let i = 0; i < storage.length; i++) {
-    const key = storage.key(i) || "";
-    if (!key.includes("gym") && !key.includes("history")) continue;
-    try {
-      const raw = storage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-      visit(parsed, 0);
-    } catch (err) {
-      // Ignore malformed entries.
-    }
-  }
-  return Array.from(names);
-}
-
 function getLocalHistoryForUser(userKey) {
-  const raw = storage.getItem(getHistoryStorageKeyForUser(userKey));
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    return [];
-  }
+  const parsed = readStorageJSON(getHistoryStorageKeyForUser(userKey), []);
+  return Array.isArray(parsed) ? parsed.filter(isUsableHistorySession) : [];
 }
 
 function hasHistoryForUser(userKey) {
@@ -233,14 +156,13 @@ function stripSessionTechnicalNotes(session) {
 }
 
 function setLocalHistory(sessions) {
-  storage.setItem(getHistoryStorageKey(), JSON.stringify(sessions.map(stripSessionTechnicalNotes)));
+  invalidateHistorySessionsCache();
+  writeStorageJSON(getHistoryStorageKey(), sessions.map(stripSessionTechnicalNotes));
 }
 
 function setLocalHistoryForUser(userKey, sessions) {
-  storage.setItem(
-    getHistoryStorageKeyForUser(userKey),
-    JSON.stringify(sessions.map(stripSessionTechnicalNotes))
-  );
+  invalidateHistorySessionsCache();
+  writeStorageJSON(getHistoryStorageKeyForUser(userKey), sessions.map(stripSessionTechnicalNotes));
 }
 
 function collectSessionsFromSessionKeys(userKey) {
@@ -253,20 +175,14 @@ function collectSessionsFromSessionKeys(userKey) {
       const prefix = `gym_${userKey}_`;
       if (!key.startsWith(prefix)) continue;
     }
-    try {
-      const raw = storage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object") continue;
-      if (!parsed.date) continue;
-      sessions.push({
-        ...parsed,
-        key,
-        user: parsed.user || currentUserName
-      });
-    } catch (err) {
-      // Ignore malformed entries.
-    }
+    const parsed = readStorageJSON(key, null);
+    if (!parsed || typeof parsed !== "object") continue;
+    if (!parsed.date) continue;
+    sessions.push({
+      ...parsed,
+      key,
+      user: parsed.user || currentUserName
+    });
   }
   return sessions;
 }
@@ -381,6 +297,7 @@ function normalizeImportedHistoryPayload(payload) {
                   serie: toFiniteNumberOrNull(set.serie),
                   peso: toFiniteNumberOrNull(set.peso),
                   reps: toFiniteNumberOrNull(set.reps),
+                  rir: toFiniteNumberOrNull(set.rir),
                   fallo: set.fallo === true,
                   repsFallo: toFiniteNumberOrNull(set.repsFallo),
                   intensidad: toFiniteNumberOrNull(set.intensidad),

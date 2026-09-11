@@ -95,7 +95,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div id="app-version-label" class="hint-text text-center">ReLuciente v.1.0.6</div>
+        <div id="app-version-label" class="hint-text text-center">ReLuciente v.1.0.18</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
@@ -354,7 +354,7 @@
             <path d="M3 17h9"></path>
             <path d="M18 4v16"></path>
           </svg>
-          <span>Reordenar</span>
+          <span>Ordenar</span>
         </button>
       </div>
     </div>
@@ -794,9 +794,31 @@
       "js/app-export.js",
       "js/app-tools.js",
       "js/app-user.js",
+      "js/app-pwa.js",
       "theme-charts.js"
     ];
-    document.write(scripts.map(src => `<script src="${src}?v=${version}"><\/script>`).join(""));
+    let resolveScriptsReady;
+    window.GYM_SCRIPT_LOADER_READY = new Promise(resolve => {
+      resolveScriptsReady = resolve;
+    });
+    const loadScript = src => new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = `${src}?v=${version}`;
+      script.async = false;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error(src));
+      document.body.appendChild(script);
+    });
+
+    scripts.reduce((chain, src) => chain.then(() => loadScript(src)), Promise.resolve())
+      .then(resolveScriptsReady)
+      .catch(error => {
+        console.error("[loader] No se pudo cargar", error);
+        const message = document.createElement("div");
+        message.className = "save-session-error";
+        message.textContent = "No se pudo cargar la aplicación. Revisa la conexión y recarga.";
+        document.body.prepend(message);
+      });
   })();
 </script>
 

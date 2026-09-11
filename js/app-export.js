@@ -2,7 +2,7 @@ function updateSessionSummary() {
   if (!sessionSummary) return;
   if (exercisesContainer !== mainExercisesContainer) return;
   const key = sessionKey();
-  const saved = JSON.parse(storage.getItem(key) || "null");
+  const saved = readStorageJSON(key, null);
   if (!saved) {
     sessionSummary.textContent = t("session.noData");
     return;
@@ -59,6 +59,7 @@ function buildExportContent(saved, options = {}) {
         <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.set")}</th>
         <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.weightIntensity")}</th>
         <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.repsTime")}</th>
+        <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.rir")}</th>
         <th style="border:1px solid #000; padding:4px; color:${headerText};">${t("session.table.failure")}</th>
       </tr>
     `;
@@ -131,6 +132,7 @@ function buildExportContent(saved, options = {}) {
       }
       const displayPeso = isCardio ? (set.intensidad ?? set.peso ?? "") : (set.peso ?? "");
       const displayReps = isCardio ? (set.tiempo ?? set.reps ?? "") : (set.reps ?? "");
+      const displayRir = isCardio ? "" : (set.rir ?? "");
       const displayFallo = isCardio ? "" : (set.fallo ? t("session.failure.yes") : t("session.failure.no"));
 
       const tr = document.createElement("tr");
@@ -144,6 +146,7 @@ function buildExportContent(saved, options = {}) {
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${escapeHtml(set.serie ?? "")}</td>
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${escapeHtml(displayPeso)}</td>
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${escapeHtml(displayReps)}</td>
+          <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; text-align:right;">${escapeHtml(displayRir)}</td>
           <td style="border:1px solid #000; padding:4px; color:#000; background:${groupBg};">${escapeHtml(displayFallo)}</td>
         `;
       } else {
@@ -152,6 +155,7 @@ function buildExportContent(saved, options = {}) {
           <td style="background:${groupBg};">${escapeHtml(set.serie ?? "")}</td>
           <td style="background:${groupBg}; text-align:right;">${escapeHtml(displayPeso)}</td>
           <td style="background:${groupBg}; text-align:right;">${escapeHtml(displayReps)}</td>
+          <td style="background:${groupBg}; text-align:right;">${escapeHtml(displayRir)}</td>
           <td style="background:${groupBg};">${escapeHtml(displayFallo)}</td>
         `;
       }
@@ -161,7 +165,7 @@ function buildExportContent(saved, options = {}) {
     if (usePngStyles && exerciseNote) {
       const noteRow = document.createElement("tr");
       noteRow.innerHTML = `
-        <td colspan="5" style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-style: italic;">
+        <td colspan="6" style="border:1px solid #000; padding:4px; color:#000; background:${groupBg}; font-style: italic;">
           ${escapeHtml(t("session.table.notes"))}: ${escapeHtml(exerciseNote)}
         </td>
       `;
@@ -172,7 +176,7 @@ function buildExportContent(saved, options = {}) {
       const separator = document.createElement("tr");
       if (usePngStyles) {
         separator.innerHTML = `
-          <td colspan="5" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #777; padding:0; height:6px; background:#fff;"></td>
+          <td colspan="6" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #777; padding:0; height:6px; background:#fff;"></td>
         `;
       }
       table.appendChild(separator);

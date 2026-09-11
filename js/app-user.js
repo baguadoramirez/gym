@@ -24,6 +24,7 @@ function buildCsvForUser(sessions) {
     t("csv.serie"),
     t("csv.peso"),
     t("csv.reps"),
+    t("csv.rir"),
     t("csv.fallo"),
     t("csv.reps_fallo"),
     t("csv.intensidad"),
@@ -74,6 +75,7 @@ function buildCsvForUser(sessions) {
         "",
         "",
         "",
+        "",
         base.sens_general,
         base.sens_tiredness,
         base.sens_weight,
@@ -106,6 +108,7 @@ function buildCsvForUser(sessions) {
           "",
           "",
           "",
+          "",
           exerciseNote,
           base.sens_general,
           base.sens_tiredness,
@@ -131,6 +134,7 @@ function buildCsvForUser(sessions) {
           set.serie ?? "",
           set.peso ?? "",
           set.reps ?? "",
+          set.rir ?? "",
           set.fallo === true ? t("option.yes") : set.fallo === false ? t("option.no") : "",
           set.repsFallo ?? "",
           set.intensidad ?? "",
@@ -702,7 +706,9 @@ if (importMergeHistoryInput) {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const data = normalizeImportedHistoryPayload(JSON.parse(event.target.result));
+        const parsed = safeParseJSON(event.target.result, null);
+        if (!parsed) throw new Error("El archivo no contiene JSON válido.");
+        const data = normalizeImportedHistoryPayload(parsed);
         const firstUser = Array.isArray(data) && data.length ? (data[0]?.user || "") : "";
         const trimmedName = String(firstUser || "").trim();
         const normalizedKey = normalizeUserName(trimmedName);

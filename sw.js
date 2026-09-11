@@ -19,6 +19,7 @@ const ASSETS = [
   withVersion("./js/app-export.js"),
   withVersion("./js/app-tools.js"),
   withVersion("./js/app-user.js"),
+  withVersion("./js/app-pwa.js"),
   withVersion("./ejercicios.js"),
   withVersion("./manifest.webmanifest"),
   "./icons/bar_logo.png",
@@ -58,11 +59,19 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
+self.addEventListener("message", event => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
   const isNavigation = event.request.mode === "navigate";
   const isScript = event.request.destination === "script";
-  if (isNavigation || isScript) {
+  const isVersionFile = url.origin === self.location.origin && url.pathname.endsWith("/version.js");
+  if (isNavigation || isScript || isVersionFile) {
     event.respondWith(
       fetch(event.request)
         .then(response => {

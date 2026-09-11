@@ -1,19 +1,14 @@
 function loadCustomRoutines() {
   if (!currentUserKey) return {};
-  try {
-    const key = `${CUSTOM_ROUTINES_KEY}_${currentUserKey}`;
-    const raw = storage.getItem(key);
-    const parsed = raw ? JSON.parse(raw) : {};
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch (err) {
-    return {};
-  }
+  const key = `${CUSTOM_ROUTINES_KEY}_${currentUserKey}`;
+  const parsed = readStorageJSON(key, {});
+  return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
 }
 
 function saveCustomRoutines(data) {
   if (!currentUserKey) return;
   const key = `${CUSTOM_ROUTINES_KEY}_${currentUserKey}`;
-  storage.setItem(key, JSON.stringify(data));
+  writeStorageJSON(key, data);
 }
 
 function getAllRoutines() {
