@@ -186,6 +186,16 @@ function buildSessionImageData(saved) {
         if (weight && reps) volume += weight * reps;
       }
     });
+    // Series consecutivas idénticas en una sola etiqueta ("3× 70 kg × 10"): imagen más corta y ligera
+    const groupedChips = chips.reduce((acc, chip) => {
+      const last = acc[acc.length - 1];
+      if (last && last.main === chip.main && last.extra === chip.extra && last.failure === chip.failure) {
+        last.count += 1;
+      } else {
+        acc.push({ ...chip, count: 1 });
+      }
+      return acc;
+    }, []);
     const best = cardio || warmup ? 0 : getBestEstimatedMax(sets);
     const previousBest = best ? getPreviousBestEstimatedMax(ex.nombre, saved.date) : 0;
     const metaParts = [ex.musculo ? translateGroupLabel(ex.musculo) : "", warmup ? t("exercise.warmup") : ""];
@@ -194,7 +204,7 @@ function buildSessionImageData(saved) {
       name: ex.nombre || t("history.view.exerciseDefault"),
       meta: metaParts.filter(Boolean).join(" · "),
       warmup,
-      chips,
+      chips: groupedChips,
       note: String(ex.notes || "").trim(),
       record: Boolean(best && previousBest && best > previousBest + 0.01)
     };
@@ -289,17 +299,17 @@ function layoutSessionImage(ctx, data, draw) {
     const x = P + index * (tileW + gap);
     if (draw) {
       ctx.fillStyle = C.card;
-      roundRect(ctx, x, y, tileW, 124, 22);
+      roundRect(ctx, x, y, tileW, 112, 20);
       ctx.fill();
     }
-    text(stat.label, x + 22, y + 44, 22, 600, C.muted);
-    text(stat.value, x + 22, y + 96, stat.value.length > 7 ? 34 : 42, 800, C.text);
+    text(stat.label, x + 22, y + 40, 22, 600, C.muted);
+    text(stat.value, x + 22, y + 88, stat.value.length > 7 ? 34 : 42, 800, C.text);
   });
-  y += 124 + 36;
+  y += 112 + 30;
 
   // Ejercicios
   data.exercises.forEach(ex => {
-    const cardPad = 30;
+    const cardPad = 26;
     const cardTop = y;
     const cardInner = inner - cardPad * 2;
     let cy = cardTop + cardPad;
@@ -334,14 +344,17 @@ function layoutSessionImage(ctx, data, draw) {
       let cx = P + cardPad;
       let rowTop = cy;
       ex.chips.forEach(chip => {
+        const countLabel = chip.count > 1 ? `${chip.count}×` : "";
+        ctx.font = `800 26px ${font}`;
+        const countW = countLabel ? ctx.measureText(countLabel).width + 8 : 0;
         ctx.font = `700 26px ${font}`;
         const mainW = ctx.measureText(chip.main).width;
         ctx.font = `600 20px ${font}`;
         const extraW = chip.extra ? ctx.measureText(chip.extra).width + 10 : 0;
-        const chipW = mainW + extraW + 36;
+        const chipW = countW + mainW + extraW + 32;
         if (cx + chipW > P + cardPad + cardInner && cx > P + cardPad) {
           cx = P + cardPad;
-          rowTop += 60;
+          rowTop += 56;
         }
         const chipX = cx;
         const chipY = rowTop;
@@ -352,10 +365,11 @@ function layoutSessionImage(ctx, data, draw) {
           ctx.strokeStyle = chip.failure ? C.danger : C.border;
           ctx.lineWidth = 2;
           ctx.stroke();
-          text(chip.main, chipX + 18, chipY + 33, 26, 700, C.text);
-          if (chip.extra) text(chip.extra, chipX + 18 + mainW + 10, chipY + 32, 20, 600, chip.failure ? C.danger : C.muted);
+          if (countLabel) text(countLabel, chipX + 16, chipY + 33, 26, 800, C.accent);
+          text(chip.main, chipX + 16 + countW, chipY + 33, 26, 700, C.text);
+          if (chip.extra) text(chip.extra, chipX + 16 + countW + mainW + 10, chipY + 32, 20, 600, chip.failure ? C.danger : C.muted);
         });
-        cx += chipW + 12;
+        cx += chipW + 10;
       });
       cy = rowTop + 48;
     }
@@ -381,7 +395,7 @@ function layoutSessionImage(ctx, data, draw) {
       }
       ops.forEach(op => op());
     }
-    y = cardTop + cardH + 18;
+    y = cardTop + cardH + 14;
   });
 
   // Sensaciones

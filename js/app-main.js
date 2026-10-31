@@ -232,7 +232,6 @@ const TEXT_STRINGS = {
     "favorites.emptyOption": "Sin favoritos en este grupo",
     "quickAdd.allGroups": "Todos",
     "quickAdd.empty": "No hay ejercicios con estos filtros.",
-    "quickAdd.emptyFavorites": "No hay favoritos con estos filtros.",
     "quickAdd.noMaterialBadge": "Sin material",
     "stopwatch.placeholder": "Tiempo en segundos (ej: 60)",
     "customExercise.namePlaceholder": "Ej: Remo en barra",

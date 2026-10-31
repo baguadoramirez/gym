@@ -350,7 +350,8 @@ function mergeImportedHistoryForUser(imported, userName, userKey) {
 function getExportHistoryForUser(userKey) {
   const sessions = getLocalHistoryForUser(userKey);
   const base = sessions.length ? sessions : collectSessionsFromSessionKeys(userKey);
-  return base.map(session => stripSessionTechnicalNotes({
+  // Sin "revisions": la importación no las usa y contienen copias de sesiones ya sustituidas
+  return base.map(({ revisions, ...session }) => stripSessionTechnicalNotes({
     ...session,
     user: session.user || currentUserName,
     key: session.key || buildSessionKeyForUser(session, userKey)

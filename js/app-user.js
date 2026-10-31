@@ -13,148 +13,60 @@ function escapeCsvCell(value) {
 
 
 function buildCsvForUser(sessions) {
-  const header = [
-    t("csv.usuario"),
-    t("csv.fecha"),
-    t("csv.semana"),
-    t("csv.dia"),
-    t("csv.ejercicio"),
-    t("csv.calentamiento"),
-    t("csv.musculo"),
-    t("csv.seccion"),
-    t("csv.serie"),
-    t("csv.peso"),
-    t("csv.reps"),
-    t("csv.rir"),
-    t("csv.fallo"),
-    t("csv.reps_fallo"),
-    t("csv.intensidad"),
-    t("csv.tiempo"),
-    t("csv.notas"),
-    t("csv.sens_general"),
-    t("csv.sens_tiredness"),
-    t("csv.sens_weight"),
-    t("csv.sens_pain"),
-    t("csv.sens_pain_zone"),
-    t("csv.sens_pain_exercise"),
-    t("csv.sens_comment")
-  ];
-  const rows = [header.map(escapeCsvCell).join(",")];
+  const yesNo = value => (value === true ? t("option.yes") : value === false ? t("option.no") : "");
+  // "reps_fallo" ya no se registra: solo se exporta si algún dato antiguo lo tiene
+  const hasLegacyRepsFallo = sessions.some(session => (session.exercises || [])
+    .some(ex => (ex.sets || []).some(set => set.repsFallo != null && set.repsFallo !== "")));
+  const columns = [
+    ["csv.usuario", ({ session }) => session.user],
+    ["csv.fecha", ({ session }) => session.date],
+    ["csv.semana", ({ session }) => session.week],
+    ["csv.dia", ({ session }) => session.day],
+    ["csv.ejercicio", ({ ex }) => ex?.nombre],
+    ["csv.calentamiento", ({ ex }) => (ex ? yesNo(isWarmupExercise(ex)) : "")],
+    ["csv.musculo", ({ ex }) => ex?.musculo],
+    ["csv.seccion", ({ ex }) => ex?.seccion],
+    ["csv.serie", ({ set }) => set?.serie],
+    ["csv.peso", ({ set }) => set?.peso],
+    ["csv.reps", ({ set }) => set?.reps],
+    ["csv.rir", ({ set }) => set?.rir],
+    ["csv.fallo", ({ set }) => yesNo(set?.fallo)],
+    hasLegacyRepsFallo ? ["csv.reps_fallo", ({ set }) => set?.repsFallo] : null,
+    ["csv.intensidad", ({ set }) => set?.intensidad],
+    ["csv.tiempo", ({ set }) => set?.tiempo],
+    ["csv.notas", ({ ex }) => (ex ? getExerciseNote(ex) : "")],
+    ["csv.sens_general", ({ session }) => session.sensations?.general],
+    ["csv.sens_tiredness", ({ session }) => session.sensations?.tiredness],
+    ["csv.sens_weight", ({ session }) => session.sensations?.weight],
+    ["csv.sens_pain", ({ session }) => session.sensations?.pain],
+    ["csv.sens_pain_zone", ({ session }) => session.sensations?.painZone],
+    ["csv.sens_pain_exercise", ({ session }) => session.sensations?.painExercise],
+    ["csv.sens_comment", ({ session }) => session.sensations?.comment]
+  ].filter(Boolean);
 
+  const toRow = context => columns.map(([, getValue]) => escapeCsvCell(getValue(context) ?? "")).join(",");
+  const rows = [columns.map(([labelKey]) => escapeCsvCell(t(labelKey))).join(",")];
   sessions.forEach(session => {
-    const sensations = session.sensations || {};
-    const base = {
-      usuario: session.user || "",
-      fecha: session.date || "",
-      semana: session.week || "",
-      dia: session.day || "",
-      sens_general: sensations.general ?? "",
-      sens_tiredness: sensations.tiredness ?? "",
-      sens_weight: sensations.weight ?? "",
-      sens_pain: sensations.pain ?? "",
-      sens_pain_zone: sensations.painZone ?? "",
-      sens_pain_exercise: sensations.painExercise ?? "",
-      sens_comment: sensations.comment ?? ""
-    };
-
     const exercises = Array.isArray(session.exercises) ? session.exercises : [];
     if (!exercises.length) {
-      const row = [
-        base.usuario,
-        base.fecha,
-        base.semana,
-        base.dia,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        base.sens_general,
-        base.sens_tiredness,
-        base.sens_weight,
-        base.sens_pain,
-        base.sens_pain_zone,
-        base.sens_pain_exercise,
-        base.sens_comment
-      ];
-      rows.push(row.map(escapeCsvCell).join(","));
+      rows.push(toRow({ session }));
       return;
     }
-
     exercises.forEach(ex => {
       const sets = Array.isArray(ex.sets) ? ex.sets : [];
-      const exerciseNote = (ex.notes ?? Array.from(new Set((ex.sets || []).map(s => (s.obs ?? "").trim()).filter(Boolean))).join(" / ")).trim();
       if (!sets.length) {
-        const row = [
-          base.usuario,
-          base.fecha,
-          base.semana,
-          base.dia,
-          ex.nombre || "",
-          isWarmupExercise(ex) ? t("option.yes") : t("option.no"),
-          ex.musculo || "",
-          ex.seccion || "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          exerciseNote,
-          base.sens_general,
-          base.sens_tiredness,
-          base.sens_weight,
-          base.sens_pain,
-          base.sens_pain_zone,
-          base.sens_pain_exercise,
-          base.sens_comment
-        ];
-        rows.push(row.map(escapeCsvCell).join(","));
+        rows.push(toRow({ session, ex }));
         return;
       }
-      sets.forEach(set => {
-        const row = [
-          base.usuario,
-          base.fecha,
-          base.semana,
-          base.dia,
-          ex.nombre || "",
-          isWarmupExercise(ex) ? t("option.yes") : t("option.no"),
-          ex.musculo || "",
-          ex.seccion || "",
-          set.serie ?? "",
-          set.peso ?? "",
-          set.reps ?? "",
-          set.rir ?? "",
-          set.fallo === true ? t("option.yes") : set.fallo === false ? t("option.no") : "",
-          set.repsFallo ?? "",
-          set.intensidad ?? "",
-          set.tiempo ?? "",
-          exerciseNote,
-          base.sens_general,
-          base.sens_tiredness,
-          base.sens_weight,
-          base.sens_pain,
-          base.sens_pain_zone,
-          base.sens_pain_exercise,
-          base.sens_comment
-        ];
-        rows.push(row.map(escapeCsvCell).join(","));
-      });
+      sets.forEach(set => rows.push(toRow({ session, ex, set })));
     });
   });
-
   return rows.join("\n");
+}
+
+// Notas del ejercicio; las sesiones antiguas las guardaban por serie en "obs"
+function getExerciseNote(ex) {
+  return (ex.notes ?? Array.from(new Set((ex.sets || []).map(set => (set.obs ?? "").trim()).filter(Boolean))).join(" / ")).trim();
 }
 
 if (exportUserHistoryCsvBtn) {

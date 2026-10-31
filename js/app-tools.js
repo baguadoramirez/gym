@@ -25,9 +25,6 @@ const quickAddSearch = document.getElementById('quick-add-search');
 const quickAddGroups = document.getElementById('quick-add-groups');
 const quickAddResults = document.getElementById('quick-add-results');
 const quickAddMostUsed = document.getElementById('quick-add-most-used');
-const quickAddWarmup = document.getElementById('quick-add-warmup');
-const quickAddFavoritesOnly = document.getElementById('quick-add-favorites-only');
-const quickAddNoMaterialOnly = document.getElementById('quick-add-no-material');
 const quickAddCustomBtn = document.getElementById('quick-add-custom');
 const customExerciseOverlay = document.getElementById('custom-exercise-overlay');
 const customExerciseName = document.getElementById('custom-exercise-name');
@@ -130,9 +127,6 @@ function openQuickAddOverlay() {
   quickAddMode = "popular";
   quickAddSelectedGroup = "";
   if (quickAddSearch) quickAddSearch.value = "";
-  if (quickAddFavoritesOnly) quickAddFavoritesOnly.checked = false;
-  if (quickAddNoMaterialOnly) quickAddNoMaterialOnly.checked = false;
-  if (quickAddWarmup) quickAddWarmup.checked = false;
   renderQuickAddGroups();
   renderQuickAddResults();
   const firstExercise = quickAddResults?.querySelector(".quick-result-item");
@@ -388,8 +382,6 @@ function getQuickAddPool() {
 
 function getQuickAddMatches() {
   const searchText = getQuickAddSearchText();
-  const favoritesOnly = Boolean(quickAddFavoritesOnly?.checked);
-  const noMaterialOnly = Boolean(quickAddNoMaterialOnly?.checked);
   const favorites = new Set(loadFavorites());
   const usageCounts = getQuickAddUsageCounts();
 
@@ -401,8 +393,6 @@ function getQuickAddMatches() {
     const muscle = tpl?.musculo || "";
     const searchable = normalizeQuickAddText(`${name} ${group} ${muscle} ${section}`);
     if (quickAddSelectedGroup && group !== quickAddSelectedGroup) return false;
-    if (favoritesOnly && !favorites.has(name)) return false;
-    if (noMaterialOnly && !tpl?.sinMaterial) return false;
     if (!quickAddMatchesSearch(searchable, searchText)) return false;
     return true;
   });
@@ -414,13 +404,6 @@ function getQuickAddMatches() {
       if (countDifference) return countDifference;
     }
     return a.localeCompare(b, getLocale());
-  });
-}
-
-function updateQuickFilterStates() {
-  [quickAddFavoritesOnly, quickAddNoMaterialOnly, quickAddWarmup].forEach(input => {
-    const label = input?.closest(".quick-filter");
-    if (label) label.classList.toggle("is-active", input.checked);
   });
 }
 
@@ -459,19 +442,18 @@ function renderQuickAddGroups() {
     });
     quickAddGroups.appendChild(btn);
   });
+  quickAddGroups.querySelector(".is-active")?.scrollIntoView({ block: "nearest", inline: "center" });
 }
 
 function addQuickExercise(name) {
   if (!name) return;
-  addExerciseFromTemplate(name, { calentamiento: quickAddWarmup?.checked === true });
-  if (quickAddWarmup) quickAddWarmup.checked = false;
+  addExerciseFromTemplate(name);
   closeQuickAddOverlay();
 }
 
 function renderQuickAddResults() {
   if (!quickAddResults) return;
   updateQuickShortcutStates();
-  updateQuickFilterStates();
   const matches = getQuickAddMatches();
   const favorites = new Set(loadFavorites());
   const usageCounts = getQuickAddUsageCounts();
@@ -479,9 +461,7 @@ function renderQuickAddResults() {
   if (!matches.length) {
     const empty = document.createElement("div");
     empty.className = "quick-add-empty";
-    empty.textContent = quickAddFavoritesOnly?.checked
-      ? t("quickAdd.emptyFavorites")
-      : t("quickAdd.empty");
+    empty.textContent = t("quickAdd.empty");
     quickAddResults.appendChild(empty);
     return;
   }
@@ -554,21 +534,9 @@ if (quickAddMostUsed) {
     renderQuickAddResults();
   });
 }
-if (quickAddFavoritesOnly) {
-  quickAddFavoritesOnly.addEventListener("change", renderQuickAddResults);
-}
-if (quickAddNoMaterialOnly) {
-  quickAddNoMaterialOnly.addEventListener("change", renderQuickAddResults);
-}
-if (quickAddWarmup) {
-  quickAddWarmup.addEventListener("change", updateQuickFilterStates);
-}
 
 if (quickAddCustomBtn) {
   quickAddCustomBtn.addEventListener("click", () => {
-    if (customExerciseWarmup && quickAddWarmup) {
-      customExerciseWarmup.checked = quickAddWarmup.checked;
-    }
     closeQuickAddOverlay();
     openCustomExerciseOverlay();
   });
@@ -661,7 +629,6 @@ if (customExerciseConfirm) {
     scheduleExercisePagination();
     closeCustomExerciseOverlay();
     if (customExerciseWarmup) customExerciseWarmup.checked = false;
-    if (quickAddWarmup) quickAddWarmup.checked = false;
   });
 }
 
