@@ -825,6 +825,43 @@ function updateHistoryButtons() {
   updateHistoryDateListSelection();
 }
 
+// Emoji y color fijos por grupo: los comparten el historial y el gráfico circular de Progreso
+const MUSCLE_GROUP_STYLES = {
+  Pecho: { icon: "🫁", color: "#f97316" },
+  Espalda: { icon: "🧍", color: "#38bdf8" },
+  Hombros: { icon: "🤷", color: "#a855f7" },
+  Brazos: { icon: "💪", color: "#facc15" },
+  Antebrazos: { icon: "✊", color: "#14b8a6" },
+  Piernas: { icon: "🦵", color: "#22c55e" },
+  Core: { icon: "🧱", color: "#ef4444" },
+  Cardio: { icon: "❤️", color: "#e11d48" }
+};
+
+function getMuscleGroupStyle(group) {
+  return MUSCLE_GROUP_STYLES[group] || { icon: "🔸", color: "#94a3b8" };
+}
+
+// Series por grupo muscular de una sesión (sin calentamientos), de más a menos
+function getSessionGroupSets(session) {
+  const totals = new Map();
+  (session?.exercises || []).forEach(exercise => {
+    if (isWarmupExercise(exercise)) return;
+    const sets = Array.isArray(exercise.sets) ? exercise.sets.length : 0;
+    if (!sets) return;
+    const tpl = exerciseTemplates[exercise?.nombre] || { musculo: exercise?.musculo };
+    const group = resolveExerciseGroup(tpl) || "Otros";
+    totals.set(group, (totals.get(group) || 0) + sets);
+  });
+  return Array.from(totals, ([name, sets]) => ({ name, sets })).sort((a, b) => b.sets - a.sets);
+}
+
+function formatHistoryListDate(dateStr) {
+  const date = new Date(`${dateStr}T12:00:00`);
+  if (isNaN(date)) return dateStr;
+  const label = date.toLocaleDateString(getLocale(), { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 function formatHistoryDateLabel(dateStr) {
   const date = new Date(dateStr);
   if (isNaN(date)) return dateStr || "-";
@@ -858,34 +895,44 @@ function renderHistoryDateList() {
     return;
   }
 
-  sessions.forEach(session => {
+  // Las barras se escalan con el máximo de todo el historial para que las sesiones sean comparables
+  const groupSetsBySession = sessions.map(getSessionGroupSets);
+  const maxGroupSets = Math.max(1, ...groupSetsBySession.flatMap(groups => groups.map(group => group.sets)));
+
+  sessions.forEach((session, index) => {
+    const groups = groupSetsBySession[index];
     const button = document.createElement("button");
     button.type = "button";
     button.className = "history-date-item";
     button.dataset.date = session.date;
     button.dataset.key = getHistorySessionKey(session);
+    const dateLabel = formatHistoryListDate(session.date);
+    button.setAttribute("aria-label", [dateLabel, ...groups.map(group => `${translateGroupLabel(group.name)} ${group.sets} series`)].join(", "));
 
+    const main = document.createElement("span");
+    main.className = "history-item-main";
     const title = document.createElement("span");
     title.className = "history-date-item-title";
-    title.textContent = formatHistoryDateLabel(session.date);
+    title.textContent = dateLabel;
+    const summary = document.createElement("span");
+    summary.className = "history-item-groups";
+    summary.textContent = groups.length
+      ? groups.map(group => `${getMuscleGroupStyle(group.name).icon}×${group.sets}`).join("  ")
+      : "—";
+    main.append(title, summary);
 
-    const details = document.createElement("span");
-    details.className = "history-date-item-details";
-    const exercises = Array.isArray(session.exercises) ? session.exercises : [];
-    const routine = [session.week, session.day].filter(Boolean).map(translateRoutineLabel).join(" · ");
-    const countLabel = `${exercises.length} ${exercises.length === 1 ? "ejercicio" : "ejercicios"}`;
-    details.textContent = routine ? `${routine} · ${countLabel}` : countLabel;
+    const bars = document.createElement("span");
+    bars.className = "history-item-bars";
+    bars.setAttribute("aria-hidden", "true");
+    groups.forEach(group => {
+      const bar = document.createElement("span");
+      bar.className = "history-item-bar";
+      bar.style.height = `${Math.max(12, Math.round((group.sets / maxGroupSets) * 100))}%`;
+      bar.style.background = getMuscleGroupStyle(group.name).color;
+      bars.appendChild(bar);
+    });
 
-    const names = document.createElement("span");
-    names.className = "history-date-item-exercises";
-    names.textContent = exercises
-      .map(exercise => exercise?.nombre || exercise?.name || exercise?.exercise || exercise?.ejercicio || "")
-      .filter(Boolean)
-      .join(", ");
-
-    button.appendChild(title);
-    button.appendChild(details);
-    if (names.textContent) button.appendChild(names);
+    button.append(main, bars);
     button.addEventListener("click", () => {
       historyDateInput.value = session.date;
       selectedHistorySessionKey = getHistorySessionKey(session);
@@ -1581,9 +1628,34 @@ function isSessionSavedToHistory() {
   return getLocalHistory().some(session => session.key === key);
 }
 
+// Hay cambios que aún no están en el historial (o la sesión nunca se guardó)
+function isSessionPendingSave() {
+  const key = sessionKey();
+  const saved = getLocalHistory().find(session => session.key === key);
+  if (!saved) return true;
+  const current = readStorageJSON(key, null);
+  if (!current) return false;
+  const comparable = data => JSON.stringify({ exercises: data.exercises || [], sensations: data.sensations || {} });
+  return comparable(current) !== comparable(saved);
+}
+
+// Sesión con la misma fecha y rutina ya guardada: se avisa una vez por entreno antes de sustituirla
+var overwriteConfirmedKey = "";
+
+function confirmSessionOverwrite() {
+  const key = sessionKey();
+  const existing = getLocalHistory().find(session => session.key === key);
+  if (!existing || overwriteConfirmedKey === key || !isSessionPendingSave()) return true;
+  const dayLabel = String(existing.day || "").split(/[–—-]/)[0].trim();
+  const when = [formatHistoryListDate(existing.date), dayLabel].filter(Boolean).join(" · ");
+  const ok = confirm(`Ya hay una sesión guardada (${when}).\n\nSi continúas, se sustituirá por la sesión actual y perderás la anterior.`);
+  if (ok) overwriteConfirmedKey = key;
+  return ok;
+}
+
 function isSaveAndContinueStep() {
   const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
-  return stepPages[activeStepIndex] === step4 && hasExercises && !isSessionSavedToHistory();
+  return stepPages[activeStepIndex] === step4 && hasExercises && isSessionPendingSave();
 }
 
 function updateStepNavigation() {
@@ -1624,6 +1696,11 @@ function updateStepNavigation() {
     });
   }
   document.body.classList.toggle("has-bottom-bar", showTabBar);
+  const overwriteHint = document.getElementById("session-overwrite-hint");
+  if (overwriteHint) {
+    const showHint = inWorkout && activeStep !== step5 && isSessionSavedToHistory() && overwriteConfirmedKey !== sessionKey();
+    overwriteHint.classList.toggle("is-hidden", !showHint);
+  }
   document.body.classList.toggle("has-stepper", inWorkout);
   if (appFooter) {
     appFooter.hidden = activeStepIndex !== 0;
@@ -1899,9 +1976,10 @@ function initializeStepper() {
       if (isSaveAndContinueStep()) {
         if (!checkSensationsForm(true)) return;
         saveSessionBtn.click();
-        if (!isSessionSavedToHistory()) return;
+        if (isSessionPendingSave()) return;
       }
       if (stepPages[activeStepIndex] === step5) {
+        overwriteConfirmedKey = "";
         openTab("inicio");
         return;
       }
@@ -2985,7 +3063,9 @@ if (saveSessionBtn) {
     const key = sessionKey();
     const saved = readStorageJSON(key, null);
     if (!saved) return alert(t("alert.noDataToday"));
+    if (!confirmSessionOverwrite()) return;
     upsertLocalHistory(saved);
+    overwriteConfirmedKey = key;
     sensationsValidationAttempted = false;
     updateStepStatus();
     setStatus(t("status.sessionSavedLocal"));

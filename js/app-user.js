@@ -367,32 +367,46 @@ function renderUserStatsPieChart() {
   }
   setVisible(globalUserStatsPieNoData, false);
 
-  const palette = [
-    "#f97316",
-    "#22c55e",
-    "#38bdf8",
-    "#a855f7",
-    "#facc15",
-    "#ef4444",
-    "#14b8a6",
-    "#e11d48",
-    "#84cc16",
-    "#0ea5e9"
-  ];
+  const colors = labels.map(label => getMuscleGroupStyle(label).color);
+  const isDark = document.documentElement.classList.contains("dark");
+  // Total de series en el centro del anillo
+  const centerTotal = {
+    id: "centerTotal",
+    afterDraw(chart) {
+      const { ctx, chartArea } = chart;
+      if (!chartArea) return;
+      const x = (chartArea.left + chartArea.right) / 2;
+      const y = (chartArea.top + chartArea.bottom) / 2;
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.fillStyle = isDark ? "#f8fafc" : "#111827";
+      ctx.font = "800 26px system-ui, sans-serif";
+      ctx.fillText(String(totalSum), x, y + 4);
+      ctx.fillStyle = isDark ? "#9ca3af" : "#6b7280";
+      ctx.font = "600 12px system-ui, sans-serif";
+      ctx.fillText("series", x, y + 22);
+      ctx.restore();
+    }
+  };
 
   if (globalUserStatsPieInstance) globalUserStatsPieInstance.destroy();
   globalUserStatsPieInstance = new Chart(globalUserStatsPieCanvas, {
-    type: "pie",
+    type: "doughnut",
     data: {
-      labels,
+      labels: labels.map(label => translateGroupLabel(label)),
       datasets: [{
         data: values,
-        backgroundColor: labels.map((_, idx) => palette[idx % palette.length])
+        backgroundColor: colors,
+        borderColor: isDark ? "#111111" : "#ffffff",
+        borderWidth: 2,
+        hoverOffset: 6
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      cutout: "62%",
+      layout: { padding: 6 },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -400,43 +414,37 @@ function renderUserStatsPieChart() {
             label: (ctx) => {
               const value = ctx.parsed || 0;
               const pct = totalSum ? Math.round((value / totalSum) * 1000) / 10 : 0;
-              return `${ctx.label}: ${value} (${pct}%)`;
+              return `${ctx.label}: ${value} series (${pct}%)`;
             }
           }
         }
       }
-    }
+    },
+    plugins: [centerTotal]
   });
 
   if (globalUserStatsPieLegend) {
-    const iconMap = {
-      "Pecho": "🫁",
-      "Espalda": "🧍",
-      "Hombros": "🤷",
-      "Brazos": "💪",
-      "Piernas": "🦵",
-      "Core": "🧱",
-      "Cardio": "❤️",
-      "Otros": "🔹"
-    };
     globalUserStatsPieLegend.innerHTML = "";
-    labels.forEach((label, idx) => {
-      const item = document.createElement("div");
-      item.className = "pie-icon-item";
-      const dot = document.createElement("span");
-      dot.className = "pie-icon-dot";
-      dot.style.background = palette[idx % palette.length];
-      const icon = document.createElement("span");
-      icon.textContent = iconMap[label] || "🔸";
-      const text = document.createElement("span");
-      const value = values[idx] || 0;
-      const pct = totalSum ? Math.round((value / totalSum) * 1000) / 10 : 0;
-      text.textContent = `${label} ${pct}%`;
-      item.appendChild(dot);
-      item.appendChild(icon);
-      item.appendChild(text);
-      globalUserStatsPieLegend.appendChild(item);
-    });
+    labels
+      .map((label, idx) => ({ label, value: values[idx] || 0 }))
+      .sort((a, b) => b.value - a.value)
+      .forEach(({ label, value }) => {
+        const style = getMuscleGroupStyle(label);
+        const item = document.createElement("div");
+        item.className = "pie-icon-item";
+        const dot = document.createElement("span");
+        dot.className = "pie-icon-dot";
+        dot.style.background = style.color;
+        const name = document.createElement("span");
+        name.className = "pie-icon-name";
+        name.textContent = `${style.icon} ${translateGroupLabel(label)}`;
+        const amount = document.createElement("span");
+        amount.className = "pie-icon-value";
+        const pct = totalSum ? Math.round((value / totalSum) * 100) : 0;
+        amount.textContent = `${value} · ${pct}%`;
+        item.append(dot, name, amount);
+        globalUserStatsPieLegend.appendChild(item);
+      });
   }
 }
 

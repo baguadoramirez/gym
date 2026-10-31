@@ -301,6 +301,9 @@
       <span id="step-2-status" class="step-status">Opcional</span>
     </summary>
     <div class="step-body">
+    <p id="session-overwrite-hint" class="session-overwrite-hint is-hidden" role="status">
+      <b>Ya hay una sesión guardada hoy.</b> Estás editándola: al guardar, se sustituirá por lo que registres ahora.
+    </p>
   <div class="controls step2-controls">
     <div class="step2-mode-selector">
       <label>
@@ -689,8 +692,6 @@
       <span class="step-status">Sesiones</span>
     </summary>
     <div class="step-body">
-      <h2 class="page-title">Historial</h2>
-      <p class="hint-text page-subtitle">Elige una sesión para verla o editarla.</p>
       <input type="hidden" id="history-date-input">
       <div id="history-date-list" class="history-date-list"></div>
       <button id="history-view-btn" class="btn-primary icon-action-btn icon-text-btn is-hidden" type="button" aria-label="Ver y editar sesión seleccionada" title="Ver y editar sesión seleccionada" disabled>
