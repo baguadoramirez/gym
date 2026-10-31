@@ -1,6 +1,7 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 /* ==========================================================
    Núcleo de Gym Tracker
-   Requiere: ejercicios.js + app-storage.js + html2canvas + index.html
+   Requiere: ejercicios.js + app-storage.js + index.html
    ========================================================== */
 
 // Elementos del DOM
@@ -36,15 +37,8 @@ const importMergeHistoryBtn = document.getElementById("import-merge-history-btn"
 const importMergeHistoryInput = document.getElementById("import-merge-history-input");
 const userHistoryStatus = document.getElementById("user-history-status");
 const appContent = document.getElementById("app-content");
-const importOverlay = document.getElementById("import-overlay");
-const importUserSelect = document.getElementById("import-user-select");
-const importOverlayCancel = document.getElementById("import-overlay-cancel");
-const importOverlayConfirm = document.getElementById("import-overlay-confirm");
 const manageUserOverlay = document.getElementById("manage-user-overlay");
 const manageUserClose = document.getElementById("manage-user-close");
-const manageUserHistoryBtn = document.getElementById("manage-user-history-btn");
-const manageUserChartsBtn = document.getElementById("manage-user-charts-btn");
-const manageUserMuscleChartsBtn = document.getElementById("manage-user-muscle-charts-btn");
 const manageUserFavoritesBtn = document.getElementById("manage-user-favorites-btn");
 const manageUserNameLabel = document.getElementById("manage-user-name");
 const globalUserStatsChartCanvas = document.getElementById("global-user-stats-chart");
@@ -52,8 +46,6 @@ const globalUserStatsNoData = document.getElementById("global-user-stats-no-data
 const globalUserStatsPieCanvas = document.getElementById("global-user-stats-pie");
 const globalUserStatsPieNoData = document.getElementById("global-user-stats-pie-no-data");
 const globalUserStatsPieLegend = document.getElementById("global-user-stats-pie-legend");
-const historyMenuOverlay = document.getElementById("history-menu-overlay");
-const historyMenuClose = document.getElementById("history-menu-close");
 const step0 = document.getElementById("step-0");
 const step1 = document.getElementById("step-1");
 const stepDashboard = document.getElementById("step-dashboard");
@@ -65,8 +57,8 @@ const step6 = document.getElementById("step-6");
 const step7 = document.getElementById("step-7");
 const step8 = document.getElementById("step-8");
 const step9 = document.getElementById("step-9");
-const step3Body = document.getElementById("step-3-body");
-const step7Body = document.getElementById("step-7-body");
+const stepHistory = document.getElementById("step-history");
+const tabBar = document.getElementById("tab-bar");
 const step1Status = document.getElementById("step-1-status");
 const step2Status = document.getElementById("step-2-status");
 const step3Status = document.getElementById("step-3-status");
@@ -82,12 +74,18 @@ const stepperStepName = document.getElementById("stepper-step-name");
 const stepperStepPosition = document.getElementById("stepper-step-position");
 const appFooter = document.getElementById("app-footer");
 const subheader = document.getElementById("subheader");
+const compactHeader = document.getElementById("compact-header");
+if (compactHeader && subheader) {
+  const headerControls = compactHeader.querySelector(".header-controls");
+  subheader.querySelectorAll(".session-strip, .floating-actions").forEach(el => {
+    compactHeader.insertBefore(el, headerControls);
+  });
+}
 const toggleUserManageBtn = document.getElementById("toggle-user-manage");
 const currentUserNameLabel = document.getElementById("current-user-name");
 const toggleStopwatchBtn = document.getElementById("toggle-stopwatch");
 const toggleQuickAddBtn = document.getElementById("toggle-quick-add");
 const toggleOrderModeBtn = document.getElementById("toggle-order-mode");
-const sessionHeaderDate = document.getElementById("session-header-date");
 const sessionSaveStatus = document.getElementById("session-save-status");
 const sessionStatusPill = document.querySelector(".session-status-pill");
 const exerciseEmptyState = document.getElementById("exercise-empty-state");
@@ -142,10 +140,6 @@ const loadPreviousSessionBtn = document.getElementById("load-previous-session-bt
 let lastRoutinePromptSignature = "";
 const ROUTINE_VALUE_SEP = "|||";
 
-const FONT_SCALE_KEY = "gym_font_scale";
-const FONT_SCALE_MIN = 0.75;
-const FONT_SCALE_MAX = 1.45;
-const FONT_SCALE_STEP = 0.05;
 const SESSION_MODE_KEY = "gym_session_mode";
 const SESSION_MODE_DEFAULT = "manual";
 const TEXT_STRINGS = {
@@ -280,7 +274,7 @@ const TEXT_STRINGS = {
     "status.sessionOverwritten": "Sesión sobrescrita correctamente.",
     "footer.createdBy": "Web creada por",
     "footer.licensePrefix": "Código bajo",
-    "footer.licenseLink": "Licencia Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional",
+    "footer.licenseLink": "GNU GPL v3",
     "import.title": "Selecciona el usuario para fusionar",
     "manage.title": "Gestión del usuario",
     "manage.history": "Sesiones anteriores",
@@ -423,11 +417,11 @@ const TEXT_STRINGS = {
     "status.routineDeleted": "Rutina borrada.",
     "status.timeFinished": "Tiempo terminado.",
     "error.addExerciseToActivate": "Añade al menos un ejercicio para activar el cuestionario post-entrenamiento.",
-    "error.completeQuestionnaire": "Completa el cuestionario de post-entrenamiento para activar los botones.",
+    "error.completeQuestionnaire": "Te falta valorar las sensaciones y el cansancio para guardar la sesión.",
     "error.requiredField": "Campo obligatorio.",
     "error.painZoneRequired": "Indica la zona del dolor.",
     "error.exerciseRequired": "Selecciona un ejercicio.",
-    "error.completeQuestionnaireButtons": "Completa el cuestionario para activar los botones.",
+    "error.completeQuestionnaireButtons": "Completa el cuestionario para guardar la sesión.",
     "message.sessionSavedTitle": "Sesión guardada.",
     "message.routineSavedTitle": "Rutina guardada.",
     "message.errorTitle": "Error.",
@@ -569,6 +563,11 @@ function getFocusableElements(root) {
   ));
 }
 
+// Los textos de técnica de ejercicios.js usan <b> para resaltar; es la única etiqueta que se respeta
+function formatTechniqueText(value) {
+  return escapeHtml(value).replace(/&lt;(\/?)b&gt;/g, "<$1b>");
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -636,7 +635,39 @@ document.addEventListener("keydown", event => {
 
 let currentUserName = appState.currentUserName;
 let currentUserKey = appState.currentUserKey;
-const stepPages = [step0, step1, stepDashboard, step2, step3, step4, step5, step6, step7, step8, step9].filter(Boolean);
+const stepPages = [step0, step1, stepDashboard, step2, step3, step4, step5, step6, step7, step8, step9, stepHistory].filter(Boolean);
+
+// Pestañas: cada una agrupa sus páginas. "Entrenar" es el asistente de la sesión.
+const TAB_PAGES = {
+  inicio: [stepDashboard],
+  entrenar: [step2, step3, step4, step5],
+  historial: [stepHistory, step7],
+  progreso: [step8, step9, step6]
+};
+
+function getActiveTab() {
+  const page = stepPages[activeStepIndex];
+  return Object.keys(TAB_PAGES).find(tab => TAB_PAGES[tab].includes(page)) || "";
+}
+
+function openTab(tab) {
+  if (!TAB_PAGES[tab]) return;
+  let target = TAB_PAGES[tab][0];
+  if (tab === "entrenar") {
+    const hasExercises = mainExercisesContainer && mainExercisesContainer.children.length > 0;
+    if (hasExercises && !isSessionSavedToHistory()) target = step3;
+  }
+  if (tab === "historial") {
+    refreshHistoryUI();
+    if (historyDateInput) historyDateInput.value = "";
+    selectedHistorySessionKey = "";
+    if (typeof updateHistoryButtons === "function") updateHistoryButtons();
+  }
+  const index = stepPages.indexOf(target);
+  if (index >= 0) setActiveStep(index, { force: true, ignoreMax: true });
+  window.scrollTo(0, 0);
+}
+window.openGymTab = openTab;
 let activeStepIndex = appState.activeStepIndex;
 let pendingStartStepIndex = null;
 let activeExerciseIndex = 0;
@@ -752,18 +783,6 @@ function setSessionSaveState(state, label) {
   }
 }
 
-function formatSessionHeaderDate(value) {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit" });
-}
-
-function updateSessionHeaderDate() {
-  if (!sessionHeaderDate) return;
-  sessionHeaderDate.textContent = formatSessionHeaderDate(dateInput?.value || "");
-}
-
 function markSessionDirty() {
   if (!currentUserKey || isEditingHistory) return;
   if (!sessionIsDirty) {
@@ -816,6 +835,13 @@ function formatHistoryDateLabel(dateStr) {
   });
 }
 
+// Varias sesiones pueden compartir fecha (p. ej. Día 1 y Día 2): se identifican por su clave
+var selectedHistorySessionKey = "";
+
+function getHistorySessionKey(session) {
+  return session?.key || buildSessionKey(session);
+}
+
 function renderHistoryDateList() {
   if (!historyDateList) return;
   const sessions = (window.uploadedHistory || [])
@@ -832,15 +858,12 @@ function renderHistoryDateList() {
     return;
   }
 
-  const seenDates = new Set();
   sessions.forEach(session => {
-    if (seenDates.has(session.date)) return;
-    seenDates.add(session.date);
-
     const button = document.createElement("button");
     button.type = "button";
     button.className = "history-date-item";
     button.dataset.date = session.date;
+    button.dataset.key = getHistorySessionKey(session);
 
     const title = document.createElement("span");
     title.className = "history-date-item-title";
@@ -848,17 +871,26 @@ function renderHistoryDateList() {
 
     const details = document.createElement("span");
     details.className = "history-date-item-details";
-    const routine = session.week || session.day || "";
-    const exerciseCount = Array.isArray(session.exercises) ? session.exercises.length : 0;
-    details.textContent = routine
-      ? `${translateRoutineLabel(routine)} · ${exerciseCount} ejercicios`
-      : `${exerciseCount} ejercicios`;
+    const exercises = Array.isArray(session.exercises) ? session.exercises : [];
+    const routine = [session.week, session.day].filter(Boolean).map(translateRoutineLabel).join(" · ");
+    const countLabel = `${exercises.length} ${exercises.length === 1 ? "ejercicio" : "ejercicios"}`;
+    details.textContent = routine ? `${routine} · ${countLabel}` : countLabel;
+
+    const names = document.createElement("span");
+    names.className = "history-date-item-exercises";
+    names.textContent = exercises
+      .map(exercise => exercise?.nombre || exercise?.name || exercise?.exercise || exercise?.ejercicio || "")
+      .filter(Boolean)
+      .join(", ");
 
     button.appendChild(title);
     button.appendChild(details);
+    if (names.textContent) button.appendChild(names);
     button.addEventListener("click", () => {
       historyDateInput.value = session.date;
+      selectedHistorySessionKey = getHistorySessionKey(session);
       updateHistoryButtons();
+      openHistorySession(session);
     });
     historyDateList.appendChild(button);
   });
@@ -870,7 +902,9 @@ function updateHistoryDateListSelection() {
   if (!historyDateList || !historyDateInput) return;
   const selectedDate = historyDateInput.value;
   historyDateList.querySelectorAll(".history-date-item").forEach(button => {
-    const active = button.dataset.date === selectedDate;
+    const active = selectedHistorySessionKey
+      ? button.dataset.key === selectedHistorySessionKey
+      : button.dataset.date === selectedDate;
     button.classList.toggle("is-active", active);
     button.setAttribute("aria-pressed", active ? "true" : "false");
   });
@@ -881,6 +915,10 @@ function getSelectedHistorySession() {
   if (!dateStr) return null;
   const sessions = (window.uploadedHistory || []).filter(session => session.date === dateStr);
   if (!sessions.length) return null;
+  if (selectedHistorySessionKey) {
+    const byKey = sessions.find(session => getHistorySessionKey(session) === selectedHistorySessionKey);
+    if (byKey) return byKey;
+  }
   const sorted = sessions.slice().sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
   return sorted[0];
 }
@@ -892,6 +930,7 @@ function openHistorySession(session) {
 
   if (historyDateInput) {
     historyDateInput.value = session.date || "";
+    selectedHistorySessionKey = getHistorySessionKey(session);
     updateHistoryButtons();
   }
 
@@ -916,20 +955,15 @@ function openHistorySession(session) {
     historyBodyWeightInput.value = session?.sensations?.weight ?? "";
   }
   setHistoryEditorMode(false);
-  if (historyMenuOverlay?.getAttribute("aria-hidden") === "false") {
-    closeOverlay(historyMenuOverlay);
-  }
   setActiveStep(step7Index, { force: true, ignoreMax: true });
   return true;
 }
 
 window.openGymHistorySession = ({ date, key } = {}) => {
   const sessions = window.uploadedHistory || [];
-  const selected = sessions.find(session => {
-    const sessionKeyValue = session.key || buildSessionKey(session);
-    if (key && sessionKeyValue === key) return true;
-    return date && session.date === date;
-  });
+  // Primero por clave: una coincidencia solo de fecha podría ser otra sesión del mismo día
+  const selected = (key && sessions.find(session => getHistorySessionKey(session) === key))
+    || (date && sessions.find(session => session.date === date));
   return openHistorySession(selected || null);
 };
 
@@ -1130,6 +1164,7 @@ function deleteSelectedHistorySession() {
   rebuildHistoryData(sessions);
   refreshHistoryUI();
   if (historyDateInput) historyDateInput.value = "";
+  selectedHistorySessionKey = "";
   updateHistoryButtons();
   populateHistoryDaySelect();
   refreshCharts();
@@ -1528,6 +1563,10 @@ function getMaxStepIndex() {
     if (allowGlobalChartsStep && step9Index >= 0) {
       maxIndex = Math.max(maxIndex, step9Index);
     }
+    const historyIndex = stepPages.indexOf(stepHistory);
+    if (historyIndex >= 0 && activeStepIndex === historyIndex) {
+      maxIndex = Math.max(maxIndex, historyIndex);
+    }
     return maxIndex;
   }
   const loginIndex = stepPages.indexOf(step1);
@@ -1540,6 +1579,11 @@ function isSessionSavedToHistory() {
   const key = sessionKey();
   if (!key) return false;
   return getLocalHistory().some(session => session.key === key);
+}
+
+function isSaveAndContinueStep() {
+  const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
+  return stepPages[activeStepIndex] === step4 && hasExercises && !isSessionSavedToHistory();
 }
 
 function updateStepNavigation() {
@@ -1560,21 +1604,36 @@ function updateStepNavigation() {
     [step5, "Resumen"],
     [step6, "Gráficos"],
     [step7, "Sesión anterior"],
-    [step8, "Gráficos por ejercicio"],
-    [step9, "Gráficos musculares"]
+    [step8, "Progreso"],
+    [step9, "Progreso"],
+    [stepHistory, "Historial"]
   ]);
+  const activeTab = getActiveTab();
+  const inWorkout = activeTab === "entrenar";
+  // Las pestañas están siempre visibles con usuario activo; en el entreno la barra de pasos va encima
+  const showTabBar = isAppVisible() && Boolean(activeTab);
 
   if (stepperFooter) {
-    stepperFooter.style.display = activeStepIndex === 0 ? "none" : "grid";
+    stepperFooter.style.display = inWorkout ? "grid" : "none";
   }
+  if (tabBar) {
+    tabBar.hidden = !showTabBar;
+    tabBar.querySelectorAll(".tab-bar-btn").forEach(btn => {
+      if (btn.dataset.tab === activeTab) btn.setAttribute("aria-current", "page");
+      else btn.removeAttribute("aria-current");
+    });
+  }
+  document.body.classList.toggle("has-bottom-bar", showTabBar);
+  document.body.classList.toggle("has-stepper", inWorkout);
   if (appFooter) {
     appFooter.hidden = activeStepIndex !== 0;
   }
   if (stepperStepName) {
     stepperStepName.textContent = stepNames.get(activeStep) || "Sesión";
   }
-  if (stepperStepPosition) {
-    stepperStepPosition.textContent = `Paso ${activeStepIndex} de ${Math.max(1, stepPages.length - 1)}`;
+  if (stepperStepPosition && inWorkout) {
+    const workoutSteps = TAB_PAGES.entrenar;
+    stepperStepPosition.textContent = `Paso ${workoutSteps.indexOf(activeStep) + 1} de ${workoutSteps.length}`;
   }
 
   if (subheader) {
@@ -1586,6 +1645,7 @@ function updateStepNavigation() {
       : step2Index >= 0 && activeStepIndex >= step2Index;
     const isStep3 = step3Index >= 0 && activeStepIndex === step3Index;
     subheader.classList.toggle("is-visible", showFromStep2);
+    if (compactHeader) compactHeader.classList.toggle("has-session", showFromStep2);
 
     if (toggleUserManageBtn) {
       toggleUserManageBtn.style.display = showFromStep2 ? "flex" : "none";
@@ -1609,8 +1669,19 @@ function updateStepNavigation() {
   }
   if (stepperNextBtn) {
     const atLast = activeStepIndex >= maxIndex;
-    const canMoveNext = !atLast;
+    const saveAndContinue = isSaveAndContinueStep();
+    const finishing = activeStep === step5;
+    const canMoveNext = !atLast || saveAndContinue || finishing;
     stepperNextBtn.disabled = !canMoveNext;
+    stepperNextBtn.textContent = finishing ? "✓" : "→";
+    const nextLabel = saveAndContinue
+      ? "Guardar sesión y continuar"
+      : (finishing ? "Terminar y volver al inicio" : "Paso siguiente");
+    stepperNextBtn.setAttribute("aria-label", nextLabel);
+    stepperNextBtn.title = nextLabel;
+    if (saveAndContinue && stepperStepPosition) {
+      stepperStepPosition.textContent = "Pulsa → para guardar";
+    }
     stepperNextBtn.style.display = activeStepIndex === 0 ? "none" : "inline-flex";
   }
 }
@@ -1693,7 +1764,6 @@ function setActiveStep(index, options = {}) {
     if (editExercisesContainer) editExercisesContainer.innerHTML = "";
     if (editingSessionContext?.restoreOnExit) {
       if (dateInput) dateInput.value = editingSessionContext.date || "";
-      updateSessionHeaderDate();
       if (weekSelect) {
         ensureSelectValue(weekSelect, editingSessionContext.week || "");
       }
@@ -1760,6 +1830,15 @@ function navigateToPreviousStep(options = {}) {
   const step5Index = stepPages.indexOf(step5);
   const step2Index = stepPages.indexOf(step2);
   const navOptions = { force: true, ignoreMax: true, ...options };
+  const historyIndex = stepPages.indexOf(stepHistory);
+  if (historyIndex >= 0 && activeStepIndex === step7Index) {
+    setActiveStep(historyIndex, navOptions);
+    return;
+  }
+  if (getActiveTab() === "historial" || getActiveTab() === "progreso") {
+    setActiveStep(stepPages.indexOf(stepDashboard), navOptions);
+    return;
+  }
   if (step2Index >= 0) {
     if (activeStepIndex === step7Index || activeStepIndex === step8Index || activeStepIndex === step9Index) {
       setActiveStep(step2Index, navOptions);
@@ -1816,12 +1895,26 @@ function initializeStepper() {
     });
   }
   if (stepperNextBtn) {
-    stepperNextBtn.addEventListener("click", () => setActiveStep(activeStepIndex + 1));
+    stepperNextBtn.addEventListener("click", () => {
+      if (isSaveAndContinueStep()) {
+        if (!checkSensationsForm(true)) return;
+        saveSessionBtn.click();
+        if (!isSessionSavedToHistory()) return;
+      }
+      if (stepPages[activeStepIndex] === step5) {
+        openTab("inicio");
+        return;
+      }
+      setActiveStep(activeStepIndex + 1);
+    });
   }
-  if (dateInput) {
-    dateInput.addEventListener("change", updateSessionHeaderDate);
-    dateInput.addEventListener("input", updateSessionHeaderDate);
+  if (tabBar) {
+    tabBar.addEventListener("click", event => {
+      const btn = event.target.closest(".tab-bar-btn");
+      if (btn) openTab(btn.dataset.tab);
+    });
   }
+  document.getElementById("history-back-btn")?.addEventListener("click", () => openTab("historial"));
 
   setActiveStep(activeStepIndex, { skipScroll: true, replaceHistory: true });
 }
@@ -1860,7 +1953,6 @@ const muscleGroupMap = {
 
 // Fecha inicial
 dateInput.value = new Date().toISOString().slice(0, 10);
-updateSessionHeaderDate();
 
 // Histórico
 // -------------------------
@@ -1890,17 +1982,23 @@ function setSessionMode(mode) {
   setVisible(step2PredefinedSection, normalizedMode === "predefined");
 }
 
+const FONT_SCALE_KEY = "gym_font_scale_v2";
+const FONT_SCALE_PRESETS = [0.9, 1, 1.15, 1.3];
+
 function getFontScale() {
   const stored = Number(storage.getItem(FONT_SCALE_KEY));
-  if (!Number.isFinite(stored)) return 1;
-  return Math.min(FONT_SCALE_MAX, Math.max(FONT_SCALE_MIN, stored));
+  return FONT_SCALE_PRESETS.includes(stored) ? stored : 1;
 }
 
 function setFontScale(scale) {
-  const normalized = Math.min(FONT_SCALE_MAX, Math.max(FONT_SCALE_MIN, Number(scale) || 1));
-  storage.setItem(FONT_SCALE_KEY, normalized.toFixed(2));
-  document.documentElement.style.fontSize = `${normalized}rem`;
-  return normalized;
+  storage.setItem(FONT_SCALE_KEY, String(scale));
+  document.documentElement.style.setProperty("--font-scale", String(scale));
+  const button = document.getElementById("text-size-toggle");
+  if (button) {
+    const label = `Tamaño de texto: ${Math.round(scale * 100)} %`;
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
 }
 
 function setStatus(msg) {
@@ -1917,6 +2015,8 @@ function showSaveSessionMessage() {
   setRichMessage(saveSessionMessage, t("message.sessionSavedTitle"), message);
   setVisible(saveSessionMessage, true);
   clearSaveSessionError();
+  clearTimeout(showSaveSessionMessage.timer);
+  showSaveSessionMessage.timer = setTimeout(() => setVisible(saveSessionMessage, false), 4500);
 }
 
 function showSaveSessionError(message) {
@@ -1935,6 +2035,8 @@ function showSaveRoutineMessage(message) {
   if (!saveRoutineMessage) return;
   setRichMessage(saveRoutineMessage, t("message.routineSavedTitle"), message);
   setVisible(saveRoutineMessage, true);
+  clearTimeout(showSaveRoutineMessage.timer);
+  showSaveRoutineMessage.timer = setTimeout(() => setVisible(saveRoutineMessage, false), 4500);
   if (saveRoutineError) {
     saveRoutineError.textContent = "";
     setVisible(saveRoutineError, false);
@@ -1951,7 +2053,7 @@ function showSaveRoutineError(message) {
   }
 }
 
-function setFieldError(fieldId, message) {
+function setFieldErrorBase(fieldId, message) {
   const field = document.getElementById(fieldId);
   const errorEl = document.getElementById(`error-${fieldId}`);
   if (!field || !errorEl) return;
@@ -1973,7 +2075,7 @@ function clearFieldErrors() {
     "sense-pain",
     "pain-zone",
     "pain-exercise"
-  ].forEach(id => setFieldError(id, ""));
+  ].forEach(id => setFieldErrorBase(id, ""));
 }
 
 function isPostWorkoutComplete() {
@@ -1992,13 +2094,22 @@ function isPostWorkoutComplete() {
 // -------------------------
 // FUNCIÓN DE VALIDACIÓN 
 // -------------------------
+// Los errores del cuestionario solo se muestran después de intentar guardar
+var sensationsValidationAttempted = false;
+
 function checkSensationsForm(shouldFocus = false) {
     let isValid = true;
     let errorMessage = "";
     let firstInvalid = null;
     const hasExercises = exercisesContainer && exercisesContainer.children.length > 0;
+    if (shouldFocus) sensationsValidationAttempted = true;
+    const showErrors = sensationsValidationAttempted;
+    const setFieldError = (fieldId, message) => {
+        if (showErrors) setFieldErrorBase(fieldId, message);
+    };
 
     clearFieldErrors();
+    syncChoiceChips();
 
     if (!hasExercises) {
         isValid = false;
@@ -2038,19 +2149,21 @@ function checkSensationsForm(shouldFocus = false) {
     }
 
     exportBtn.disabled = !isValid;
-    if (saveSessionBtn) saveSessionBtn.disabled = !isValid;
+    // Activo con ejercicios para que al pulsarlo se vea qué falta
+    if (saveSessionBtn) saveSessionBtn.disabled = !hasExercises;
     if (!isValid && saveSessionMessage) {
         saveSessionMessage.style.display = "none";
         saveSessionMessage.textContent = "";
     }
-    if (isValid) {
+    if (isValid || !showErrors) {
         clearSaveSessionError();
     } else {
         showSaveSessionError(errorMessage || t("error.completeQuestionnaireButtons"));
     }
 
     if (shouldFocus && firstInvalid) {
-        firstInvalid.focus();
+        const chips = firstInvalid.choiceChips;
+        (chips ? chips.querySelector(".choice-chip") : firstInvalid).focus();
     }
 
     updateStepNavigation();
@@ -2064,16 +2177,16 @@ function checkSensationsForm(shouldFocus = false) {
 
 const strengthSetFields = [
   { key: "serie", type: "static" },
-  { key: "peso", type: "number", step: "0.5" },
-  { key: "reps", type: "number", step: "1" },
-  { key: "rir", type: "number", step: "1", min: "0", max: "10" },
+  { key: "peso", type: "number", step: "0.5", inputMode: "decimal" },
+  { key: "reps", type: "number", step: "1", inputMode: "numeric" },
+  { key: "rir", type: "number", step: "1", min: "0", max: "10", inputMode: "numeric" },
   { key: "fallo", type: "checkbox" }
 ];
 
 const cardioSetFields = [
   { key: "serie", type: "static" },
-  { key: "intensidad", type: "number", step: "0.5", placeholderKey: "cardio.placeholderIntensity" },
-  { key: "tiempo", type: "number", step: "0.25", placeholderKey: "cardio.placeholderTime" }
+  { key: "intensidad", type: "number", step: "0.5", inputMode: "decimal", placeholderKey: "cardio.placeholderIntensity" },
+  { key: "tiempo", type: "number", step: "0.25", inputMode: "decimal", placeholderKey: "cardio.placeholderTime" }
 ];
 
 function updateSetNumbers(tbody) {
@@ -2142,6 +2255,7 @@ function addSetRow(tbody, setData = {}, onInputChange, fields = strengthSetField
     if (f.step && f.type === "number") input.step = f.step;
     if (f.min != null && f.type === "number") input.min = f.min;
     if (f.max != null && f.type === "number") input.max = f.max;
+    if (f.inputMode) input.inputMode = f.inputMode;
     if (isSuggested) {
       input.title = t("exercise.suggestionApplied", {
         weight: resolvedSetData.peso ?? "-",
@@ -2456,9 +2570,9 @@ function buildExerciseCard(exData) {
     <details class="exercise-toggle-section">
       <summary><span class="exercise-toggle-icon" aria-hidden="true">ⓘ</span><span>${escapeHtml(t("exercise.notes.title"))}</span></summary>
       <div class="exercise-technique-content">
-        <p><b>${escapeHtml(t("exercise.notes.how"))}</b> ${escapeHtml(hacerDisplay)}</p>
-        <p><b>${escapeHtml(t("exercise.notes.avoid"))}</b> ${escapeHtml(noHacerDisplay)}</p>
-        <p><b>${escapeHtml(t("exercise.notes.tips"))}</b> ${escapeHtml(trucosDisplay)}</p>
+        <p><span class="technique-label">${escapeHtml(t("exercise.notes.how"))}</span>${formatTechniqueText(hacerDisplay)}</p>
+        <p><span class="technique-label">${escapeHtml(t("exercise.notes.avoid"))}</span>${formatTechniqueText(noHacerDisplay)}</p>
+        <p><span class="technique-label">${escapeHtml(t("exercise.notes.tips"))}</span>${formatTechniqueText(trucosDisplay)}</p>
       </div>
     </details>
   `;
@@ -2858,18 +2972,7 @@ exportBtn.onclick = () => {
   const key = sessionKey();
   const saved = readStorageJSON(key, null);
   if (!saved) return alert(t("alert.noDataToday"));
-
-  const exportDiv = buildExportContent(saved, { variant: "png" });
-  document.body.appendChild(exportDiv);
-
-  // Exportar a PNG
-  html2canvas(exportDiv, { scale: 2 }).then(canvas => {
-    const link = document.createElement("a");
-    link.download = `${t("file.sessionPrefix")}_${saved.date}_${saved.week}_${saved.day}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    exportDiv.remove();
-  });
+  downloadSessionImage(saved);
 };
 
 if (saveSessionBtn) {
@@ -2883,6 +2986,7 @@ if (saveSessionBtn) {
     const saved = readStorageJSON(key, null);
     if (!saved) return alert(t("alert.noDataToday"));
     upsertLocalHistory(saved);
+    sensationsValidationAttempted = false;
     updateStepStatus();
     setStatus(t("status.sessionSavedLocal"));
     showSaveSessionMessage();
@@ -2907,7 +3011,9 @@ function overwriteEditedSession() {
   if (!saved) return alert(t("alert.noDataToday"));
   saved.sensations.weight = historyWeightValue;
   const sessions = getLocalHistory();
-  const index = sessions.findIndex(item => item.date === dateStr);
+  const index = sessions.findIndex(item => selectedHistorySessionKey
+    ? getHistorySessionKey(item) === selectedHistorySessionKey
+    : item.date === dateStr);
   if (index === -1) {
     showSaveSessionError(t("status.noHistoryDay"));
     return;
@@ -2965,6 +3071,59 @@ if (senseCommentInput) {
 }
 painZoneInput.addEventListener("input", persistSessionSafely);
 painExerciseSelect.addEventListener("change", persistSessionSafely); // El change es necesario para capturar la selección
+// -------------------------
+// ESCALAS 0-10 Y SÍ/NO COMO BOTONES
+// -------------------------
+function enhanceWithChoiceChips(field, options) {
+  if (!field) return;
+  const group = document.createElement("div");
+  group.className = `choice-chips${options.length === 2 ? " choice-chips-2" : ""}`;
+  group.setAttribute("role", "radiogroup");
+  const label = document.querySelector(`label[for="${field.id}"]`);
+  if (label) {
+    if (!label.id) label.id = `${field.id}-label`;
+    group.setAttribute("aria-labelledby", label.id);
+  }
+  options.forEach(({ value, label: text }) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "choice-chip";
+    chip.setAttribute("role", "radio");
+    chip.dataset.value = value;
+    chip.textContent = text;
+    chip.addEventListener("click", () => {
+      field.value = value;
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+      syncChoiceChips();
+    });
+    group.appendChild(chip);
+  });
+  field.classList.add("choice-chips-source");
+  field.insertAdjacentElement("afterend", group);
+  field.choiceChips = group;
+}
+
+function syncChoiceChips() {
+  document.querySelectorAll(".choice-chips-source").forEach(field => {
+    if (!field.choiceChips) return;
+    const current = String(field.value ?? "");
+    field.choiceChips.querySelectorAll(".choice-chip").forEach(chip => {
+      const checked = chip.dataset.value === current;
+      chip.setAttribute("aria-checked", String(checked));
+      chip.tabIndex = checked || (!current && chip === field.choiceChips.firstChild) ? 0 : -1;
+    });
+  });
+}
+
+const scaleOptions = Array.from({ length: 11 }, (_, n) => ({ value: String(n), label: String(n) }));
+enhanceWithChoiceChips(senseGeneralInput, scaleOptions);
+enhanceWithChoiceChips(senseTirednessInput, scaleOptions);
+if (sensePainSelect) {
+  enhanceWithChoiceChips(sensePainSelect, Array.from(sensePainSelect.options).map(o => ({ value: o.value, label: o.textContent })));
+}
+syncChoiceChips();
+
 if (senseGeneralInput) senseGeneralInput.addEventListener("input", () => checkSensationsForm());
 if (senseTirednessInput) senseTirednessInput.addEventListener("input", () => checkSensationsForm());
 if (sensePainSelect) sensePainSelect.addEventListener("change", () => checkSensationsForm());
@@ -3065,22 +3224,14 @@ onReady(() => {
       if (step3Index >= 0) setActiveStep(step3Index, { force: true });
     });
   }
-  const initialFontScale = getFontScale();
-  setFontScale(initialFontScale);
-  const decreaseTextBtn = document.getElementById("text-size-decrease");
-  const increaseTextBtn = document.getElementById("text-size-increase");
-  if (decreaseTextBtn) {
-    decreaseTextBtn.addEventListener("click", () => {
-      const currentScale = getFontScale();
-      setFontScale(currentScale - FONT_SCALE_STEP);
-    });
-  }
-  if (increaseTextBtn) {
-    increaseTextBtn.addEventListener("click", () => {
-      const currentScale = getFontScale();
-      setFontScale(currentScale + FONT_SCALE_STEP);
-    });
-  }
+  // Tamaño de letra: multiplica el tamaño base del sistema/navegador (no lo sustituye)
+  storage.removeItem("gym_font_scale");
+  setFontScale(getFontScale());
+  document.getElementById("text-size-toggle")?.addEventListener("click", () => {
+    const current = getFontScale();
+    const next = FONT_SCALE_PRESETS.find(scale => scale > current + 0.001) ?? FONT_SCALE_PRESETS[0];
+    setFontScale(next);
+  });
   // Restablecer selectores y cargar
   populateRoutineSelectors();
   if (weekSelect) {
@@ -3108,17 +3259,10 @@ onReady(() => {
   initializeForUserSelection();
   initializeStepper();
   const dashboardStartBtn = document.getElementById("dashboard-start-btn");
-  const dashboardStatsBtn = document.getElementById("dashboard-stats-btn");
   if (dashboardStartBtn) {
     dashboardStartBtn.addEventListener("click", () => {
       const sessionIndex = stepPages.indexOf(step2);
       if (sessionIndex >= 0) setActiveStep(sessionIndex);
-    });
-  }
-  if (dashboardStatsBtn) {
-    dashboardStatsBtn.addEventListener("click", () => {
-      const statsIndex = stepPages.indexOf(step8);
-      if (statsIndex >= 0) setActiveStep(statsIndex, { force: true, ignoreMax: true });
     });
   }
   if (welcomeStartBtn) {

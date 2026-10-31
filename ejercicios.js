@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 /*
 =============================================
 ARCHIVO: ejercicios.js
@@ -13,8 +14,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Pectoral",
       "seccion": "Media (Esternal)",
       "hacer": "<b>Configura el asiento</b> para que los agarres estén a la altura del medio pecho. <b>Retrae y deprime las escápulas</b> firmemente contra el respaldo. Inicia el empuje desde el pecho (no desde los hombros), manteniendo los codos en un ángulo de 45°-60° respecto al torso. <b>Controla la fase negativa (excéntrica)</b>, volviendo a la posición inicial lentamente (3-4 segundos).",
-      "noHacer": "<b>No permitas que los hombros se adelanten</b> (protacción escapular) al final del recorrido. No arquees la zona lumbar de forma excesiva. Evita el bloqueo total del codo para mantener la tensión constante.",
-      "trucos": "Adopta el *Mind-Muscle Connection* (conexión mente-músculo): imagina que intentas <b>'abrazar' la máquina</b>, pensando en juntar los bíceps o los codos en lugar de solo empujar con las manos. Esto maximiza la contracción pectoral.",
+      "noHacer": "<b>No permitas que los hombros se adelanten</b> (protracción escapular) al final del recorrido. No arquees la zona lumbar de forma excesiva. Evita el bloqueo total del codo para mantener la tensión constante.",
+      "trucos": "Adopta el <b>Mind-Muscle Connection</b> (conexión mente-músculo): imagina que intentas <b>'abrazar' la máquina</b>, pensando en juntar los bíceps o los codos en lugar de solo empujar con las manos. Esto maximiza la contracción pectoral.",
       "sinMaterial": false
     },
     "Press inclinado mancuernas": {
@@ -22,7 +23,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Pectoral",
       "seccion": "Superior (Clavicular)",
       "hacer": "Banco ajustado entre <b>30° y 45°</b> (cuanto más bajo, mejor para aislar el pectoral superior). Mantén las <b>escápulas retraídas y pegadas</b> al banco. Baja las mancuernas de forma controlada hacia la parte alta del pecho, con los codos a unos 45° del torso. El movimiento debe ser en <b>arco de dentro a fuera</b> en la bajada.",
-      "noHacer": "<b>No eleves los hombros</b> hacia las orejas. Evita que las mancuernas 'choquen' abajo o 'reboten'. No permitas que el ángulo del codo se abra a 90°, ya que estresa la articulación del hombro.",
+      "noHacer": "<b>No eleves los hombros</b> hacia las orejas. Evita que las mancuernas 'choquen' abajo o 'reboten'. No dejes que los codos se abran a 90° respecto al torso, ya que estresa la articulación del hombro.",
       "trucos": "Piensa en empujar las mancuernas <b>'hacia arriba y ligeramente hacia el centro'</b>. Mantén el <b>pecho 'mirando' al techo</b> durante todo el set, esto asegura la activación del pectoral superior y una buena retracción escapular.",
       "sinMaterial": false
     },
@@ -48,7 +49,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Pecho",
       "musculo": "Pectoral",
       "seccion": "General (Aislamiento)",
-      "hacer": "<b>Ajusta el asiento</b> para que los antebrazos/quebrados queden a la altura del medio pecho. <b>Escápulas retraídas</b> contra el respaldo y pecho elevado. Cierra los brazos en un arco controlado hasta juntar los antebrazos/agarres, manteniendo una ligera flexión de codo.",
+      "hacer": "<b>Ajusta el asiento</b> para que los antebrazos o agarres queden a la altura del medio pecho. <b>Escápulas retraídas</b> contra el respaldo y pecho elevado. Cierra los brazos en un arco controlado hasta juntar los antebrazos/agarres, manteniendo una ligera flexión de codo.",
       "noHacer": "<b>No encorves los hombros</b> ni pierdas la retracción escapular. No conviertas el movimiento en un press empujando con los tríceps. Evita acortar el recorrido con pesos excesivos.",
       "trucos": "Piensa en <b>juntar los codos</b> en vez de las manos. Haz una <b>pausa de 1 segundo</b> en el cierre para maximizar la contracción interna del pectoral.",
       "sinMaterial": false
@@ -77,14 +78,14 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Superior (Clavicular)",
       "hacer": "Inicia con las poleas en la posición más baja. Da un paso adelante, inclínate ligeramente y <b>mantén el codo semiflexionado</b>. Sube y cruza las manos por delante del pecho hasta la altura de los hombros o cara.",
       "noHacer": "<b>No uses los bíceps</b> para tirar; el movimiento debe generarse por la contracción del pectoral superior. Evita arquear la columna o balancear el torso.",
-      "trucos": "Piensa en <b>juntar los bíceps a la altura de la barbilla</b> o los ojos. <b>Aprieta el pecho dos segundos</b> en el punto álgido del cruce para enfatizar el vientre superior.",
+      "trucos": "Piensa en <b>juntar los bíceps a la altura de la barbilla</b> o los ojos. <b>Aprieta el pecho dos segundos</b> en el punto álgido del cruce para enfatizar el haz clavicular.",
       "sinMaterial": false
     },
     "Press máquina vertical": {
       "musculo": "Pectoral",
       "grupo": "Pecho",
       "seccion": "Media (Esternal)",
-      "hacer": "<b>Ajusta el asiento de forma crítica</b> para que las asas o el agarre queden exactamente a la altura del medio pecho. Realiza un <b>empuje limpio y recto</b> hacia adelante. Mantén los hombros deprimidos y el pecho elevado.",
+      "hacer": "<b>Ajusta el asiento con precisión</b> para que las asas o el agarre queden exactamente a la altura del medio pecho. Realiza un <b>empuje limpio y recto</b> hacia adelante. Mantén los hombros deprimidos y el pecho elevado.",
       "noHacer": "<b>No bloquees los codos</b> al final del recorrido. No permitas que el pecho se hunda durante el movimiento.",
       "trucos": "Experimenta con la altura del asiento: si el agarre queda a la altura del pecho, se enfoca más en la sección media. Si está ligeramente más bajo, puedes sentir más la activación superior. <b>Bloquea los pies firmemente en el suelo</b> para generar más estabilidad y fuerza.",
       "sinMaterial": false
@@ -140,7 +141,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Media/Esternal (Seguridad)",
       "hacer": "Agarre neutro (palmas enfrentadas). Esto pone los hombros en una posición más segura. <b>Empuja en un plano vertical</b> y mantén los codos ligeramente más pegados al torso (30°-45°).",
       "noHacer": "No separes los codos en exceso. <b>No bloquees la articulación</b> completamente arriba.",
-      "trucos": "Ideal para el desarrollo de la **parte interna del pectoral**. En el punto superior, intenta 'raspar' las mancuernas una contra otra para asegurar la contracción central.",
+      "trucos": "Buena alternativa si el press con barra te molesta en los hombros. Arriba, acerca las mancuernas sin chocarlas y aprieta el pecho.",
       "sinMaterial": false
     },
     "Press militar mancuernas": {
@@ -148,8 +149,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Hombros",
       "seccion": "Anterior",
       "hacer": "Siéntate con la espalda recta o con un ligero apoyo que permita un <b>patrón vertical de empuje</b>. <b>Activa el abdomen (core)</b> para mantener la columna neutra. Sube las mancuernas verticalmente, ligeramente por delante de la cabeza.",
-      "noHacer": "<b>No arquees la espalda</b> (hiperextensión lumbar) en exceso para terminar la repetición. Evita el *valgus* de codo (que el codo se abra mucho hacia los lados) al bajar.",
-      "trucos": "Al subir, realiza una <b>ligera rotación externa</b> (como si quisieras acercar las palmas entre sí) para asegurar un mejor 'empaquetamiento' del hombro y mayor seguridad articular.",
+      "noHacer": "<b>No arquees la espalda</b> (hiperextensión lumbar) en exceso para terminar la repetición. Evita abrir los codos por completo hacia los lados al bajar; mantenlos ligeramente por delante del torso.",
+      "trucos": "Al subir, acerca ligeramente las mancuernas entre sí siguiendo un arco natural y mantén las muñecas sobre los codos.",
       "sinMaterial": false
     },
     "Press militar barra": {
@@ -167,7 +168,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Completo (Anterior y Lateral)",
       "hacer": "<b>Inicia con las palmas mirando hacia ti</b> (agarre supino). A medida que empujas, <b>rota las mancuernas 180°</b> hasta que las palmas miren hacia adelante (agarre prono) en la parte superior. Controla la rotación y el recorrido completo.",
       "noHacer": "<b>No gires rápido ni de forma brusca</b>; el movimiento debe ser fluido y controlado. No cargues demasiado peso; este ejercicio se beneficia de un control estricto.",
-      "trucos": "El movimiento se divide en dos: Press + Elevación frontal (rotación). Piensa en <b>'mostrar' los codos al frente</b> al inicio y terminar <b>'mostrando' las palmas al techo</b> al final. Esto añade tiempo bajo tensión al deltoides anterior.",
+      "trucos": "El movimiento se divide en dos: Press + Elevación frontal (rotación). Piensa en <b>'mostrar' los codos al frente</b> al inicio y terminar con las palmas mirando al frente. Esto añade tiempo bajo tensión al deltoides anterior.",
       "sinMaterial": false
     },
     "Elevaciones laterales": {
@@ -176,7 +177,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Lateral (Medial)",
       "hacer": "Mantén una ligera flexión de codo constante. <b>Eleva con el codo</b>, detente cuando el brazo esté paralelo al suelo (a la altura del hombro). La <b>muñeca debe estar relajada</b>. Baja de forma controlada (fase excéntrica lenta).",
       "noHacer": "<b>No uses impulso o balanceo del torso</b>. Evita elevar el trapecio (encogimiento de hombros) para iniciar o completar el movimiento. No superes la altura del hombro.",
-      "trucos": "Piensa en <b>verter agua de un jarro</b>: la parte del <b>codo debe estar 'más alta' que la mano</b>. Esto asegura que el deltoides lateral, y no el anterior, sea el motor principal.",
+      "trucos": "Lidera con el codo, que debe quedar a la altura de la mano o ligeramente por encima, sin girar el brazo hacia dentro. Esto asegura que el deltoides lateral, y no el anterior, sea el motor principal.",
       "sinMaterial": false
     },
     "Elevaciones laterales con mancuernas": {
@@ -193,8 +194,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Hombros",
       "seccion": "Lateral (Medial)",
       "hacer": "Ajusta el asiento para que el eje de la máquina quede alineado con el hombro. Empuja las almohadillas con los brazos y <b>eleva de forma controlada</b> hasta la altura del hombro.",
-      "noHacer": "<b>No encogas los hombros</b> ni uses impulso. Evita despegar el torso del respaldo.",
-      "trucos": "Mantén una <b>pausa breve arriba</b> y baja lento para sostener la tensión en el deltoide lateral.",
+      "noHacer": "<b>No encojas los hombros</b> ni uses impulso. Evita despegar el torso del respaldo.",
+      "trucos": "Mantén una <b>pausa breve arriba</b> y baja lento para sostener la tensión en el deltoides lateral.",
       "sinMaterial": false
     },
     "Elevaciones laterales a una mano": {
@@ -203,7 +204,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Lateral (Unilateral)",
       "hacer": "De pie con una mancuerna, <b>eleva el brazo en el plano del hombro</b> hasta quedar paralelo al suelo. Controla la bajada.",
       "noHacer": "<b>No balancees el tronco</b> ni subas por encima del hombro.",
-      "trucos": "Apoya la mano libre en una superficie para <b>estabilizar el torso</b> y aislar mejor el deltoide.",
+      "trucos": "Apoya la mano libre en una superficie para <b>estabilizar el torso</b> y aislar mejor el deltoides.",
       "sinMaterial": false
     },
     "Elevaciones frontales": {
@@ -219,9 +220,9 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Deltoides",
       "grupo": "Hombros",
       "seccion": "Lateral (Medial)",
-      "hacer": "<b>Colócate frente a la polea</b> (si el cable cruza por detrás) o lateralmente. Inicia con <b>tensión continua desde el punto más bajo</b>. Eleva el peso <b>liderando con el codo</b> y detente a la altura del hombro.",
+      "hacer": "Colócate <b>de lado a la polea baja</b>, con el cable pasando por delante o por detrás del cuerpo. Inicia con tensión continua desde el punto más bajo. Eleva el peso <b>liderando con el codo</b> y detente a la altura del hombro.",
       "noHacer": "<b>No permitas que el trapecio se active</b> al encoger los hombros. Evita inclinar el torso excesivamente.",
-      "trucos": "Para una activación óptima, mantén el <b>cable detrás del cuerpo</b> (si te colocas frente a la polea) o el agarre <b>cruzado</b> (si estás de lado). Esto crea un ángulo de resistencia más limpio desde el inicio.",
+      "trucos": "Si pasas el cable <b>por detrás del cuerpo</b>, el deltoides lateral trabaja desde el principio del recorrido. Prueba ambas opciones y quédate con la que notes más en el hombro.",
       "sinMaterial": false
     },
     "Elevaciones laterales en polea unilateral": {
@@ -229,7 +230,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Hombros",
       "seccion": "Lateral (Unilateral)",
       "hacer": "Colócate de lado a la polea baja y cruza el cable por delante o por detrás del cuerpo. Eleva liderando con el codo hasta la altura del hombro.",
-      "noHacer": "<b>No balancees el torso</b> ni encogas el trapecio. Evita tirar con la mano.",
+      "noHacer": "<b>No balancees el torso</b> ni encojas el trapecio. Evita tirar con la mano.",
       "trucos": "Mantén tensión desde abajo y controla mucho la bajada.",
       "sinMaterial": false
     },
@@ -291,7 +292,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Dorsal",
       "grupo": "Espalda",
       "seccion": "Media (Grosor)",
-      "hacer": "<b>Inicia el movimiento con la retracción escapular</b> (juntar las paletas de la espalda), y luego continúa el tirón con los brazos. Tira del agarre hacia el abdomen o el esternón. <b>Extiende el torso al inicio</b> (permitiendo el estiramiento) y vuelve a la vertical al tirar.",
+      "hacer": "<b>Inicia el movimiento con la retracción escapular</b> (juntar las paletas de la espalda), y luego continúa el tirón con los brazos. Tira del agarre hacia el abdomen o el esternón. Inclina ligeramente el torso hacia delante al inicio (para estirar) y vuelve a la vertical al tirar.",
       "noHacer": "<b>No redondees la espalda</b> (cifosis torácica) al soltar el peso. Evita tirar solo con los brazos, descuidando la espalda.",
       "trucos": "<b>Aprieta las escápulas dos segundos atrás</b> en la máxima contracción. Para un enfoque en la espalda alta/media (romboides), apunta el agarre hacia el pecho; para dorsal, apúntalo hacia el abdomen.",
       "sinMaterial": false
@@ -363,7 +364,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Espalda media",
       "grupo": "Espalda",
       "seccion": "Romboides y Trapecio Medio",
-      "hacer": "Utiliza un agarre más ancho y un cable en posición alta. Realiza el tirón con los <b>codos abiertos</b> y dirigiéndolos hacia la parte alta del torso o la cara (como un *Face Pull* horizontal). <b>Enfatiza la retracción escapular</b>.",
+      "hacer": "Utiliza un agarre más ancho y un cable en posición alta. Realiza el tirón con los <b>codos abiertos</b> y dirigiéndolos hacia la parte alta del torso o la cara (como un <b>Face Pull</b> horizontal). <b>Enfatiza la retracción escapular</b>.",
       "noHacer": "<b>No conviertas el ejercicio en un jalón vertical</b> bajando el agarre hacia el pecho. El codo debe permanecer más abierto.",
       "trucos": "Mantén los <b>codos por encima de las manos</b> durante la mayor parte del recorrido. Esto asegura que el plano de movimiento se centre en la retracción horizontal, maximizando la activación de la espalda media.",
       "sinMaterial": false
@@ -391,7 +392,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Espalda",
       "seccion": "Máquina convergente",
       "hacer": "Ajusta el pecho al soporte y tira de los agarres con recorrido completo, manteniendo el pecho pegado.",
-      "noHacer": "<b>No levantes el torso</b> del apoyo ni tires sólo con los brazos.",
+      "noHacer": "<b>No levantes el torso</b> del apoyo ni tires solo con los brazos.",
       "trucos": "Haz una pausa atrás y controla la fase excéntrica para aprovechar la trayectoria convergente.",
       "sinMaterial": false
     },
@@ -399,8 +400,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Dorsal",
       "grupo": "Espalda",
       "seccion": "Media-Baja (Grosor)",
-      "hacer": "<b>Mantén el torso inclinado (casi paralelo al suelo)</b>, con la espalda recta y las rodillas ligeramente flexionadas. Tira la barra o mancuernas <b>hacia la cadera</b> (si quieres más dorsal) o hacia el abdomen (si quieres más espalda media).",
-      "noHacer": "<b>No encorvar la espalda baja (zona lumbar)</b>; mantén la posición inicial. Evita el balanceo excesivo.",
+      "hacer": "<b>Mantén el torso inclinado (casi paralelo al suelo)</b>, con la espalda recta y las rodillas ligeramente flexionadas. Tira de la barra o mancuernas <b>hacia la cadera</b> (si quieres más dorsal) o hacia el abdomen (si quieres más espalda media).",
+      "noHacer": "<b>No encorves la espalda baja (zona lumbar)</b>; mantén la posición inicial. Evita el balanceo excesivo.",
       "trucos": "Para una máxima estabilidad del core y la espalda, <b>empuja el suelo con los talones</b> como si fueras a levantarte, sin moverte. Esto 'bloquea' la posición del tronco.",
       "sinMaterial": false
     },
@@ -409,8 +410,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Espalda",
       "seccion": "Estiramiento y Contracción",
       "hacer": "Agarre prono, <b>brazos casi rectos</b> (ligera flexión de codo). El movimiento debe ser generado <b>únicamente desde el hombro</b> (extensión del hombro), llevando la barra desde arriba hasta la cadera. Vuelve lentamente permitiendo un estiramiento profundo.",
-      "noHacer": "<b>No flexiones demasiado el codo</b>; el codo debe permanecer prácticamente fijo. No permitas que el abdomen se extienda (arquearse) al bajar.",
-      "trucos": "<b>Inclina ligeramente el torso hacia adelante</b> (15°-20°) y mantente firme. Esto facilita un rango de movimiento más amplio y un <b>estiramiento brutal del dorsal</b> en la posición superior.",
+      "noHacer": "<b>No flexiones demasiado el codo</b>; el codo debe permanecer prácticamente fijo. No arquees la zona lumbar al bajar.",
+      "trucos": "<b>Inclina ligeramente el torso hacia adelante</b> (15°-20°) y mantente firme. Esto facilita un rango de movimiento más amplio y un <b>estiramiento profundo del dorsal</b> en la posición superior.",
       "sinMaterial": false
     },
     "Pullover en polea unilateral": {
@@ -426,7 +427,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Deltoides posterior",
       "grupo": "Hombros",
       "seccion": "Posterior",
-      "hacer": "Siéntate mirando hacia el respaldo, <b>pecho pegado</b> al soporte. <b>Agarre neutro o prono</b>. Abre los brazos en un arco amplio, concentrándote en <b>separar los codos</b> hasta que estén paralelos al torso.",
+      "hacer": "Siéntate mirando hacia el respaldo, <b>pecho pegado</b> al soporte. <b>Agarre neutro o prono</b>. Abre los brazos en un arco amplio, concentrándote en <b>separar los codos</b> hasta que los brazos queden alineados con el torso.",
       "noHacer": "<b>No utilices el trapecio</b> para encoger los hombros. Evita separar el pecho del soporte para usar impulso.",
       "trucos": "Piensa en <b>separar los codos, no en mover las manos</b>. Esto te ayuda a dirigir el movimiento desde el hombro posterior. Reduce ligeramente el peso y <b>pausa un segundo</b> al abrir completamente.",
       "sinMaterial": false
@@ -435,9 +436,9 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Deltoides posterior / Trapecio medio",
       "grupo": "Hombros",
       "seccion": "Hombro sano (Manguito rotador)",
-      "hacer": "Utiliza cuerda y polea alta, agarre a dos manos. <b>Tira de la cuerda hacia la cara</b>, enfocándote en **rotar externamente los hombros** al finalizar el tirón. Los codos deben apuntar hacia afuera.",
+      "hacer": "Utiliza cuerda y polea alta, agarre a dos manos. <b>Tira de la cuerda hacia la cara</b>, enfocándote en <b>rotar externamente los hombros</b> al finalizar el tirón. Los codos deben apuntar hacia afuera.",
       "noHacer": "No tires únicamente con los brazos. <b>No permitas que los codos caigan</b> por debajo del nivel de los hombros.",
-      "trucos": "Al finalizar el movimiento, imagina que quieres **tocar la pared de atrás con los codos**. Esto maximiza la rotación externa y la activación del manguito rotador y deltoide posterior.",
+      "trucos": "Al finalizar el movimiento, imagina que quieres <b>tocar la pared de atrás con los codos</b>. Esto maximiza la rotación externa y la activación del manguito rotador y deltoides posterior.",
       "sinMaterial": false
     },
     "Face pull unilateral": {
@@ -445,8 +446,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Hombros",
       "seccion": "Posterior (Unilateral)",
       "hacer": "Usa una polea alta con agarre individual. Tira hacia la cara abriendo el codo y rotando externamente el hombro al final.",
-      "noHacer": "<b>No gires el tronco</b> ni dejes caer el codo. Evita tirar sólo con bíceps.",
-      "trucos": "Hazlo lento y controlado para sentir el deltoide posterior y el manguito rotador.",
+      "noHacer": "<b>No gires el tronco</b> ni dejes caer el codo. Evita tirar solo con bíceps.",
+      "trucos": "Hazlo lento y controlado para sentir el deltoides posterior y el manguito rotador.",
       "sinMaterial": false
     },
     "Pájaros en polea": {
@@ -454,7 +455,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Hombros",
       "seccion": "Posterior",
       "hacer": "Cruza las poleas o usa una polea a la altura del pecho. Abre los brazos con codos semiflexionados hasta alinear con el torso.",
-      "noHacer": "<b>No encogas los hombros</b> ni uses impulso. Evita flexionar y extender los codos.",
+      "noHacer": "<b>No encojas los hombros</b> ni uses impulso. Evita flexionar y extender los codos.",
       "trucos": "Piensa en separar los codos y pausa al final de la apertura.",
       "sinMaterial": false
     },
@@ -462,16 +463,16 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Deltoides posterior",
       "grupo": "Hombros",
       "seccion": "Posterior",
-      "hacer": "Siéntate en el borde del banco, inclina el torso hasta que esté **casi paralelo al suelo** (o apoya el pecho en un banco inclinado). <b>Eleva las mancuernas lateralmente</b>, liderando con los codos, hasta la altura de los hombros.",
+      "hacer": "Siéntate en el borde del banco, inclina el torso hasta que esté <b>casi paralelo al suelo</b> (o apoya el pecho en un banco inclinado). <b>Eleva las mancuernas lateralmente</b>, liderando con los codos, hasta la altura de los hombros.",
       "noHacer": "<b>No balancees el cuerpo</b>. Evita convertirlo en un encogimiento de trapecio, manteniendo los hombros lejos de las orejas.",
-      "trucos": "Mantén el **agarre neutro** (palmas hacia atrás) para priorizar el deltoide posterior. Baja el peso lentamente (fase excéntrica) para mejorar el control y el estímulo.",
+      "trucos": "Usa <b>agarre prono</b> (palmas hacia atrás) o neutro (palmas enfrentadas): elige el que te permita liderar con los codos sin encoger los hombros. Baja el peso lentamente (fase excéntrica) para mejorar el control y el estímulo.",
       "sinMaterial": false
     },
     "Curl bíceps": {
       "musculo": "Bíceps",
       "grupo": "Brazos",
       "seccion": "General (Cabeza Larga y Corta)",
-      "hacer": "Mantén el <b>codo fijo</b> pegado al costado. Realiza la subida con un agarre prono y <b>supina (gira la muñeca) al subir</b>, de forma que las palmas miren al techo en la contracción. Baja controladamente.",
+      "hacer": "Mantén el <b>codo fijo</b> pegado al costado. Si usas mancuernas, empieza con las palmas enfrentadas y <b>gira la muñeca al subir</b> (supinación), de forma que las palmas miren al techo en la contracción. Baja controladamente.",
       "noHacer": "<b>No balancees el torso</b> para generar impulso. No permitas que los codos se muevan hacia adelante.",
       "trucos": "<b>Aprieta el bíceps fuerte arriba durante dos segundos</b>; esto maximiza la activación y la conexión mente-músculo. Al bajar, resiste el peso lentamente para enfatizar la fase excéntrica.",
       "sinMaterial": false
@@ -481,7 +482,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Brazos",
       "seccion": "General (Unilateral)",
       "hacer": "De pie con una mancuerna en cada mano. Alterna el curl, <b>supinando</b> la muñeca al subir y manteniendo el codo pegado al costado.",
-      "noHacer": "<b>No gires el torso</b> ni te balances para ayudar el movimiento.",
+      "noHacer": "<b>No gires el torso</b> ni te balancees para ayudar el movimiento.",
       "trucos": "Pausa 1 segundo arriba en cada repetición para mejorar la contracción.",
       "sinMaterial": false
     },
@@ -518,7 +519,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Cabeza corta (Pico)",
       "hacer": "<b>Codo fijo en la parte interna del muslo</b>, actuando como un soporte. Realiza una <b>subida muy lenta y controlada</b>. Enfócate en la contracción máxima en la parte superior.",
       "noHacer": "<b>No uses ningún impulso</b> o rebote. Evita levantar el codo del soporte de la pierna.",
-      "trucos": "Al finalizar el recorrido, <b>gira la mancuerna ligeramente hacia el dedo meñique</b> (supinación forzada) para una activación máxima de la cabeza corta del bíceps.",
+      "trucos": "Al finalizar el recorrido, <b>gira la muñeca hacia fuera, subiendo el meñique</b> (supinación forzada), para una activación máxima de la cabeza corta del bíceps.",
       "sinMaterial": false
     },
     "Curl Scott": {
@@ -599,7 +600,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "General (Cabeza Lateral)",
       "hacer": "<b>Codos pegados al cuerpo</b> y hombros 'bloqueados' hacia atrás y abajo. La extensión debe ser <b>estricta y completa</b>, de arriba hacia abajo. Solo se mueve el antebrazo.",
       "noHacer": "<b>No separes los codos</b> del torso. Evita flexionar la muñeca (muñeca 'rota').",
-      "trucos": "<b>Inclínate ligeramente hacia adelante</b> (como un esquí) y bloquea los hombros y codos firmemente hacia atrás. Esto aísla el tríceps y permite una extensión más potente.",
+      "trucos": "Inclínate ligeramente hacia delante con el core firme y bloquea los hombros y codos firmemente hacia atrás. Esto aísla el tríceps y permite una extensión más potente.",
       "sinMaterial": false
     },
     "Tríceps en polea unilateral": {
@@ -617,7 +618,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Aislamiento (Énfasis en Lateral)",
       "hacer": "<b>Agarre de una sola mano</b> en la cuerda. <b>Extiende el brazo al máximo</b> hacia abajo y hacia afuera, separando la cuerda al final. Control total del rango.",
       "noHacer": "<b>No gires el tronco</b> para ayudar la extensión. Evita el balanceo del brazo.",
-      "trucos": "Al extender el codo, <b>separa ligeramente la mano</b> y realiza una rotación externa de la muñeca. Esto ayuda a enfatizar la cabeza lateral y el punto de 'herradura' del tríceps.",
+      "trucos": "Al extender el codo, <b>separa ligeramente la mano</b> y gira ligeramente la palma hacia el suelo. Esto ayuda a enfatizar la cabeza lateral y el punto de 'herradura' del tríceps.",
       "sinMaterial": false
     },
     "Tríceps katana unilateral": {
@@ -689,7 +690,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Cuádriceps (Énfasis general)",
       "hacer": "<b>Mantén la zona lumbar completamente pegada</b> al respaldo; si se despega, has bajado demasiado. Las rodillas deben estar <b>alineadas con las puntas de los pies</b>. Baja hasta un ángulo de 90° o justo antes de que la lumbar se despegue. Empuja hacia arriba.",
       "noHacer": "<b>No bloquees las rodillas</b> al final del recorrido (mantén una microflexión). No permitas que las rodillas 'colapsen' hacia dentro.",
-      "trucos": "Para enfocar más en los <b>cuádriceps</b>, coloca los pies ligeramente más abajo en la plataforma y concéntrate en <b>empujar con la parte externa del pie</b>.",
+      "trucos": "Para enfocar más en los <b>cuádriceps</b>, coloca los pies ligeramente más abajo en la plataforma y empuja con todo el pie sin despegar los talones.",
       "sinMaterial": false
     },
     "Prensa sumo": {
@@ -698,7 +699,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Lateral/Interna",
       "hacer": "<b>Pies en la parte alta y ancha de la plataforma</b>, con las <b>puntas apuntando hacia afuera</b> (rotación externa). Baja controlado y empuja con los talones.",
       "noHacer": "<b>No dejes que las rodillas colapsen</b> hacia dentro; deben seguir la dirección de las puntas de los pies.",
-      "trucos": "Imagina que estás empujando el suelo <b>separándolo con los talones</b>: esto activa el glúteo medio y los aductores de forma brutal, ideal para el desarrollo lateral y de la parte interna del muslo.",
+      "trucos": "Empuja con los talones llevando las rodillas hacia fuera, en la línea de los pies: así trabajan más los aductores y el glúteo.",
       "sinMaterial": false
     },
     "Extensión cuádriceps": {
@@ -725,7 +726,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Vasto Medial (Acortamiento)",
       "hacer": "Realiza la extensión normal, pero <b>mantén la contracción máxima arriba durante un tiempo predefinido</b> (ej. 3–5 segundos) antes de la fase excéntrica lenta.",
       "noHacer": "No relajes de golpe la tensión en la fase isométrica.",
-      "trucos": "Mientras mantienes la contracción, <b>activa el core (abdomen)</b> y empuja las manos contra el asiento. Esta co-contracción aumenta la estabilidad y la intensidad del vasto medial (el músculo de la 'lágrima').",
+      "trucos": "Mientras mantienes la contracción, <b>activa el core (abdomen)</b> y sujeta con fuerza los agarres del asiento. Esta co-contracción aumenta la estabilidad y la intensidad del vasto medial (el músculo de la 'lágrima').",
       "sinMaterial": false
     },
     "Curl femoral": {
@@ -734,7 +735,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "General (Sentado o Tumbado)",
       "hacer": "<b>Mantén la cadera neutra</b> y pegada al soporte. Lleva el <b>talón hacia el glúteo</b> en un movimiento lento y concentrado. Controla la fase de estiramiento.",
       "noHacer": "<b>No arquees la zona lumbar</b> (hiperextensión) para iniciar o terminar la repetición; esto indica que el peso es demasiado alto.",
-      "trucos": "<b>Aprieta los glúteos</b> antes y durante el movimiento. Esto bloquea la cadera y desactiva la participación de otros músculos, aislando de forma estricta el femoral.",
+      "trucos": "<b>Aprieta los glúteos</b> antes y durante el movimiento. Esto ayuda a fijar la cadera y a aislar mejor el femoral.",
       "sinMaterial": false
     },
     "Curl femoral tumbado": {
@@ -822,18 +823,18 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Glúteo medio",
       "grupo": "Piernas",
       "seccion": "Lateral (Estabilizador)",
-      "hacer": "<b>Inclínate ligeramente hacia adelante</b> y sujeta firmemente los agarres. <b>Controla la apertura y el retorno</b>; no permitas que las placas se toquen.",
-      "noHacer": "<b>No te inclines excesivamente</b> hacia adelante o hacia atrás; un ligero ángulo es suficiente. Evita soltar el peso de golpe.",
-      "trucos": "<b>Inclínate un poco hacia atrás</b> y sujeta el asiento; esto maximiza el rango de movimiento. Mantén una <b>pausa de 1-2 segundos</b> en la máxima apertura para enfatizar el glúteo medio.",
+      "hacer": "Siéntate con la espalda apoyada y <b>sujeta firmemente los agarres</b>. Abre las piernas de forma controlada y vuelve sin dejar que las placas se toquen.",
+      "noHacer": "<b>No uses impulso</b> ni balancees el torso para abrir. Evita soltar el peso de golpe al volver.",
+      "trucos": "Si inclinas el torso <b>ligeramente hacia delante</b>, aumentas el trabajo de la parte superior del glúteo. Mantén una pausa de 1-2 segundos en la máxima apertura.",
       "sinMaterial": false
     },
     "Aducción de cadera": {
       "musculo": "Aductores",
       "grupo": "Piernas",
       "seccion": "Medial (Cadera)",
-      "hacer": "<b>Sienta el cuerpo</b> con el rango de movimiento controlado y abre las piernas hasta la máxima aducción sin perder la postura. Vuelve lentamente a la posición inicial sin dejar que el peso golpee.",
+      "hacer": "Siéntate con la espalda apoyada y las piernas abiertas en un rango cómodo. <b>Cierra las piernas</b> contra la resistencia hasta juntar las almohadillas y vuelve lentamente a la posición inicial sin dejar que el peso golpee.",
       "noHacer": "<b>No arquees la espalda</b> ni uses impulso al abrir o cerrar. Evita forzar la articulación más allá del rango cómodo.",
-      "trucos": "Mantén una <b>pausa breve en la apertura</b> para sentir el trabajo de los aductores y controla la bajada para mayor activación.",
+      "trucos": "Mantén una pausa breve al cerrar para sentir el trabajo de los aductores y controla la bajada para mayor activación.",
       "sinMaterial": false
     },
     "Aductores máquina": {
@@ -878,7 +879,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Media (Esternal)",
       "hacer": "Acostado en el banco, <b>escápulas retraídas</b> y pies firmes. Baja las mancuernas a la línea del pecho con control y empuja hacia arriba.",
       "noHacer": "<b>No choques las mancuernas</b> arriba ni abras los codos demasiado.",
-      "trucos": "Permite un <b>ligero arco</b> en la bajada para ganar rango y estiramiento del pectoral.",
+      "trucos": "Deja que las mancuernas bajen en un ligero arco hacia fuera para ganar rango y estiramiento del pectoral.",
       "sinMaterial": false
     },
     "Dominadas asistidas máquina": {
@@ -896,7 +897,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Espalda",
       "seccion": "Vertical",
       "hacer": "<b>Cuelga con agarre neutro</b> (palmas mirando entre sí) y tira del cuerpo hacia arriba hasta que el pecho alcance la barra o agarres. Mantén el core activado y evita balancearte.",
-      "noHacer": "<b>No uses impulso</b> ni dejes que los hombros se elevan hacia las orejas. Evita redondear la espalda.",
+      "noHacer": "<b>No uses impulso</b> ni dejes que los hombros se eleven hacia las orejas. Evita redondear la espalda.",
       "trucos": "Piensa en <b>apretar los omóplatos</b> al subir y controla la bajada para maximizar el trabajo del dorsal y bíceps.",
       "sinMaterial": false,
       "cargaCorporal": "sumar"
@@ -950,8 +951,8 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Piernas",
       "musculo": "Cuádriceps",
       "seccion": "General (Completo)",
-      "hacer": "<b>Coloca los pies al ancho de hombros</b>, con las puntas ligeramente hacia afuera. Baja lentamente hasta que los muslos queden paralelos al suelo o ligeramente por debajo, manteniendo la espalda recta y el pecho elevado. Empuja con los talones para subir.",
-      "noHacer": "<b>No dejes que las rodillas se pasen de los dedos de los pies</b>. Evita arquear la espalda o inclinarte excesivamente hacia adelante. No uses impulso o rebote en la bajada.",
+      "hacer": "<b>Coloca los pies al ancho de hombros</b>, con las puntas ligeramente hacia afuera. Baja lentamente hasta que los muslos queden paralelos al suelo o ligeramente por debajo, manteniendo la espalda recta y el pecho elevado. Sube empujando el suelo con todo el pie.",
+      "noHacer": "No dejes que los talones se levanten ni que las rodillas se vayan hacia dentro (que pasen de la punta del pie es normal). Evita arquear la espalda o inclinarte excesivamente hacia adelante. No uses impulso o rebote en la bajada.",
       "trucos": "Mantén la <b>mirada al frente</b> para ayudar a mantener la columna neutra. Imagina que estás sentándote en una silla invisible. Para mayor estabilidad, <b>activa el core</b> contrayendo el abdomen durante todo el movimiento.",
       "sinMaterial": true
     },
@@ -959,7 +960,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Piernas",
       "musculo": "Cuádriceps",
       "seccion": "General (Técnica y profundidad)",
-      "hacer": "Sujeta una mancuerna o kettlebell pegada al pecho. <b>Abre los pies al ancho de hombros</b> con puntas ligeramente hacia afuera. Baja controlando la cadera y las rodillas, manteniendo el torso erguido y el peso en los talones. Sube empujando el suelo.",
+      "hacer": "Sujeta una mancuerna o kettlebell pegada al pecho. <b>Abre los pies al ancho de hombros</b> con puntas ligeramente hacia afuera. Baja controlando la cadera y las rodillas, manteniendo el torso erguido y el peso repartido en todo el pie. Sube empujando el suelo.",
       "noHacer": "<b>No redondees la espalda</b> ni dejes caer el pecho. Evita que las rodillas colapsen hacia adentro. No rebotes al final del recorrido.",
       "trucos": "Piensa en <b>llevar los codos hacia dentro de las rodillas</b> al bajar para ganar profundidad. Mantén una <b>pausa de 1 segundo</b> abajo para mejorar control y movilidad.",
       "sinMaterial": false
@@ -968,27 +969,27 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Espalda",
       "musculo": "Espalda",
       "seccion": "Completa (Énfasis en isquiotibiales y glúteos)",
-      "hacer": "<b>Coloca los pies al ancho de hombros</b>, agarra la barra con un grip mixto o prono. Mantén la espalda recta, baja la barra deslizándola por las piernas hasta que llegue al suelo o justo por encima. Levanta empujando con los talones y extendiendo las caderas.",
+      "hacer": "<b>Coloca los pies al ancho de cadera</b>, agarra la barra con un agarre mixto o prono. Mantén la espalda recta, baja la barra deslizándola por las piernas hasta que llegue al suelo o justo por encima. Levanta empujando el suelo con todo el pie y extendiendo las caderas.",
       "noHacer": "<b>No redondees la espalda</b> en ningún momento. Evita levantar con los brazos; el movimiento debe venir de las piernas y glúteos. No dejes que la barra se aleje del cuerpo.",
-      "trucos": "Piensa en <b>'empujar el suelo con los pies'</b> en lugar de tirar con la espalda. Mantén los hombros retraídos y el pecho elevado. Si eres principiante, usa una barra ligera o mancuernas para practicar la forma.",
+      "trucos": "Piensa en <b>'empujar el suelo con los pies'</b> en lugar de tirar con la espalda. Mantén los dorsales activos ('hombros en los bolsillos') y el pecho elevado. Si eres principiante, usa una barra ligera o mancuernas para practicar la forma.",
       "sinMaterial": false
     },
     "Press de banca": {
       "grupo": "Pecho",
       "musculo": "Pectoral",
       "seccion": "Media (Esternal)",
-      "hacer": "<b>Acuéstate en el banco</b> con los pies firmes en el suelo. Agarra la barra con un grip ligeramente más ancho que los hombros. Baja la barra controladamente hasta tocar el pecho, luego empuja hacia arriba extendiendo los brazos.",
+      "hacer": "<b>Acuéstate en el banco</b> con los pies firmes en el suelo. Agarra la barra con un agarre ligeramente más ancho que los hombros. Baja la barra controladamente hasta tocar el pecho, luego empuja hacia arriba extendiendo los brazos.",
       "noHacer": "<b>No arquees la espalda excesivamente</b>. Evita rebotar la barra en el pecho. No dejes que los codos se abran a 90° o más.",
-      "trucos": "Mantén los <b>hombros retraídos</b> contra el banco. Imagina que estás <b>'aplastando' algo entre las manos</b> al subir. Usa un spotter si es posible para cargas pesadas.",
+      "trucos": "Mantén los <b>hombros retraídos</b> contra el banco. Imagina que estás <b>'aplastando' algo entre las manos</b> al subir. Con cargas pesadas, pide a alguien que te asista.",
       "sinMaterial": false
     },
     "Dominadas": {
       "grupo": "Espalda",
       "musculo": "Espalda",
       "seccion": "Superior (Dorsal ancho)",
-      "hacer": "<b>Cuelga de la barra</b> con un grip prono más ancho que los hombros. Baja lentamente hasta que los brazos queden completamente extendidos, luego tira hacia arriba hasta que la barbilla pase la barra.",
-      "noHacer": "<b>No uses impulso o balanceo</b>. Evita encogerte de hombros al subir. No dejes que el cuerpo se balancee.",
-      "trucos": "Si eres principiante, usa asistencia o bandas elásticas. Enfócate en <b>contraer los omóplatos</b> al bajar. Mantén el core activado para evitar el balanceo.",
+      "hacer": "<b>Cuelga de la barra</b> con un agarre prono más ancho que los hombros. Baja lentamente hasta que los brazos queden completamente extendidos, luego tira hacia arriba hasta que la barbilla pase la barra.",
+      "noHacer": "<b>No uses impulso o balanceo</b>. Evita encogerte de hombros al subir.",
+      "trucos": "Si eres principiante, usa asistencia o bandas elásticas. Inicia cada repetición bajando los omóplatos (depresión escapular) antes de tirar. Mantén el core activado para evitar el balanceo.",
       "sinMaterial": false,
       "cargaCorporal": "sumar"
     },
@@ -996,17 +997,17 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Espalda",
       "musculo": "Espalda",
       "seccion": "Media (Trapecio y romboides)",
-      "hacer": "<b>Inclínate hacia adelante</b> con las rodillas ligeramente flexionadas. Agarra la barra con un grip prono. Tira de la barra hacia el abdomen, manteniendo los codos cerca del cuerpo, luego baja controladamente.",
+      "hacer": "<b>Inclínate hacia adelante</b> con las rodillas ligeramente flexionadas. Agarra la barra con un agarre prono. Tira de la barra hacia el abdomen, manteniendo los codos cerca del cuerpo, luego baja controladamente.",
       "noHacer": "<b>No uses los brazos solos</b>; el movimiento debe venir de la espalda. Evita redondear la espalda. No dejes que los hombros se eleven.",
-      "trucos": "Piensa en <b>'apretar los omóplatos'</b> al tirar. Mantén la mirada al frente para ayudar con la postura. Para mayor intensidad, usa un grip mixto.",
+      "trucos": "Piensa en <b>'apretar los omóplatos'</b> al tirar. Mantén la mirada al frente para ayudar con la postura. Si el agarre falla antes que la espalda, usa straps.",
       "sinMaterial": false
     },
     "Curl de bíceps con barra": {
       "grupo": "Brazos",
       "musculo": "Bíceps",
-      "seccion": "Braquial",
-      "hacer": "<b>De pie con los pies al ancho de hombros</b>, agarra la barra con un grip supino. Flexiona los codos para subir la barra hacia los hombros, manteniendo los codos pegados al torso.",
-      "noHacer": "<b>No uses impulso del torso</b>. Evita extender los codos completamente en la bajada. No gires las muñecas.",
+      "seccion": "General (Cabeza Larga y Corta)",
+      "hacer": "<b>De pie con los pies al ancho de hombros</b>, agarra la barra con un agarre supino. Flexiona los codos para subir la barra hacia los hombros, manteniendo los codos pegados al torso.",
+      "noHacer": "<b>No uses impulso del torso</b>. Baja hasta casi extender los codos sin soltar la tensión. No gires las muñecas.",
       "trucos": "Mantén los <b>codos fijos</b> al lado del cuerpo. Baja lentamente para mayor tiempo bajo tensión. Imagina que estás <b>'girando' la barra hacia arriba</b>.",
       "sinMaterial": false
     },
@@ -1016,7 +1017,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Completo",
       "hacer": "<b>De pie o sentado</b>, agarra una mancuerna con ambas manos sobre la cabeza. Baja la mancuerna detrás de la cabeza flexionando los codos, luego extiende los brazos hacia arriba.",
       "noHacer": "<b>No dejes que los codos se abran</b>. Evita arquear la espalda. No uses peso excesivo que comprometa la forma.",
-      "trucos": "Mantén los <b>codos apuntando hacia adelante</b>. Baja lentamente y aprieta el tríceps al final. Usa una mano si es más cómodo.",
+      "trucos": "Mantén los codos apuntando hacia arriba. Baja lentamente y aprieta el tríceps al final. Usa una mano si es más cómodo.",
       "sinMaterial": false
     },
     "Elevaciones de talones": {
@@ -1041,7 +1042,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Antebrazos",
       "musculo": "Antebrazo",
       "seccion": "Flexores",
-      "hacer": "<b>Siéntate con los antebrazos apoyados en los muslos</b>, palmas hacia arriba. Agarra una mancuerna o barra con un grip supino. Flexiona las muñecas hacia arriba, luego baja controladamente.",
+      "hacer": "<b>Siéntate con los antebrazos apoyados en los muslos</b>, palmas hacia arriba. Agarra una mancuerna o barra con un agarre supino. Flexiona las muñecas hacia arriba, luego baja controladamente.",
       "noHacer": "<b>No uses los bíceps</b> para ayudar. Evita mover los antebrazos. No rebotes en la bajada.",
       "trucos": "Mantén los <b>antebrazos fijos</b> en los muslos. Baja lentamente para mayor tiempo bajo tensión. Usa peso ligero para enfocarte en la contracción.",
       "sinMaterial": false
@@ -1050,7 +1051,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Antebrazos",
       "musculo": "Antebrazo",
       "seccion": "Extensores",
-      "hacer": "<b>Siéntate con los antebrazos apoyados en los muslos</b>, palmas hacia abajo. Agarra una mancuerna o barra con un grip prono. Extiende las muñecas hacia arriba, luego baja controladamente.",
+      "hacer": "<b>Siéntate con los antebrazos apoyados en los muslos</b>, palmas hacia abajo. Agarra una mancuerna o barra con un agarre prono. Extiende las muñecas hacia arriba, luego baja controladamente.",
       "noHacer": "<b>No uses los tríceps</b> para ayudar. Evita mover los antebrazos. No rebotes.",
       "trucos": "Enfócate en <b>contraer los extensores</b> al final del movimiento. Mantén los antebrazos inmóviles. Ideal para equilibrar con curls de muñeca.",
       "sinMaterial": false
@@ -1095,7 +1096,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Piernas",
       "musculo": "Femoral",
       "seccion": "Isquiotibiales (Estiramiento)",
-      "hacer": "<b>De pie con los pies al ancho de hombros</b>, agarra la barra con un grip prono. Baja la barra deslizándola por las piernas, manteniendo las rodillas ligeramente flexionadas y la espalda recta. Empuja con los talones para subir.",
+      "hacer": "<b>De pie con los pies al ancho de cadera</b>, agarra la barra con un agarre prono. Baja la barra deslizándola por las piernas, manteniendo las rodillas ligeramente flexionadas y la espalda recta. Empuja con los talones para subir.",
       "noHacer": "<b>No redondees la espalda</b>. Evita flexionar las rodillas excesivamente. No dejes que la barra se aleje del cuerpo.",
       "trucos": "Mantén la <b>mirada al frente</b> para mantener la espalda neutra. Siente el estiramiento en los isquiotibiales al bajar. Usa peso moderado para técnica perfecta.",
       "sinMaterial": false
@@ -1113,9 +1114,9 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Piernas",
       "musculo": "Femoral",
       "seccion": "Isquiotibiales (Estiramiento)",
-      "hacer": "<b>De pie con una mancuerna en cada mano</b>, pies al ancho de hombros y rodillas ligeramente flexionadas. Baja las mancuernas por delante de las piernas manteniendo la espalda recta y el core activado, luego sube empujando los talones.",
+      "hacer": "<b>De pie con una mancuerna en cada mano</b>, pies al ancho de cadera y rodillas ligeramente flexionadas. Baja las mancuernas por delante de las piernas manteniendo la espalda recta y el core activado, luego sube empujando los talones.",
       "noHacer": "<b>No redondees la espalda</b> ni dejes que las mancuernas se alejen demasiado del cuerpo. Evita flexionar las rodillas en exceso.",
-      "trucos": "Mantén los <b>hombros hacia atrás</b> y sienta la tensión en los isquiotibiales al bajar. Este agarre facilita la técnica y el control.",
+      "trucos": "Mantén los <b>hombros hacia atrás</b> y siente la tensión en los isquiotibiales al bajar. Las mancuernas permiten una trayectoria más natural y facilitan aprender la técnica.",
       "sinMaterial": false
     },
     "Buenos días": {
@@ -1123,7 +1124,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Femoral",
       "seccion": "Isquiotibiales y glúteos",
       "hacer": "<b>Coloca la barra sobre los hombros</b>, pies al ancho de hombros. Inclínate hacia adelante desde las caderas, manteniendo la espalda recta y las rodillas ligeramente flexionadas. Vuelve a la posición vertical.",
-      "noHacer": "<b>No arquees la espalda</b> al bajar. Evita doblar las rodillas demasiado. No uses impulso.",
+      "noHacer": "No redondees la espalda al bajar. Evita doblar las rodillas demasiado. No uses impulso.",
       "trucos": "Piensa en <b>empujar las caderas hacia atrás</b>. Mantén el core activado. Excelente para fortalecer la cadena posterior.",
       "sinMaterial": false
     },
@@ -1132,7 +1133,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Trapecio",
       "seccion": "Superior",
       "hacer": "<b>De pie con mancuernas a los lados</b>. Eleva los hombros hacia las orejas lo más alto posible, luego baja controladamente.",
-      "noHacer": "<b>No uses impulso</b> del torso. Evita encogerte de hombros durante otros ejercicios. No gires los hombros.",
+      "noHacer": "<b>No uses impulso</b> del torso. No hagas círculos con los hombros.",
       "trucos": "Mantén los <b>brazos rectos</b> a los lados. Aprieta fuerte arriba por 1-2 segundos. Ideal para el desarrollo del trapecio superior.",
       "sinMaterial": false
     },
@@ -1140,7 +1141,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Espalda",
       "musculo": "Trapecio",
       "seccion": "Superior",
-      "hacer": "<b>De pie agarrando una barra con un grip prono</b>, brazos extendidos. Eleva los hombros hacia arriba, manteniendo los brazos rectos.",
+      "hacer": "<b>De pie agarrando una barra con un agarre prono</b>, brazos extendidos. Eleva los hombros hacia arriba, manteniendo los brazos rectos.",
       "noHacer": "<b>No flexiones los codos</b>. Evita balancear el cuerpo. No rebotes.",
       "trucos": "Usa un <b>peso moderado</b> para evitar lesiones. Enfócate en la contracción máxima. Combínalo con encogimientos de mancuernas para variedad.",
       "sinMaterial": false
@@ -1149,7 +1150,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Hombros",
       "musculo": "Deltoides",
       "seccion": "Anterior",
-      "hacer": "<b>De pie agarrando una barra con un grip prono</b>, brazos extendidos. Eleva la barra hacia adelante hasta la altura del pecho, luego baja.",
+      "hacer": "<b>De pie agarrando una barra con un agarre prono</b>, brazos extendidos. Eleva la barra hacia adelante hasta la altura del pecho, luego baja.",
       "noHacer": "<b>No arquees la espalda</b>. Evita flexionar los codos. No uses peso excesivo.",
       "trucos": "Mantén los <b>hombros retraídos</b>. Piensa en elevar desde los hombros, no los brazos. Ideal para principiantes.",
       "sinMaterial": false
@@ -1160,7 +1161,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Completo",
       "hacer": "<b>Siéntate o de pie con mancuernas a la altura de los hombros</b>, palmas hacia ti. Presiona hacia arriba mientras rotas las palmas hacia adelante, luego baja invirtiendo la rotación.",
       "noHacer": "<b>No bloquees los codos</b> arriba. Evita arquear la espalda. No gires bruscamente.",
-      "trucos": "La rotación añade <b>tiempo bajo tensión</b> al deltoides posterior. Mantén el core activado. Variación avanzada del press militar.",
+      "trucos": "La rotación añade <b>tiempo bajo tensión</b> al deltoides anterior. Mantén el core activado. Variación avanzada del press militar.",
       "sinMaterial": false
     },
     "Hip Thrust (Empuje de cadera)": {
@@ -1194,7 +1195,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Piernas",
       "musculo": "Glúteo",
       "seccion": "Glúteo Mayor (Aislamiento)",
-      "hacer": "Ajusta el apoyo para el pecho y coloca el pie en la plataforma o rodillo. <b>Empuja la cadera hacia atrás y luego extiéndela</b> llevando la pierna hacia atrás de forma controlada.",
+      "hacer": "Ajusta el apoyo para el pecho y coloca el pie en la plataforma o rodillo. Extiende la cadera llevando la pierna hacia atrás de forma controlada, sin mover la pelvis.",
       "noHacer": "<b>No arquees la espalda</b> para ganar recorrido. Evita usar impulso o balanceo del torso.",
       "trucos": "Mantén el <b>core activado</b> y enfócate en apretar el glúteo al final del recorrido. Controla la fase negativa.",
       "sinMaterial": false
@@ -1213,7 +1214,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Deltoides/Trapecio",
       "seccion": "Lateral y Superior",
       "hacer": "Sujeta una barra o polea con agarre algo más ancho que los hombros. <b>Tira de los codos hacia el techo</b>, manteniendo la barra pegada al cuerpo hasta que llegue a la altura del pecho.",
-      "noHacer": "<b>No uses un agarre demasiado estrecho</b> (estresa la muñeca). No subas la barra más arriba de los hombros si sientes molestias articulares.",
+      "noHacer": "<b>No uses un agarre demasiado estrecho</b> (estresa muñecas y hombros). No subas la barra más arriba de los hombros si sientes molestias articulares.",
       "trucos": "Imagina que tienes <b>dos hilos tirando de tus codos</b> hacia arriba. Las manos deben quedar siempre por debajo de la altura de los codos para asegurar que el hombro trabaje correctamente.",
       "sinMaterial": false
     },
@@ -1230,7 +1231,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Brazos",
       "musculo": "Tríceps",
       "seccion": "Cabeza Larga",
-      "hacer": "Colócate entre dos barras paralelas con los brazos extendidos. Baja el cuerpo flexionando los codos hasta que los hombros queden por debajo de los codos, luego empuja hacia arriba hasta extender los brazos.",
+      "hacer": "Colócate entre dos barras paralelas con los brazos extendidos. Baja el cuerpo flexionando los codos hasta que los brazos queden aproximadamente paralelos al suelo, luego empuja hacia arriba hasta extender los brazos.",
       "noHacer": "No bajes demasiado para evitar sobrecargar los hombros. Evita balancearte o usar impulso.",
       "trucos": "Mantén el torso ligeramente inclinado hacia adelante para enfatizar el pecho. Si eres principiante, usa asistencia o bandas elásticas.",
       "sinMaterial": false,
@@ -1242,7 +1243,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Ancha",
       "hacer": "Apoya una rodilla y una mano en un banco, con la espalda plana. Con la otra mano, sujeta una mancuerna y tira del codo hacia atrás, llevando la mancuerna hacia la cadera.",
       "noHacer": "No gires el torso ni uses impulso. Mantén la espalda recta sin arquearla.",
-      "trucos": "Imagina que estás remando, llevando el codo lo más alto posible. Cambia de lado para equilibrar el trabajo.",
+      "trucos": "Imagina que estás remando, llevando el codo hacia atrás y hacia la cadera. Cambia de lado para equilibrar el trabajo.",
       "sinMaterial": false
     },
     "Plancha abdominal (Plank)": {
@@ -1287,7 +1288,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "seccion": "Lateral",
       "hacer": "Apoya un antebrazo y el costado del pie en el suelo, alineando cabeza, tronco y piernas. Eleva la cadera y mantén la posición.",
       "noHacer": "<b>No dejes caer la cadera</b> ni gires el torso hacia adelante.",
-      "trucos": "Aprieta glúteos y abdomen para una línea recta. Puedes elevar el brazo libre para estabilidad.",
+      "trucos": "Aprieta glúteos y abdomen para una línea recta. Apoya la mano libre en la cadera; elevarla al techo aumenta la dificultad.",
       "sinMaterial": true
     },
     "Hollow hold": {
@@ -1331,7 +1332,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Abdominales",
       "seccion": "Recto",
       "hacer": "De rodillas frente a la polea alta, sujeta la cuerda y flexiona el tronco <b>llevando las costillas hacia la pelvis</b>.",
-      "noHacer": "<b>No tires con los brazos</b>. Evita mover la cadera hacia atrás.",
+      "noHacer": "<b>No tires con los brazos</b>. Evita sentarte sobre los talones para mover el peso.",
       "trucos": "Mantén los codos fijos y enfócate en la contracción del abdomen. Controla la subida.",
       "sinMaterial": false
     },
@@ -1358,7 +1359,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Cardio",
       "seccion": "Aeróbico",
       "hacer": "Sube a una cinta de correr y camina o corre a un ritmo constante, manteniendo una postura erguida.",
-      "noHacer": "No te inclines demasiado hacia adelante. Evita pisar con los talones primero para prevenir lesiones.",
+      "noHacer": "No te inclines demasiado hacia adelante. Evita zancadas demasiado largas (pisar muy por delante del cuerpo) y no te agarres a las barras.",
       "trucos": "Aumenta la velocidad gradualmente. Usa intervalos para variar la intensidad.",
       "sinMaterial": false
     },
@@ -1366,9 +1367,9 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "grupo": "Cardio",
       "musculo": "Cardio",
       "seccion": "Aeróbico",
-      "hacer": "Sujeta una comba con ambas manos y salta sobre ella alternando los pies, manteniendo un ritmo constante.",
-      "noHacer": "No saltes demasiado alto para evitar fatiga. Evita saltar con los dos pies juntos si eres principiante.",
-      "trucos": "Empieza despacio y aumenta la velocidad. Usa una superficie acolchada para reducir el impacto.",
+      "hacer": "Sujeta la comba con los codos cerca del cuerpo y <b>gírala con las muñecas</b>. Salta con los dos pies juntos (o alternando cuando domines el ritmo) y aterriza suave sobre la parte delantera del pie.",
+      "noHacer": "<b>No saltes más alto de lo necesario</b> (2–3 cm bastan). Evita girar la comba con los brazos en lugar de las muñecas.",
+      "trucos": "Empieza con series cortas (30–60 segundos) y aumenta la duración poco a poco. Usa una superficie con algo de amortiguación para reducir el impacto.",
       "sinMaterial": false
     },
     "Crunch abdominal": {
@@ -1395,7 +1396,7 @@ Datos base de ejercicios/rutinas para carga inmediata.
       "musculo": "Oblicuos",
       "seccion": "Lateral",
       "hacer": "Siéntate con las rodillas flexionadas y los pies en el suelo. Inclínate ligeramente hacia atrás y gira el torso de lado a lado, tocando el suelo con las manos.",
-      "noHacer": "No gires solo la cabeza. Mantén los pies en el suelo para estabilidad.",
+      "noHacer": "No gires solo los brazos; el giro sale del tronco. Mantén los pies en el suelo para estabilidad.",
       "trucos": "Usa un peso para aumentar la resistencia. Mantén el movimiento lento y controlado.",
       "sinMaterial": true
     }

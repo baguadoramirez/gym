@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 
 const logoutUserBtn = document.getElementById("logout-user-btn");
 
@@ -190,30 +191,13 @@ if (importMergeHistoryBtn && importMergeHistoryInput) {
   });
 }
 
-function openImportOverlay(userList) {
-  if (!importOverlay || !importUserSelect) return;
-  importUserSelect.innerHTML = "";
-  userList.forEach(user => {
-    const opt = document.createElement("option");
-    opt.value = user.key;
-    opt.textContent = user.name;
-    importUserSelect.appendChild(opt);
-  });
-  openOverlay(importOverlay, { initialFocus: importUserSelect });
-}
-
-function closeImportOverlay() {
-  if (!importOverlay) return;
-  closeOverlay(importOverlay);
-}
-
 function openManageUserOverlay() {
   if (!manageUserOverlay) return;
   if (manageUserNameLabel) {
     manageUserNameLabel.textContent = currentUserName || t("status.selectUser");
   }
   renderUserStatsCharts();
-  openOverlay(manageUserOverlay, { initialFocus: manageUserHistoryBtn || manageUserClose });
+  openOverlay(manageUserOverlay, { initialFocus: manageUserFavoritesBtn || manageUserClose });
 }
 
 function closeManageUserOverlay() {
@@ -502,6 +486,7 @@ function renderFavoritesList() {
       });
       favoritesGroupSelect.appendChild(button);
     });
+    favoritesGroupSelect.querySelector(".is-active")?.scrollIntoView({ block: "nearest", inline: "center" });
   }
 
   const selectedGroup = favoritesGroupSelect?.dataset.selectedGroup || groups[0] || "";
@@ -541,24 +526,10 @@ function renderFavoritesList() {
   favoritesList.appendChild(fragment);
 }
 
+// El historial ahora es una pestaña propia
 function openHistoryMenuOverlay() {
-  if (!historyMenuOverlay) return;
-  refreshHistoryUI();
-  if (historyDateInput) historyDateInput.value = "";
-  updateHistoryButtons();
-  const firstSession = historyDateList?.querySelector(".history-date-item");
-  openOverlay(historyMenuOverlay, { initialFocus: firstSession || historyMenuClose });
-}
-
-function closeHistoryMenuOverlay() {
-  if (!historyMenuOverlay) return;
-  closeOverlay(historyMenuOverlay);
-}
-
-if (importOverlayCancel) {
-  importOverlayCancel.addEventListener("click", () => {
-    closeImportOverlay();
-  });
+  closeManageUserOverlay();
+  openTab("historial");
 }
 
 if (manageUserClose) {
@@ -568,39 +539,6 @@ if (manageUserClose) {
 if (manageUserOverlay) {
   manageUserOverlay.addEventListener("click", (e) => {
     if (e.target === manageUserOverlay) closeManageUserOverlay();
-  });
-}
-
-if (manageUserHistoryBtn) {
-  manageUserHistoryBtn.addEventListener("click", () => {
-    openHistoryMenuOverlay();
-  });
-}
-
-if (manageUserChartsBtn) {
-  manageUserChartsBtn.addEventListener("click", () => {
-    closeManageUserOverlay();
-    const step8Index = stepPages.indexOf(step8);
-    if (step8Index >= 0) {
-      allowGlobalChartsStep = true;
-      setActiveStep(step8Index, { force: true });
-      if (typeof window.loadChartExercises === "function") {
-        window.loadChartExercises();
-      }
-      renderUserStatsCharts();
-    }
-  });
-}
-
-if (manageUserMuscleChartsBtn) {
-  manageUserMuscleChartsBtn.addEventListener("click", () => {
-    closeManageUserOverlay();
-    const step9Index = stepPages.indexOf(step9);
-    if (step9Index >= 0) {
-      allowGlobalChartsStep = true;
-      setActiveStep(step9Index, { force: true });
-      renderUserStatsCharts();
-    }
   });
 }
 
@@ -631,23 +569,11 @@ if (logoutUserBtn) {
       userHistorySelect.selectedIndex = 0;
     }
     closeManageUserOverlay();
-    closeHistoryMenuOverlay();
     closeFavoritesOverlay();
-    closeImportOverlay();
   });
 }
-if (historyMenuClose) {
-  historyMenuClose.addEventListener("click", closeHistoryMenuOverlay);
-}
-
 if (favoritesClose) {
   favoritesClose.addEventListener("click", closeFavoritesOverlay);
-}
-
-if (historyMenuOverlay) {
-  historyMenuOverlay.addEventListener("click", (e) => {
-    if (e.target === historyMenuOverlay) closeHistoryMenuOverlay();
-  });
 }
 
 if (favoritesOverlay) {
@@ -676,7 +602,7 @@ if (historyViewBtn) {
 
 if (historyDeleteSessionBtn) {
   historyDeleteSessionBtn.addEventListener("click", () => {
-    deleteSelectedHistorySession();
+    if (deleteSelectedHistorySession()) openTab("historial");
   });
 }
 

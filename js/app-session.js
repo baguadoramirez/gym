@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 function buildSessionData(container) {
   if (!currentUserKey) return null;
   const root = container || exercisesContainer || mainExercisesContainer || document;

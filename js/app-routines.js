@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 function loadCustomRoutines() {
   if (!currentUserKey) return {};
   const key = `${CUSTOM_ROUTINES_KEY}_${currentUserKey}`;
@@ -315,20 +316,6 @@ async function maybePromptSaveRoutine() {
 }
 
 
-function populateGroupSelect(selectEl) {
-  if (!selectEl) return;
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = t("placeholder.selectGroup");
-  selectEl.replaceChildren(placeholder);
-  getExerciseGroups().forEach(group => {
-    const opt = document.createElement("option");
-    opt.value = group;
-    opt.textContent = translateGroupLabel(group);
-    selectEl.appendChild(opt);
-  });
-}
-
 function extractRoutineNumber(label) {
   const match = String(label).match(/\d+/);
   return match ? parseInt(match[0], 10) : NaN;
@@ -406,36 +393,6 @@ function populateRoutineSelectors() {
     if (routineSelect) routineSelect.innerHTML = "";
   }
   renderRoutineOptionList(entries, selectedValue);
-}
-
-function refreshRoutineSelectLabels() {
-  if (routineSelect) {
-    const currentValue = routineSelect.value;
-    const entries = getRoutineEntries();
-    routineSelect.innerHTML = "";
-    entries.forEach(entry => {
-      const opt = document.createElement("option");
-      opt.value = entry.value;
-      opt.textContent = entry.label;
-      routineSelect.appendChild(opt);
-    });
-    if (entries.some(entry => entry.value === currentValue)) {
-      routineSelect.value = currentValue;
-    }
-    syncRoutineSelectFromWeekDay();
-    renderRoutineOptionList(entries, routineSelect.value);
-    return;
-  }
-  if (weekSelect) {
-    Array.from(weekSelect.options).forEach(opt => {
-      opt.textContent = translateRoutineLabel(opt.value);
-    });
-  }
-  if (daySelect) {
-    Array.from(daySelect.options).forEach(opt => {
-      opt.textContent = translateRoutineLabel(opt.value);
-    });
-  }
 }
 
 function populateHistoryDaySelect() {

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 (() => {
   const elements = {
     greeting: document.getElementById("dashboard-greeting"),
@@ -8,7 +9,6 @@
     empty: document.getElementById("dashboard-empty"),
     insights: document.getElementById("dashboard-insights"),
     weekFrequency: document.getElementById("dashboard-week-frequency"),
-    weekStreak: document.getElementById("dashboard-week-streak"),
     goalTrack: document.querySelector(".dashboard-goal-track"),
     goalProgress: document.getElementById("dashboard-goal-progress"),
     muscleBalance: document.getElementById("dashboard-muscle-balance"),
@@ -363,7 +363,6 @@
     const records = getRecentRecords(sessions.map(item => item.session));
     elements.records.textContent = String(records.length);
     elements.weekFrequency.textContent = String(recentSessions.length);
-    if (elements.weekStreak) elements.weekStreak.textContent = "3";
     const weeklyGoalProgress = Math.min(100, (recentSessions.length / 3) * 100);
     if (elements.goalProgress) elements.goalProgress.style.width = `${weeklyGoalProgress}%`;
     elements.goalTrack?.setAttribute("aria-valuenow", String(Math.min(3, recentSessions.length)));

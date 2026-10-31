@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
   // Script Modificado para el nuevo toggle
   const compactThemeToggle = document.getElementById("compact-theme-toggle");
   const htmlElement = document.documentElement;
@@ -578,11 +579,12 @@
           .sort((a, b) => new Date(a?.date || 0) - new Date(b?.date || 0));
         const simpleFilterEnabled = simpleFilterControl && !simpleFilterControl.checked;
         const recentExerciseCounts = simpleFilterEnabled ? getRecentExerciseCounts(sessions) : new Map();
-        const exercises = new Set(
-          getExerciseNames().filter(name => (
-            !simpleFilterEnabled || (recentExerciseCounts.get(name) || 0) > 2
-          ))
-        );
+        const allExerciseNames = getExerciseNames();
+        const frequentNames = allExerciseNames.filter(name => (
+          !simpleFilterEnabled || (recentExerciseCounts.get(name) || 0) > 2
+        ));
+        // Con pocos entrenos ningún ejercicio es "frecuente": mejor mostrarlos todos que un selector vacío
+        const exercises = new Set(frequentNames.length ? frequentNames : allExerciseNames);
 
         const maxByExercise = new Map();
         sessions.forEach((session, sessionIndex) => {

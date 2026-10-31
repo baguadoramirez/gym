@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 let historyData = {}; // {exerciseName: [weights]}
 let historySessionsCache = null;
 let historySessionsCacheUserKey = "";
@@ -114,18 +115,6 @@ window.getGymHistoryExerciseNames = getGymHistoryExerciseNames;
 function getLocalHistoryForUser(userKey) {
   const parsed = readStorageJSON(getHistoryStorageKeyForUser(userKey), []);
   return Array.isArray(parsed) ? parsed.filter(isUsableHistorySession) : [];
-}
-
-function hasHistoryForUser(userKey) {
-  if (!userKey) return false;
-  const historyKey = getHistoryStorageKeyForUser(userKey);
-  if (storage.getItem(historyKey)) return true;
-  const prefix = `gym_${userKey}_`;
-  for (let i = 0; i < storage.length; i++) {
-    const key = storage.key(i) || "";
-    if (key.startsWith(prefix)) return true;
-  }
-  return false;
 }
 
 function stripExerciseTechnicalNotes(exercise) {
@@ -337,28 +326,6 @@ function normalizeImportedHistoryPayload(payload) {
   return normalized;
 }
 
-function mergeImportedHistory(imported) {
-  if (!Array.isArray(imported)) return;
-  const cleanImported = normalizeImportedHistoryPayload(imported);
-  const sessions = getLocalHistory();
-  const byKey = new Map();
-  sessions.forEach(item => {
-    const key = item.key || buildSessionKey(item);
-    if (key) byKey.set(key, { ...item, key, user: item.user || currentUserName });
-  });
-  cleanImported.forEach(item => {
-    if (!item || typeof item !== "object") return;
-    const key = item.key || buildSessionKey(item);
-    if (!key) return;
-    byKey.set(key, { ...item, key, user: item.user || currentUserName });
-  });
-  const merged = Array.from(byKey.values()).map(stripSessionTechnicalNotes);
-  setLocalHistory(merged);
-  window.uploadedHistory = merged;
-  rebuildHistoryData(merged);
-  refreshCharts();
-}
-
 function mergeImportedHistoryForUser(imported, userName, userKey) {
   if (!Array.isArray(imported)) return;
   const cleanImported = normalizeImportedHistoryPayload(imported);
@@ -491,18 +458,6 @@ function getLastCardioSet(exerciseName) {
 
   if (tiempo == null && intensidad == null) return null;
   return { tiempo, intensidad };
-}
-
-function getLastExerciseMaxWeight(exerciseName) {
-  const lastSession = getLastExerciseSession(exerciseName);
-  if (!lastSession) return null;
-  const ex = lastSession.exercises.find(e => e.nombre === exerciseName && !isWarmupExercise(e));
-  if (!ex?.sets?.length) return null;
-  const weights = ex.sets
-    .map(s => parseFloat(s.peso))
-    .filter(v => !Number.isNaN(v) && v > 0);
-  if (weights.length === 0) return null;
-  return Math.max(...weights);
 }
 
 function formatRelativeExerciseDate(dateValue) {

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 (() => {
   const numberOrNull = value => {
     if (value == null || value === "") return null;

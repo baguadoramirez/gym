@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 importScripts("./version.js");
 
 const ASSET_VERSION = self.GYM_ASSET_VERSION || "dev";
@@ -25,7 +26,8 @@ const ASSETS = [
   "./icons/bar_logo.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./icons/apple-touch-icon.png"
+  "./icons/apple-touch-icon.png",
+  "https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"
 ];
 
 async function cacheCoreAssets() {

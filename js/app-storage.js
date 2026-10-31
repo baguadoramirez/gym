@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 const LOCAL_HISTORY_KEY = "gym_history_v1";
 const USER_LIST_KEY = "gym_user_list";
 const CUSTOM_ROUTINES_KEY = "gym_custom_routines_v1";

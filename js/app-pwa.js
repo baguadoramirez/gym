@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 (() => {
   function showAppUpdateNotice(registration) {
     if (!registration || document.getElementById("app-update-notice")) return;
@@ -25,7 +26,15 @@
     document.body.appendChild(notice);
   }
 
+  function requestPersistentStorage() {
+    if (!navigator.storage?.persist) return;
+    navigator.storage.persisted()
+      .then(persisted => (persisted ? true : navigator.storage.persist()))
+      .catch(() => {});
+  }
+
   function registerGymServiceWorker() {
+    requestPersistentStorage();
     if (!("serviceWorker" in navigator)) return;
     const assetVersion = encodeURIComponent(window.GYM_ASSET_VERSION || "dev");
     navigator.serviceWorker.register(`./sw.js?v=${assetVersion}`, { updateViaCache: "none" }).then(reg => {

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later · Copyright (C) 2026 Borja Aguado */
 // -------------------------
 // CRONÓMETRO (TEMPORIZADOR DE CUENTA ATRÁS)
 // -------------------------
@@ -17,10 +18,8 @@ const toggleBtn = document.getElementById('toggle-stopwatch');
 const popup = document.getElementById('stopwatch-popup');
 const stopwatchOverlay = document.getElementById('stopwatch-overlay');
 const stopwatchCloseBtn = document.getElementById('stopwatch-close-btn');
-const quickAddPopup = document.getElementById('quick-add-popup');
 const quickAddOverlay = document.getElementById('quick-add-overlay');
 const quickAddToggleBtn = document.getElementById('toggle-quick-add');
-const quickAddShortcuts = document.getElementById('quick-add-shortcuts');
 const quickAddCloseBtn = document.getElementById('quick-add-close-btn');
 const quickAddSearch = document.getElementById('quick-add-search');
 const quickAddGroups = document.getElementById('quick-add-groups');
@@ -426,11 +425,6 @@ function updateQuickFilterStates() {
 }
 
 function updateQuickShortcutStates() {
-  if (quickAddShortcuts) {
-    quickAddShortcuts.querySelectorAll(".quick-shortcut-btn").forEach(btn => {
-      btn.classList.toggle("is-active", btn.dataset.quickMode === quickAddMode);
-    });
-  }
   if (quickAddMostUsed) {
     const active = quickAddMode === "popular";
     quickAddMostUsed.classList.toggle("is-active", active);
@@ -514,8 +508,9 @@ function renderQuickAddResults() {
     badges.className = "quick-result-badges";
     if (favorites.has(name)) {
       const badge = document.createElement("span");
-      badge.className = "quick-result-badge";
+      badge.className = "quick-result-badge quick-result-badge-fav";
       badge.textContent = "★";
+      badge.setAttribute("aria-label", "Favorito");
       badges.appendChild(badge);
     }
     const usageCount = usageCounts.get(name) || 0;
@@ -551,14 +546,6 @@ if (quickAddSearch) {
     if (!first) return;
     event.preventDefault();
     addQuickExercise(first);
-  });
-}
-if (quickAddShortcuts) {
-  quickAddShortcuts.addEventListener("click", event => {
-    const btn = event.target.closest(".quick-shortcut-btn");
-    if (!btn) return;
-    quickAddMode = btn.dataset.quickMode || "all";
-    renderQuickAddResults();
   });
 }
 if (quickAddMostUsed) {
