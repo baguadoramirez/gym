@@ -187,23 +187,11 @@ function renderUserStatsChart(targetCanvas, noDataLabel, instanceRefSetter, inst
     return;
   }
 
-  const palette = [
-    "#f97316",
-    "#22c55e",
-    "#38bdf8",
-    "#a855f7",
-    "#facc15",
-    "#ef4444",
-    "#14b8a6",
-    "#e11d48",
-    "#84cc16",
-    "#0ea5e9"
-  ];
-
-  const datasets = groups.map((group, idx) => ({
+  // Mismos colores por grupo que el anillo y el historial
+  const datasets = groups.map(group => ({
     label: group,
     data: perSession.map(map => map.get(group) || 0),
-    backgroundColor: palette[idx % palette.length],
+    backgroundColor: getMuscleGroupStyle(group).color,
     stack: "sets"
   }));
 
@@ -349,7 +337,7 @@ function renderUserStatsPieChart() {
         dot.style.background = style.color;
         const name = document.createElement("span");
         name.className = "pie-icon-name";
-        name.textContent = `${style.icon} ${translateGroupLabel(label)}`;
+        name.append(createMuscleGroupIcon(label), translateGroupLabel(label));
         const amount = document.createElement("span");
         amount.className = "pie-icon-value";
         const pct = totalSum ? Math.round((value / totalSum) * 100) : 0;

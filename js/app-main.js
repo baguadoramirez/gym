@@ -824,34 +824,33 @@ function updateHistoryButtons() {
   updateHistoryDateListSelection();
 }
 
-// Emoji y color fijos por grupo: los comparten el historial y el gráfico circular de Progreso
+// Icono (símbolo SVG de index.html) y color fijos por grupo: los comparten el historial y el gráfico de Progreso
 const MUSCLE_GROUP_STYLES = {
-  Pecho: { icon: "🫁", color: "#f97316" },
-  Espalda: { icon: "🧍", color: "#38bdf8" },
-  Hombros: { icon: "🤷", color: "#a855f7" },
-  Brazos: { icon: "💪", color: "#facc15" },
-  Antebrazos: { icon: "✊", color: "#14b8a6" },
-  Piernas: { icon: "🦵", color: "#22c55e" },
-  Core: { icon: "🧱", color: "#ef4444" },
-  Cardio: { icon: "❤️", color: "#e11d48" }
+  Pecho: { icon: "mg-pecho", color: "#f97316" },
+  Espalda: { icon: "mg-espalda", color: "#38bdf8" },
+  Hombros: { icon: "mg-hombros", color: "#a855f7" },
+  Brazos: { icon: "mg-brazos", color: "#facc15" },
+  Antebrazos: { icon: "mg-antebrazos", color: "#14b8a6" },
+  Piernas: { icon: "mg-piernas", color: "#22c55e" },
+  Core: { icon: "mg-core", color: "#ef4444" },
+  Cardio: { icon: "mg-cardio", color: "#e11d48" }
 };
 
 function getMuscleGroupStyle(group) {
-  return MUSCLE_GROUP_STYLES[group] || { icon: "🔸", color: "#94a3b8" };
+  return MUSCLE_GROUP_STYLES[group] || { icon: "mg-otros", color: "#94a3b8" };
 }
 
-// Series por grupo muscular de una sesión (sin calentamientos), de más a menos
-function getSessionGroupSets(session) {
-  const totals = new Map();
-  (session?.exercises || []).forEach(exercise => {
-    if (isWarmupExercise(exercise)) return;
-    const sets = Array.isArray(exercise.sets) ? exercise.sets.length : 0;
-    if (!sets) return;
-    const tpl = exerciseTemplates[exercise?.nombre] || { musculo: exercise?.musculo };
-    const group = resolveExerciseGroup(tpl) || "Otros";
-    totals.set(group, (totals.get(group) || 0) + sets);
-  });
-  return Array.from(totals, ([name, sets]) => ({ name, sets })).sort((a, b) => b.sets - a.sets);
+function createMuscleGroupIcon(group) {
+  const { icon, color } = getMuscleGroupStyle(group);
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class", "mg-icon");
+  svg.setAttribute("aria-hidden", "true");
+  svg.style.color = color;
+  const use = document.createElementNS(svgNS, "use");
+  use.setAttribute("href", `#${icon}`);
+  svg.appendChild(use);
+  return svg;
 }
 
 function formatHistoryListDate(dateStr) {
@@ -894,44 +893,48 @@ function renderHistoryDateList() {
     return;
   }
 
-  // Las barras se escalan con el máximo de todo el historial para que las sesiones sean comparables
-  const groupSetsBySession = sessions.map(getSessionGroupSets);
-  const maxGroupSets = Math.max(1, ...groupSetsBySession.flatMap(groups => groups.map(group => group.sets)));
-
-  sessions.forEach((session, index) => {
-    const groups = groupSetsBySession[index];
+  sessions.forEach(session => {
+    const exercises = (Array.isArray(session.exercises) ? session.exercises : [])
+      .map(exercise => ({
+        name: exercise?.nombre || exercise?.name || exercise?.exercise || exercise?.ejercicio || "",
+        sets: Array.isArray(exercise?.sets) ? exercise.sets.length : 0,
+        warmup: isWarmupExercise(exercise),
+        group: resolveExerciseGroup(exerciseTemplates[exercise?.nombre] || { musculo: exercise?.musculo })
+      }))
+      .filter(exercise => exercise.name);
     const button = document.createElement("button");
     button.type = "button";
     button.className = "history-date-item";
     button.dataset.date = session.date;
     button.dataset.key = getHistorySessionKey(session);
-    const dateLabel = formatHistoryListDate(session.date);
-    button.setAttribute("aria-label", [dateLabel, ...groups.map(group => `${translateGroupLabel(group.name)} ${group.sets} series`)].join(", "));
 
-    const main = document.createElement("span");
-    main.className = "history-item-main";
     const title = document.createElement("span");
     title.className = "history-date-item-title";
-    title.textContent = dateLabel;
-    const summary = document.createElement("span");
-    summary.className = "history-item-groups";
-    summary.textContent = groups.length
-      ? groups.map(group => `${getMuscleGroupStyle(group.name).icon}×${group.sets}`).join("  ")
-      : "—";
-    main.append(title, summary);
+    title.textContent = formatHistoryListDate(session.date);
+    button.appendChild(title);
 
-    const bars = document.createElement("span");
-    bars.className = "history-item-bars";
-    bars.setAttribute("aria-hidden", "true");
-    groups.forEach(group => {
-      const bar = document.createElement("span");
-      bar.className = "history-item-bar";
-      bar.style.height = `${Math.max(12, Math.round((group.sets / maxGroupSets) * 100))}%`;
-      bar.style.background = getMuscleGroupStyle(group.name).color;
-      bars.appendChild(bar);
+    const list = document.createElement("span");
+    list.className = "history-item-exercises";
+    exercises.forEach(exercise => {
+      const row = document.createElement("span");
+      row.className = `history-item-exercise${exercise.warmup ? " is-warmup" : ""}`;
+      const icon = createMuscleGroupIcon(exercise.group);
+      icon.classList.add("history-item-exercise-icon");
+      const name = document.createElement("span");
+      name.className = "history-item-exercise-name";
+      name.textContent = exercise.name;
+      const sets = document.createElement("span");
+      sets.className = "history-item-exercise-sets";
+      sets.textContent = exercise.warmup
+        ? t("exercise.warmup")
+        : `${exercise.sets} ${exercise.sets === 1 ? "serie" : "series"}`;
+      row.append(icon, name, sets);
+      list.appendChild(row);
     });
-
-    button.append(main, bars);
+    if (!exercises.length) {
+      list.textContent = "Sin ejercicios";
+    }
+    button.appendChild(list);
     button.addEventListener("click", () => {
       historyDateInput.value = session.date;
       selectedHistorySessionKey = getHistorySessionKey(session);
