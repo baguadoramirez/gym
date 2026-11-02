@@ -36,27 +36,14 @@
       --accent-text: #f8fafc;
     }
 
-    /* Transiciones suaves */
-    body,
-    .compact-header,
-    .subheader,
-    .step-section,
-    .stepper-footer,
-    .overlay-card,
-    .dashboard-card,
-    .exercise-card,
-    button,
-    input,
-    select,
-    textarea {
-      transition: background-color 0.2s ease, color 0.15s ease, border-color 0.2s ease;
-    }
-
     /* ===========================
        ESTILOS GENERALES
        =========================== */
 
     html {
+      /* Reserva el hueco de la barra de scroll: si no, las páginas cortas (sin scroll)
+         ensanchan la vista y la barra de pestañas cambia de tamaño al cambiar de pestaña */
+      scrollbar-gutter: stable;
       font-size: calc(var(--base-font) * var(--font-scale, 1));
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
@@ -91,7 +78,6 @@
       color: var(--text-color);
       padding: 0.5rem;
       border-radius: 4px;
-      transition: background 0.2s;
     }
 
     .theme-toggle-btn:hover {
@@ -145,7 +131,6 @@
       opacity: 0;
       transform: translateY(-6px);
       pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
     .subheader.is-visible {
@@ -379,6 +364,10 @@
       border: 1px solid var(--card-border);
       border-radius: 8px;
       background: var(--control-bg);
+    }
+
+    .chart-metric-buttons[hidden] {
+      display: none;
     }
 
     .step2-mode-selector label {
@@ -1011,7 +1000,6 @@
     .step-page {
       display: none;
       margin-bottom: 0;
-      animation: pageEnter 0.25s ease;
     }
 
     .step-page.active {
@@ -1440,7 +1428,14 @@
     #progress-chart,
     #global-progress-chart {
       width: 100% !important;
-      height: 360px !important;
+      height: 300px !important;
+    }
+
+    .chart-summary {
+      margin: 0 0 0.5rem;
+      font-size: 0.85rem;
+      line-height: 1.35;
+      color: var(--meta-text);
     }
 
     .chart-container-small {
@@ -1530,7 +1525,7 @@
 
     .chart-metric-buttons {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0.45rem;
       width: 100%;
       margin-top: 0;
@@ -1581,17 +1576,6 @@
       font-size: 2.4rem !important;
       font-weight: 900;
       line-height: 1;
-    }
-
-    @keyframes pageEnter {
-      from {
-        opacity: 0;
-        transform: translateX(18px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
     }
 
     .step-status {
@@ -1674,7 +1658,6 @@
       border: 1px solid var(--card-border);
       border-radius: 8px;
       background: var(--control-bg);
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
     }
 
     .order-item.is-dragging {
@@ -2236,7 +2219,6 @@
     }
 
     .exercise-table tbody tr {
-      transition: background-color 0.15s ease;
     }
 
     .exercise-table tbody tr:focus-within {
@@ -2323,7 +2305,6 @@
     .exercise-history > summary::after {
       content: "▾";
       font-size: 0.85rem;
-      transition: transform 0.15s ease;
     }
 
     .exercise-notes details[open] > summary::after,
@@ -3163,9 +3144,8 @@
     .stepper-footer {
       border: 1px solid rgba(148, 163, 184, 0.18);
       border-radius: 14px;
-      background: color-mix(in srgb, var(--card-bg) 94%, transparent);
+      background: var(--card-bg);
       box-shadow: none;
-      backdrop-filter: blur(10px);
     }
 
     .stepper-footer .stepper-nav-btn {
@@ -3398,13 +3378,12 @@
       bottom: 0;
       z-index: 1100;
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       height: calc(var(--bar-height) + env(safe-area-inset-bottom));
       padding-bottom: env(safe-area-inset-bottom);
       box-sizing: border-box;
-      background: color-mix(in srgb, var(--card-bg) 96%, transparent);
+      background: var(--card-bg);
       border-top: 1px solid var(--card-border);
-      backdrop-filter: blur(10px);
     }
 
     .tab-bar[hidden] {
@@ -3892,7 +3871,7 @@
       display: block;
       max-height: none;
       overflow: visible;
-      margin: -0.75rem calc(-1 * var(--gutter)) 0;
+      margin: 0 calc(-1 * var(--gutter));
       padding: 0;
       border-top: 0;
     }
@@ -4076,4 +4055,121 @@
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
+    }
+
+    .step-pages {
+      overflow-x: clip;
+    }
+
+    /* --- Tests con sensores --- */
+    .tests-page [hidden] {
+      display: none !important;
+    }
+
+    .tests-segment {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .tests-instructions {
+      margin: 0 0 0.75rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: var(--meta-text);
+    }
+
+    .tests-duration {
+      display: grid;
+      gap: 0.3rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .tests-duration select {
+      min-height: 44px;
+    }
+
+    .tests-start-btn {
+      width: 100%;
+      min-height: 52px;
+      font-size: 1.05rem;
+    }
+
+    .tests-status {
+      min-height: 1.4em;
+      margin: 0.6rem 0;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .tests-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .tests-stat {
+      display: grid;
+      gap: 0.15rem;
+      padding: 0.6rem 0.7rem;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      background: var(--card-bg);
+    }
+
+    .tests-stat span {
+      font-size: 0.78rem;
+      color: var(--meta-text);
+    }
+
+    .tests-stat strong {
+      font-size: 1.1rem;
+    }
+
+    #tests-chart {
+      width: 100% !important;
+      height: 260px !important;
+    }
+
+    .tests-reps {
+      margin: 0.75rem 0 0;
+      padding-left: 1.6rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .tests-result-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .tests-result-actions button {
+      min-height: 44px;
+    }
+
+    .tests-history {
+      display: grid;
+      margin: 0 calc(-1 * var(--gutter));
+    }
+
+    .tests-history-item {
+      display: grid;
+      gap: 0.15rem;
+      min-height: 52px;
+      padding: 0.55rem var(--gutter);
+      border: 0;
+      border-bottom: 1px solid var(--card-border);
+      background: transparent;
+      color: var(--text);
+      font-size: 0.92rem;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .tests-history-date {
+      font-size: 0.78rem;
+      color: var(--meta-text);
     }

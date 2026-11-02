@@ -43,7 +43,7 @@
     "applicationSubCategory": "Fitness",
     "operatingSystem": "Cualquiera (navegador web)",
     "browserRequirements": "Requiere JavaScript",
-    "softwareVersion": "1.3.3",
+    "softwareVersion": "1.3.5",
     "isAccessibleForFree": true,
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
     "license": "https://www.gnu.org/licenses/gpl-3.0.html",
@@ -183,7 +183,7 @@
         <div class="welcome-title">
           Gym Tracker
         </div>
-        <div id="app-version-label" class="hint-text text-center">Wayfinder v1.3.3</div>
+        <div id="app-version-label" class="hint-text text-center">Wayfinder v1.3.5</div>
         <div class="controls">
           <div class="welcome-actions">
             <button id="welcome-start-btn" class="btn-primary">Iniciar sesión</button>
@@ -352,7 +352,7 @@
     </summary>
     <div class="step-body">
     <p id="session-overwrite-hint" class="session-overwrite-hint is-hidden" role="status">
-      <b>Ya hay una sesión guardada hoy.</b> Estás editándola: al guardar, se sustituirá por lo que registres ahora.
+      <b>Ya hay una sesión guardada en esta fecha.</b> Solo se guarda una por día: al guardar, se sustituirá por lo que registres ahora.
     </p>
   <div class="controls step2-controls">
     <div class="step2-mode-selector">
@@ -625,6 +625,7 @@
       </div>
       <p id="chart-no-data-msg" class="meta-text is-hidden">Aún no hay datos de este usuario. Guarda sesiones o importa datos para ver los gráficos.</p>
       <div class="chart-container">
+        <p id="chart-summary" class="chart-summary is-hidden"></p>
         <canvas id="progress-chart"></canvas>
       </div>
     </div>
@@ -684,6 +685,7 @@
       </div>
       <p id="global-chart-no-data-msg" class="meta-text is-hidden">Aún no hay datos de este usuario. Guarda sesiones o importa datos para ver los gráficos.</p>
       <div class="chart-container">
+        <p id="global-chart-summary" class="chart-summary is-hidden"></p>
         <canvas id="global-progress-chart"></canvas>
       </div>
       <div class="chart-session-actions">
@@ -730,6 +732,47 @@
       </button>
     </div>
   </details>
+
+  <details id="step-tests" class="step-section step-page" open>
+    <summary>
+      <span>Tests</span>
+      <span class="step-status">Sensores</span>
+    </summary>
+    <div class="step-body tests-page">
+      <h2 class="page-title">Tests</h2>
+      <p class="page-subtitle">Mide con los sensores del móvil. Es experimental: compara los resultados con un vídeo antes de fiarte de ellos.</p>
+      <div class="tests-segment" role="group" aria-label="Tipo de test">
+        <button type="button" class="chart-metric-btn" data-test-type="pullups">Dominadas</button>
+        <button type="button" class="chart-metric-btn" data-test-type="pallof">Pallof</button>
+      </div>
+      <p id="tests-instructions" class="tests-instructions"></p>
+      <div id="tests-side" class="tests-segment" role="group" aria-label="Lado">
+        <button type="button" class="chart-metric-btn" data-test-side="izquierda">Izquierda</button>
+        <button type="button" class="chart-metric-btn" data-test-side="derecha">Derecha</button>
+      </div>
+      <div class="tests-duration">
+        <label for="tests-duration">Duración máxima</label>
+        <select id="tests-duration"></select>
+      </div>
+      <button id="tests-start-btn" class="btn-primary tests-start-btn" type="button">Empezar</button>
+      <p id="tests-status" class="tests-status" aria-live="polite"></p>
+      <div id="tests-result" class="tests-result is-hidden">
+        <h3 id="tests-result-title" class="section-title"></h3>
+        <div id="tests-stats" class="tests-stats"></div>
+        <div class="chart-container">
+          <canvas id="tests-chart"></canvas>
+        </div>
+        <ol id="tests-reps" class="tests-reps"></ol>
+        <div class="tests-result-actions">
+          <button id="tests-export-btn" class="btn-secondary" type="button">Exportar CSV</button>
+          <button id="tests-delete-btn" class="btn-danger" type="button">Eliminar test</button>
+        </div>
+      </div>
+      <h3 class="section-title">Tests anteriores</h3>
+      <p id="tests-history-empty" class="hint-text">Aún no hay tests guardados.</p>
+      <div id="tests-history" class="tests-history"></div>
+    </div>
+  </details>
   </div>
   </div>
 
@@ -759,6 +802,10 @@
     <button class="tab-bar-btn" type="button" data-tab="progreso">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4"></path><path d="M4 20h16"></path><path d="M7 15l4-4 3 3 5-6"></path></svg>
       <span>Progreso</span>
+    </button>
+    <button class="tab-bar-btn" type="button" data-tab="tests">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"></path></svg>
+      <span>Tests</span>
     </button>
   </nav>
 </main>
@@ -867,6 +914,7 @@
       "js/app-main.js",
       "js/app-history.js",
       "js/app-metrics.js",
+      "js/app-sensors.js",
       "js/app-dashboard.js",
       "js/app-routines.js",
       "js/app-session.js",
@@ -874,7 +922,8 @@
       "js/app-tools.js",
       "js/app-user.js",
       "js/app-pwa.js",
-      "theme-charts.js"
+      "theme-charts.js",
+      "js/app-tests.js"
     ];
     let resolveScriptsReady;
     window.GYM_SCRIPT_LOADER_READY = new Promise(resolve => {

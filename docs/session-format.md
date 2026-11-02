@@ -27,7 +27,7 @@ Campos principales:
 
 - `key`: identificador estable de la sesión. Si falta, se reconstruye con usuario, fecha, semana y día.
 - `user`: nombre visible del usuario. Se usa para migraciones legacy.
-- `date`: fecha ISO `YYYY-MM-DD`.
+- `date`: fecha ISO `YYYY-MM-DD`. Solo hay una sesión por fecha: al guardar otra el mismo día sustituye a la anterior (que queda en `revisions`); al importar, la sesión importada sustituye a la que hubiera en esa fecha.
 - `week`: semana/rutina seleccionada.
 - `day`: día/rutina seleccionada.
 - `exercises`: lista de ejercicios registrados.

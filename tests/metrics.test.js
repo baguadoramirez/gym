@@ -102,6 +102,72 @@
     equal(metrics.isLoadImprovement(25, 20, "restar"), false);
   });
 
+  test("Tendencia: una serie constante no cambia", () => {
+    equal(metrics.smoothTrend([50, 50, 50, 50]).join(","), "50,50,50,50");
+  });
+
+  test("Tendencia: respeta los huecos sin dato", () => {
+    const trend = metrics.smoothTrend([10, null, 20, ""]);
+    equal(trend[1], null);
+    equal(trend[3], null);
+    equal(Number.isFinite(trend[2]), true);
+  });
+
+  test("Tendencia: sin retraso, un pico simétrico sigue en su sitio", () => {
+    const trend = metrics.smoothTrend([50, 50, 50, 60, 50, 50, 50]);
+    equal(trend.indexOf(Math.max(...trend)), 3);
+    equal(trend[2].toFixed(6), trend[4].toFixed(6));
+  });
+
+  // Señales sintéticas de forma conocida para los tests con sensores
+  const sensors = globalThis.GymSensors;
+  const synthPullups = ({ rom = 0.5, reps = 3, pauseBottom = 0.6, hz = 60 } = {}) => {
+    const segments = [{ still: 1 }];
+    for (let rep = 0; rep < reps; rep += 1) {
+      segments.push({ move: 1, dir: 1 }, { move: 1.2, dir: -1 });
+      if (pauseBottom && rep < reps - 1) segments.push({ still: pauseBottom });
+    }
+    segments.push({ still: 1 });
+    const samples = [];
+    let t = 0;
+    segments.forEach(segment => {
+      const seconds = segment.still || segment.move;
+      for (let i = 0; i < Math.round(seconds * hz); i += 1, t += 1 / hz) {
+        const a = segment.move
+          ? segment.dir * (rom / 2) * (Math.PI / seconds) ** 2 * Math.cos(Math.PI * (i / hz) / seconds)
+          : 0;
+        // Móvil inclinado: la vertical reparte la aceleración entre los ejes x e y
+        samples.push({ t, ax: 0.3 * (9.81 + a), ay: 0.954 * (9.81 + a), az: 0, gx: 0, gy: 0, gz: 0 });
+      }
+    });
+    return samples;
+  };
+
+  test("Dominadas: cuenta las repeticiones y mide el recorrido", () => {
+    const result = sensors.analyzePullups(synthPullups());
+    equal(result.reps.length, 3);
+    result.reps.forEach(rep => {
+      if (Math.abs(rep.rom - 0.5) > 0.05) throw new Error(`recorrido ${rep.rom.toFixed(3)} m, esperado 0,5 m`);
+    });
+  });
+
+  test("Dominadas: funciona sin pausas entre repeticiones", () => {
+    const result = sensors.analyzePullups(synthPullups({ rom: 0.4, reps: 5, pauseBottom: 0 }));
+    equal(result.reps.length, 5);
+    if (Math.abs(result.romMean - 0.4) > 0.05) throw new Error(`recorrido medio ${result.romMean.toFixed(3)} m`);
+  });
+
+  test("Pallof: mide el giro de las manos y descarta el sesgo del giroscopio", () => {
+    const samples = Array.from({ length: 600 }, (_, i) => {
+      const t = i / 60;
+      return { t, ax: 0, ay: 9.81, az: 0, gx: 0, gy: 0, gz: 3 + 5 * Math.PI * Math.cos(Math.PI * t) };
+    });
+    const result = sensors.analyzePallof(samples);
+    if (Math.abs(result.maxDeviation - 5) > 1) throw new Error(`desviación ${result.maxDeviation.toFixed(2)}°, esperada 5°`);
+    const still = sensors.analyzePallof(samples.map(sample => ({ ...sample, gz: 3 })));
+    if (still.maxDeviation > 0.01) throw new Error("el sesgo constante no debería contar como giro");
+  });
+
   const list = document.getElementById("results");
   results.forEach(result => {
     const item = document.createElement("li");

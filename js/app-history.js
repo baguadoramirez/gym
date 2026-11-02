@@ -66,13 +66,19 @@ function getHistorySessionsForCharts() {
   const legacy = getLegacyHistoryForCurrentUser();
   if (legacy.length) sources.push(legacy);
   const merged = new Map();
-  sources.flat().forEach(session => {
+  // Los borradores sin guardar no deben sumar una segunda sesión en un día que ya está en el historial
+  const savedDates = new Set(stored.map(session => session.date).filter(Boolean));
+  sources.forEach(source => source.forEach(session => {
     if (!session || typeof session !== "object") return;
-    const key = session.key
-      || buildSessionKey(session)
-      || `${session.date || ""}|${session.week || ""}|${session.day || ""}|${session.user || ""}`;
+    const isDraft = source !== stored;
+    if (isDraft && session.date && (savedDates.has(session.date) || merged.has(session.date))) return;
+    const key = isDraft && session.date
+      ? session.date
+      : session.key
+        || buildSessionKey(session)
+        || `${session.date || ""}|${session.week || ""}|${session.day || ""}|${session.user || ""}`;
     if (!merged.has(key)) merged.set(key, session);
-  });
+  }));
   historySessionsCache = Array.from(merged.values());
   historySessionsCacheUserKey = currentUserKey;
   return historySessionsCache.slice();
@@ -221,22 +227,32 @@ function loadLocalHistory() {
   }
 }
 
+// Solo puede haber una sesión por día: se busca por fecha, no por la clave (que incluye la rutina)
+function findHistorySessionForDate(sessions, date, key = "") {
+  return sessions.find(item => (key && item.key === key) || (date && item.date === date)) || null;
+}
+
 function upsertLocalHistory(session) {
   if (!session) return;
   const sessions = getLocalHistory();
   const key = session.key || buildSessionKey(session) || sessionKey();
   const sessionWithKey = { ...session, key, user: session.user || currentUserName };
-  const index = sessions.findIndex(item => item.key === key);
-  if (index >= 0) {
-    const existing = sessions[index];
-    const revisions = Array.isArray(existing.revisions) ? existing.revisions.slice() : [];
-    const snapshot = { ...existing };
-    delete snapshot.revisions;
-    revisions.push({ savedAt: new Date().toISOString(), data: snapshot });
+  const sameDay = sessions.filter(item => item.key === key || (session.date && item.date === session.date));
+  if (sameDay.length) {
+    const revisions = sameDay.flatMap(item => (Array.isArray(item.revisions) ? item.revisions : []));
+    sameDay.forEach(existing => {
+      const snapshot = { ...existing };
+      delete snapshot.revisions;
+      revisions.push({ savedAt: new Date().toISOString(), data: snapshot });
+      // El borrador de otra rutina ese mismo día volvería a aparecer en los gráficos
+      if (existing.key && existing.key !== key) storage.removeItem(existing.key);
+    });
     if (revisions.length > 10) {
       revisions.splice(0, revisions.length - 10);
     }
+    const index = sessions.indexOf(sameDay[0]);
     sessions[index] = { ...sessionWithKey, revisions };
+    sameDay.slice(1).forEach(item => sessions.splice(sessions.indexOf(item), 1));
   } else {
     sessions.push(sessionWithKey);
   }
@@ -330,18 +346,19 @@ function mergeImportedHistoryForUser(imported, userName, userKey) {
   if (!Array.isArray(imported)) return;
   const cleanImported = normalizeImportedHistoryPayload(imported);
   const sessions = getLocalHistoryForUser(userKey);
-  const byKey = new Map();
+  // Una sesión por día: lo importado sustituye a lo que ya hubiera en esa fecha
+  const byDate = new Map();
   sessions.forEach(item => {
     const key = item.key || buildSessionKeyForUser(item, userKey);
-    if (key) byKey.set(key, { ...item, key, user: item.user || userName });
+    if (key) byDate.set(item.date || key, { ...item, key, user: item.user || userName });
   });
   cleanImported.forEach(item => {
     if (!item || typeof item !== "object") return;
     const key = item.key || buildSessionKeyForUser(item, userKey);
     if (!key) return;
-    byKey.set(key, { ...item, key, user: item.user || userName });
+    byDate.set(item.date || key, { ...item, key, user: item.user || userName });
   });
-  const merged = Array.from(byKey.values()).map(stripSessionTechnicalNotes);
+  const merged = Array.from(byDate.values()).map(stripSessionTechnicalNotes);
   setLocalHistoryForUser(userKey, merged);
   refreshCharts();
   refreshHistoryUI();

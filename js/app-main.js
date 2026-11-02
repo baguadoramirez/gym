@@ -58,6 +58,7 @@ const step7 = document.getElementById("step-7");
 const step8 = document.getElementById("step-8");
 const step9 = document.getElementById("step-9");
 const stepHistory = document.getElementById("step-history");
+const stepTests = document.getElementById("step-tests");
 const tabBar = document.getElementById("tab-bar");
 const step1Status = document.getElementById("step-1-status");
 const step2Status = document.getElementById("step-2-status");
@@ -325,11 +326,10 @@ const TEXT_STRINGS = {
     "chart.axis.bodyWeight": "Peso corporal (kg)",
     "chart.option.bodyWeight": "Peso corporal",
     "chart.metric.label": "Métrica",
-    "chart.metric.meanWeight": "Media de peso por día",
-    "chart.metric.maxWeight": "Máximo de peso por día",
-    "chart.metric.meanVolume": "Volumen medio por día",
-    "chart.metric.performance": "Rendimiento estimado por día",
-    "chart.metric.retention": "Retención (%)",
+    "chart.metric.maxWeight": "Peso máximo",
+    "chart.metric.volume": "Volumen total (kg × reps)",
+    "chart.metric.performance": "1RM estimado",
+    "chart.metric.trend": "Tendencia",
     "exercise.counter.empty": "Ejercicio 0 de 0",
     "exercise.counter.all": "Ejercicios: {total}",
     "exercise.counter.current": "Ejercicio {current} de {total}",
@@ -634,14 +634,15 @@ document.addEventListener("keydown", event => {
 
 let currentUserName = appState.currentUserName;
 let currentUserKey = appState.currentUserKey;
-const stepPages = [step0, step1, stepDashboard, step2, step3, step4, step5, step6, step7, step8, step9, stepHistory].filter(Boolean);
+const stepPages = [step0, step1, stepDashboard, step2, step3, step4, step5, step6, step7, step8, step9, stepHistory, stepTests].filter(Boolean);
 
 // Pestañas: cada una agrupa sus páginas. "Entrenar" es el asistente de la sesión.
 const TAB_PAGES = {
   inicio: [stepDashboard],
   entrenar: [step2, step3, step4, step5],
   historial: [stepHistory, step7],
-  progreso: [step8, step9, step6]
+  progreso: [step8, step9, step6],
+  tests: [stepTests]
 };
 
 function getActiveTab() {
@@ -664,6 +665,7 @@ function openTab(tab) {
   }
   const index = stepPages.indexOf(target);
   if (index >= 0) setActiveStep(index, { force: true, ignoreMax: true });
+  if (tab === "tests" && typeof window.renderGymTests === "function") window.renderGymTests();
   window.scrollTo(0, 0);
 }
 window.openGymTab = openTab;
@@ -1295,6 +1297,7 @@ function deleteUserHistory(userKey) {
   if (!ok) return;
 
   storage.removeItem(getHistoryStorageKeyForUser(entry.key));
+  storage.removeItem(`gym_tests_v1_${entry.key}`);
   window.invalidateGymHistoryCache?.();
   const prefix = `gym_${entry.key}_`;
   for (let i = storage.length - 1; i >= 0; i--) {
@@ -1616,6 +1619,10 @@ function getMaxStepIndex() {
     if (historyIndex >= 0 && activeStepIndex === historyIndex) {
       maxIndex = Math.max(maxIndex, historyIndex);
     }
+    const testsIndex = stepPages.indexOf(stepTests);
+    if (testsIndex >= 0 && activeStepIndex === testsIndex) {
+      maxIndex = Math.max(maxIndex, testsIndex);
+    }
     return maxIndex;
   }
   const loginIndex = stepPages.indexOf(step1);
@@ -1627,26 +1634,28 @@ function isSessionSavedToHistory() {
   if (!currentUserKey) return false;
   const key = sessionKey();
   if (!key) return false;
-  return getLocalHistory().some(session => session.key === key);
+  return Boolean(findHistorySessionForDate(getLocalHistory(), dateInput.value, key));
 }
 
 // Hay cambios que aún no están en el historial (o la sesión nunca se guardó)
 function isSessionPendingSave() {
   const key = sessionKey();
-  const saved = getLocalHistory().find(session => session.key === key);
+  const saved = findHistorySessionForDate(getLocalHistory(), dateInput.value, key);
   if (!saved) return true;
+  // Otra rutina guardada ese día: lo actual aún no está en el historial
+  if (saved.key !== key) return true;
   const current = readStorageJSON(key, null);
   if (!current) return false;
   const comparable = data => JSON.stringify({ exercises: data.exercises || [], sensations: data.sensations || {} });
   return comparable(current) !== comparable(saved);
 }
 
-// Sesión con la misma fecha y rutina ya guardada: se avisa una vez por entreno antes de sustituirla
+// Solo se guarda una sesión por día: si ya hay una en esa fecha, se avisa una vez por entreno antes de sustituirla
 var overwriteConfirmedKey = "";
 
 function confirmSessionOverwrite() {
   const key = sessionKey();
-  const existing = getLocalHistory().find(session => session.key === key);
+  const existing = findHistorySessionForDate(getLocalHistory(), dateInput.value, key);
   if (!existing || overwriteConfirmedKey === key || !isSessionPendingSave()) return true;
   const dayLabel = String(existing.day || "").split(/[–—-]/)[0].trim();
   const when = [formatHistoryListDate(existing.date), dayLabel].filter(Boolean).join(" · ");
@@ -1680,7 +1689,8 @@ function updateStepNavigation() {
     [step7, "Sesión anterior"],
     [step8, "Progreso"],
     [step9, "Progreso"],
-    [stepHistory, "Historial"]
+    [stepHistory, "Historial"],
+    [stepTests, "Tests"]
   ]);
   const activeTab = getActiveTab();
   const inWorkout = activeTab === "entrenar";
@@ -1914,7 +1924,7 @@ function navigateToPreviousStep(options = {}) {
     setActiveStep(historyIndex, navOptions);
     return;
   }
-  if (getActiveTab() === "historial" || getActiveTab() === "progreso") {
+  if (["historial", "progreso", "tests"].includes(getActiveTab())) {
     setActiveStep(stepPages.indexOf(stepDashboard), navOptions);
     return;
   }
@@ -3369,7 +3379,7 @@ onReady(() => {
       const isHidden = isElementHidden(welcomeLegalPanel);
       setVisible(welcomeLegalPanel, isHidden);
       if (isHidden) {
-        welcomeLegalPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        welcomeLegalPanel.scrollIntoView({ block: "start" });
       }
     });
   }
@@ -3379,7 +3389,7 @@ onReady(() => {
       const isHidden = isElementHidden(welcomeInfoPanel);
       setVisible(welcomeInfoPanel, isHidden);
       if (isHidden) {
-        welcomeInfoPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        welcomeInfoPanel.scrollIntoView({ block: "start" });
       }
     });
   }

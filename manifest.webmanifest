@@ -4,7 +4,7 @@
   "short_name": "Gym",
   "description": "Registra tus rutinas de gimnasio, series y progreso. Funciona sin conexión.",
   "lang": "es",
-  "version": "Wayfinder v1.3.3",
+  "version": "Wayfinder v1.3.5",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

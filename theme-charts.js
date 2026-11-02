@@ -23,6 +23,9 @@
 	  if (compactThemeToggle) compactThemeToggle.addEventListener("click", onThemeToggle);
 
 	  if (typeof Chart !== "undefined") {
+	    // Sin animaciones: los gráficos se dibujan directamente al cambiar de pestaña o de métrica
+	    Chart.defaults.animation = false;
+	    Chart.defaults.transitions.active.animation.duration = 0;
 	    Chart.register({
 	      id: "zeroReferenceLine",
 	      afterDraw(chart) {
@@ -71,13 +74,15 @@
       element.classList.toggle("is-hidden", isHidden);
       element.style.display = isHidden ? "none" : "block";
     };
+    // 1RM estimado resume peso y repeticiones en un solo número; peso máximo es la referencia
+    // intuitiva y el volumen total refleja el trabajo hecho en la sesión
     const METRIC_MODES = {
-      meanWeight: "meanWeight",
+      performance: "performance",
       maxWeight: "maxWeight",
-      meanVolume: "meanVolume",
-      performance: "performance"
+      volume: "volume"
     };
     const TREND_ALPHA = 0.35;
+    const TREND_COMPARE_SESSIONS = 4;
 
     const getHistorySessions = () => (
       typeof window.getGymHistorySessions === "function"
@@ -149,13 +154,6 @@
     };
     const getSetRepsValue = (set) => parseFloat(set?.reps ?? set?.repeticiones ?? set?.tiempo ?? set?.time);
 
-    const getMeanWeightFromSets = (sets, exercise, bodyWeight) => {
-      if (!Array.isArray(sets) || !sets.length) return null;
-      const values = sets.map(set => getSetWeightValue(set, exercise, bodyWeight)).filter(value => Number.isFinite(value));
-      if (!values.length) return null;
-      return values.reduce((sum, value) => sum + value, 0) / values.length;
-    };
-
     const getMaxWeightFromSets = (sets, exercise, bodyWeight) => {
       if (!Array.isArray(sets) || !sets.length) return null;
       const values = sets.map(set => getSetWeightValue(set, exercise, bodyWeight)).filter(value => Number.isFinite(value));
@@ -176,7 +174,7 @@
         .filter(value => value != null);
 
       if (!volumes.length) return null;
-      return volumes.reduce((sum, value) => sum + value, 0) / volumes.length;
+      return volumes.reduce((sum, value) => sum + value, 0);
     };
 
     const getPerformanceMetricsFromSets = (sets, exercise, bodyWeight) => {
@@ -206,35 +204,16 @@
       };
     };
 
-    const getTrendValues = (values) => {
-      const smoothForward = values.map(() => null);
-      let previousForward = null;
-      values.forEach((value, index) => {
-        if (!Number.isFinite(value)) return;
-        previousForward = previousForward == null
-          ? value
-          : (TREND_ALPHA * value) + ((1 - TREND_ALPHA) * previousForward);
-        smoothForward[index] = previousForward;
-      });
-      const smoothBackward = values.map(() => null);
-      let previousBackward = null;
-      for (let index = values.length - 1; index >= 0; index -= 1) {
-        const value = values[index];
-        if (!Number.isFinite(value)) continue;
-        previousBackward = previousBackward == null
-          ? value
-          : (TREND_ALPHA * value) + ((1 - TREND_ALPHA) * previousBackward);
-        smoothBackward[index] = previousBackward;
-      }
-      return values.map((value, index) => {
-        if (!Number.isFinite(value)) return null;
-        const forward = smoothForward[index];
-        const backward = smoothBackward[index];
-        if (!Number.isFinite(forward)) return Number.isFinite(backward) ? backward : null;
-        if (!Number.isFinite(backward)) return forward;
-        return (forward + backward) / 2;
-      });
+    const getTrendValues = values => {
+      if (window.GymMetrics?.smoothTrend) return window.GymMetrics.smoothTrend(values, TREND_ALPHA);
+      return values.map(value => (Number.isFinite(value) ? value : null));
     };
+
+    const isCardioExercise = exercise => (
+      window.GymMetrics?.isCardio ? window.GymMetrics.isCardio(exercise, window.exerciseTemplates || {}) : false
+    );
+
+    const formatChartNumber = value => Number(value).toLocaleString(getChartLocale(), { maximumFractionDigits: 1 });
 
     const getCurrentSessionExerciseNames = () => (
       Array.from(document.querySelectorAll("#exercises-container .exercise-card"))
@@ -258,6 +237,13 @@
         });
       });
       return Array.from(names);
+    };
+
+    const formatChartAxisDate = date => {
+      const parsed = parseSessionDate(date);
+      return parsed
+        ? parsed.toLocaleDateString(getChartLocale(), { day: "2-digit", month: "2-digit" })
+        : date;
     };
 
     const parseSessionDate = value => {
@@ -308,9 +294,9 @@
       window.openGymHistorySession(point);
     };
 
-    const createChartSection = ({ selectEl, metricButtonsEl, canvasEl, noDataMsgEl, allowBodyWeight, getExerciseNames, simpleFilterControl, openSessionButton, selectedSessionLabel }) => {
+    const createChartSection = ({ selectEl, metricButtonsEl, canvasEl, noDataMsgEl, summaryEl, allowBodyWeight, getExerciseNames, simpleFilterControl, openSessionButton, selectedSessionLabel }) => {
       let chartInstance;
-      let currentMode = METRIC_MODES.maxWeight;
+      let currentMode = METRIC_MODES.performance;
       let chartPoints = [];
       let selectedPoint = null;
 
@@ -325,175 +311,148 @@
       };
 
       const getMetricLabel = (mode) => {
-        if (mode === METRIC_MODES.meanWeight) return tChart("chart.metric.meanWeight");
-        if (mode === METRIC_MODES.meanVolume) return tChart("chart.metric.meanVolume");
+        if (mode === METRIC_MODES.volume) return tChart("chart.metric.volume");
         if (mode === METRIC_MODES.performance) return tChart("chart.metric.performance");
         return tChart("chart.metric.maxWeight");
       };
 
-      const getMetricValue = (mode, metrics) => {
-        if (mode === METRIC_MODES.meanWeight) return metrics.meanWeight;
-        if (mode === METRIC_MODES.meanVolume) return metrics.volume;
-        if (mode === METRIC_MODES.performance) return metrics.performance;
-        return metrics.maxWeight;
+      const getSessionMetricValue = (mode, sets, exercise, bodyWeight) => {
+        if (mode === METRIC_MODES.volume) return getVolumeFromSets(sets, exercise, bodyWeight);
+        if (mode === METRIC_MODES.performance) return getPerformanceMetricsFromSets(sets, exercise, bodyWeight)?.best ?? null;
+        return getMaxWeightFromSets(sets, exercise, bodyWeight);
+      };
+
+      // Un valor por día: si hubiera varias sesiones en la misma fecha (datos antiguos), se combinan
+      const collectDailyValues = (exerciseName, mode, sessions) => {
+        const dateMap = new Map();
+        let cardio = false;
+        sessions.forEach((session, sessionIndex) => {
+          const date = session?.date;
+          if (!date) return;
+
+          if (exerciseName === BODY_WEIGHT_KEY) {
+            const weight = getBodyWeightValue(session);
+            if (weight != null) dateMap.set(date, { value: weight, key: session.key || "" });
+            return;
+          }
+
+          const ex = getSessionExercises(session).find(item => getExerciseName(item) === exerciseName && !isWarmup(item));
+          const sets = getExerciseSets(ex);
+          if (!ex || !sets.length) return;
+          const value = getSessionMetricValue(mode, sets, ex, getNearestBodyWeightValue(sessions, sessionIndex));
+          if (!Number.isFinite(value)) return;
+          cardio = cardio || isCardioExercise(ex);
+          const current = dateMap.get(date);
+          if (!current) {
+            dateMap.set(date, { value, key: session.key || "" });
+          } else if (mode === METRIC_MODES.volume) {
+            current.value += value;
+          } else if (value > current.value) {
+            dateMap.set(date, { value, key: session.key || "" });
+          }
+        });
+        return { dateMap, cardio };
+      };
+
+      const renderSummary = ({ values, trend, records, unit }) => {
+        if (!summaryEl) return;
+        const lastIndex = values.length - 1;
+        const parts = [`Última: ${formatChartNumber(values[lastIndex])}${unit}`];
+        const baseIndex = lastIndex - TREND_COMPARE_SESSIONS;
+        if (baseIndex >= 0) {
+          const change = trend[lastIndex] - trend[baseIndex];
+          const sign = change > 0 ? "+" : change < 0 ? "−" : "±";
+          parts.push(`tendencia ${sign}${formatChartNumber(Math.abs(change))}${unit} en ${TREND_COMPARE_SESSIONS} sesiones`);
+        }
+        if (records > 0) parts.push(`${records} ${records === 1 ? "récord" : "récords"} (punto grande)`);
+        summaryEl.textContent = parts.join(" · ");
+        summaryEl.classList.remove("is-hidden");
+      };
+
+      const clearChart = () => {
+        setHidden(noDataMsgEl, false);
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = null;
+        chartPoints = [];
+        setSelectedPoint(null);
+        summaryEl?.classList.add("is-hidden");
       };
 
       const renderChart = (exerciseName, mode = currentMode) => {
         if (!canvasEl) return;
         const sessions = getHistorySessions()
           .slice()
-          .sort((a, b) => new Date(a?.date || 0) - new Date(b?.date || 0));
-        const dateMap = new Map();
+          .sort((a, b) => String(a?.date || "").localeCompare(String(b?.date || "")));
         const isBodyWeight = exerciseName === BODY_WEIGHT_KEY;
+        if (metricButtonsEl) metricButtonsEl.hidden = isBodyWeight;
 
-        sessions.forEach((session, sessionIndex) => {
-          const date = session?.date;
-          if (!date) return;
+        let shownMode = mode;
+        let { dateMap, cardio } = collectDailyValues(exerciseName, shownMode, sessions);
+        // El cardio no tiene 1RM ni volumen en kg: se muestra su intensidad máxima
+        if (!dateMap.size && !isBodyWeight && shownMode !== METRIC_MODES.maxWeight) {
+          shownMode = METRIC_MODES.maxWeight;
+          ({ dateMap, cardio } = collectDailyValues(exerciseName, shownMode, sessions));
+        }
+        populateMetricButtons(shownMode);
 
-          if (isBodyWeight) {
-            const weight = getBodyWeightValue(session);
-            if (weight == null) return;
-            dateMap.set(date, { value: weight, count: 1, key: session.key || "" });
-            return;
-          }
-
-          const exercises = getSessionExercises(session);
-          const ex = exercises.find(item => getExerciseName(item) === exerciseName && !isWarmup(item));
-          const sets = getExerciseSets(ex);
-          if (!ex || !sets.length) return;
-          const bodyWeight = getNearestBodyWeightValue(sessions, sessionIndex);
-
-          const metrics = {
-            meanWeight: getMeanWeightFromSets(sets, ex, bodyWeight),
-            maxWeight: getMaxWeightFromSets(sets, ex, bodyWeight),
-            volume: getVolumeFromSets(sets, ex, bodyWeight),
-            performance: getPerformanceMetricsFromSets(sets, ex, bodyWeight)
-          };
-
-          const value = getMetricValue(mode, metrics);
-          if (mode === METRIC_MODES.performance) {
-            if (!value || value.best == null) return;
-          } else if (value == null) {
-            return;
-          }
-
-          const current = dateMap.get(date) || { meanWeightSum: 0, meanWeightCount: 0, maxWeight: null, volumeSum: 0, volumeCount: 0, performance: null, retention: null, key: session.key || "" };
-          if (mode === METRIC_MODES.meanWeight) {
-            current.meanWeightSum += value;
-            current.meanWeightCount += 1;
-          } else if (mode === METRIC_MODES.maxWeight) {
-            current.maxWeight = current.maxWeight == null ? value : Math.max(current.maxWeight, value);
-          } else if (mode === METRIC_MODES.performance) {
-            if (current.performance == null || value.best > current.performance) {
-              current.performance = value.best;
-              current.retention = value.retention;
-            }
-          } else {
-            current.volumeSum += value;
-            current.volumeCount += 1;
-          }
-          dateMap.set(date, current);
-        });
-
-        const sortedDates = Array.from(dateMap.keys()).sort((a, b) => new Date(a) - new Date(b));
+        const sortedDates = Array.from(dateMap.keys()).sort();
         if (!sortedDates.length) {
-          setHidden(noDataMsgEl, false);
-          if (chartInstance) chartInstance.destroy();
-          chartInstance = null;
-          chartPoints = [];
-          setSelectedPoint(null);
+          clearChart();
           return;
         }
         setHidden(noDataMsgEl, true);
-        chartPoints = sortedDates.map(date => ({
-          date,
-          key: dateMap.get(date)?.key || ""
-        }));
+        chartPoints = sortedDates.map(date => ({ date, key: dateMap.get(date)?.key || "" }));
 
-        const labels = sortedDates.map(date => new Date(date).toLocaleDateString(getChartLocale()));
-        const values = sortedDates.map(date => {
-          const current = dateMap.get(date);
-          if (isBodyWeight) return current?.value ?? null;
-          if (mode === METRIC_MODES.meanWeight) return current?.meanWeightCount ? current.meanWeightSum / current.meanWeightCount : null;
-          if (mode === METRIC_MODES.meanVolume) return current?.volumeCount ? current.volumeSum / current.volumeCount : null;
-          if (mode === METRIC_MODES.performance) return current?.performance ?? null;
-          return current?.maxWeight ?? null;
+        const values = sortedDates.map(date => dateMap.get(date).value);
+        const trend = getTrendValues(values);
+        let best = -Infinity;
+        const isRecord = values.map((value, index) => {
+          const record = !isBodyWeight && index > 0 && value > best;
+          best = Math.max(best, value);
+          return record;
         });
-        const retentionValues = mode === METRIC_MODES.performance
-          ? sortedDates.map(date => dateMap.get(date)?.retention ?? null)
-          : [];
-        const trendValues = getTrendValues(values);
-        const chartValues = values.concat(trendValues).filter(value => Number.isFinite(value));
-        const maxValue = Math.max(...chartValues);
-        const minValue = Math.min(...chartValues);
-        let yMin = minValue;
-        let yMax = maxValue;
-        const padding = yMax * 0.1;
-        yMin = yMin - padding;
-        yMax = yMax + padding;
-        if (!Number.isFinite(yMin) || !Number.isFinite(yMax) || yMin >= yMax) {
-          yMin = minValue - 1;
-          yMax = maxValue + 1;
-        }
-        const datasetLabel = isBodyWeight
-          ? tChart("chart.option.bodyWeight")
-          : `${exerciseName} · ${getMetricLabel(mode)}`;
-        const yAxisTitle = isBodyWeight
-          ? tChart("chart.axis.bodyWeight")
-          : (mode === METRIC_MODES.meanVolume
-            ? tChart("chart.axis.load")
-            : mode === METRIC_MODES.performance
-              ? tChart("chart.axis.estimated1rm")
-              : tChart("chart.axis.weight"));
+        const unit = cardio && !isBodyWeight ? "" : " kg";
+        renderSummary({ values, trend, records: isRecord.filter(Boolean).length, unit });
+
+        const datasetLabel = isBodyWeight ? tChart("chart.option.bodyWeight") : getMetricLabel(shownMode);
+        const accent = "#f97316";
         const datasets = [
           {
             label: datasetLabel,
             data: values,
-            borderColor: "#f97316",
-            backgroundColor: "#f9731620",
+            borderColor: accent,
+            backgroundColor: accent,
+            borderWidth: 2,
             fill: false,
-            tension: 0.25,
-            pointRadius: 4,
+            tension: 0,
+            pointRadius: isRecord.map(record => (record ? 5 : 3)),
+            pointBackgroundColor: isRecord.map(record => (record ? accent : "transparent")),
+            pointBorderColor: accent,
             pointHoverRadius: 7,
             pointHitRadius: 16,
             yAxisID: "y"
           },
           {
-            label: "Tendencia",
-            data: trendValues,
+            label: tChart("chart.metric.trend"),
+            data: trend,
             borderColor: "#2563eb",
-            backgroundColor: "transparent",
+            backgroundColor: "#2563eb",
             borderDash: [6, 4],
             borderWidth: 2,
             fill: false,
             tension: 0.35,
             pointRadius: 0,
+            pointHitRadius: 0,
             spanGaps: true,
             yAxisID: "y"
           }
         ];
-        if (mode === METRIC_MODES.performance) {
-          datasets.push({
-            label: tChart("chart.metric.retention"),
-            data: retentionValues,
-            borderColor: "#16a34a",
-            backgroundColor: "#16a34a20",
-            borderWidth: 2,
-            fill: false,
-            tension: 0.25,
-            pointRadius: 3,
-            pointHoverRadius: 6,
-            pointHitRadius: 16,
-            spanGaps: true,
-            yAxisID: "y1"
-          });
-        }
 
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(canvasEl, {
           type: "line",
           data: {
-            labels,
+            labels: sortedDates.map(formatChartAxisDate),
             datasets
           },
           options: {
@@ -510,61 +469,59 @@
               }
             },
             interaction: {
-              mode: "nearest",
+              mode: "index",
               intersect: false
             },
             plugins: {
-              legend: { display: mode === METRIC_MODES.performance }
+              legend: {
+                display: true,
+                position: "bottom",
+                labels: { boxWidth: 14, boxHeight: 2, font: { size: 12 } }
+              },
+              tooltip: {
+                callbacks: {
+                  title: items => formatChartPointDate(chartPoints[items[0]?.dataIndex]?.date),
+                  label: item => `${item.dataset.label}: ${formatChartNumber(item.parsed.y)}${unit}`
+                }
+              }
             },
             scales: {
               x: {
-                title: { display: true, text: tChart("chart.axis.date"), font: { size: 16 } },
-                ticks: { font: { size: 14 } }
+                ticks: { font: { size: 12 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 5 },
+                grid: { display: false }
               },
               y: {
                 beginAtZero: false,
-                min: yMin,
-                max: yMax,
-                title: { display: true, text: yAxisTitle, font: { size: 16 } },
-                ticks: { font: { size: 14 } }
-              },
-              ...(mode === METRIC_MODES.performance ? {
-                y1: {
-                  position: "right",
-                  min: 0,
-                  max: 105,
-                  grid: { drawOnChartArea: false },
-                  title: { display: true, text: tChart("chart.metric.retention"), font: { size: 16 } },
-                  ticks: {
-                    font: { size: 14 },
-                    callback: value => `${value}%`
-                  }
+                grace: "10%",
+                ticks: {
+                  font: { size: 12 },
+                  maxTicksLimit: 6,
+                  callback: value => formatChartNumber(value)
                 }
-              } : {})
+              }
             }
           }
         });
       };
 
-      const populateMetricButtons = () => {
+      const populateMetricButtons = (activeMode = currentMode) => {
         if (!metricButtonsEl) return;
         metricButtonsEl.innerHTML = "";
         const options = [
-          [METRIC_MODES.meanWeight, "Media"],
-          [METRIC_MODES.maxWeight, "Máximo"],
-          [METRIC_MODES.meanVolume, "Vol. medio"],
-          [METRIC_MODES.performance, "Rendimiento"]
+          [METRIC_MODES.performance, "1RM est."],
+          [METRIC_MODES.maxWeight, "Peso máx."],
+          [METRIC_MODES.volume, "Volumen"]
         ];
         options.forEach(([value, label]) => {
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = `chart-metric-btn${value === currentMode ? " active" : ""}`;
-          btn.setAttribute("aria-pressed", value === currentMode ? "true" : "false");
+          btn.className = `chart-metric-btn${value === activeMode ? " active" : ""}`;
+          btn.setAttribute("aria-pressed", value === activeMode ? "true" : "false");
           btn.textContent = label;
           btn.addEventListener("click", () => {
             currentMode = value;
-            populateMetricButtons();
             if (selectEl?.value) renderChart(selectEl.value, currentMode);
+            else populateMetricButtons();
           });
           metricButtonsEl.appendChild(btn);
         });
@@ -647,10 +604,7 @@
         const hasOptions = exercises.size > 0 || hasBodyWeight;
         selectEl.disabled = !hasOptions;
         if (!hasOptions) {
-          setHidden(noDataMsgEl, false);
-          if (chartInstance) chartInstance.destroy();
-          chartInstance = null;
-          setSelectedPoint(null);
+          clearChart();
           return;
         }
 
@@ -686,6 +640,7 @@
       metricButtonsEl: chartMetricButtons,
       canvasEl: chartCanvas,
       noDataMsgEl: chartNoDataMsg,
+      summaryEl: document.getElementById("chart-summary"),
       allowBodyWeight: false,
       getExerciseNames: getCurrentSessionExerciseNames
     });
@@ -695,6 +650,7 @@
       metricButtonsEl: globalChartMetricButtons,
       canvasEl: globalChartCanvas,
       noDataMsgEl: globalChartNoDataMsg,
+      summaryEl: document.getElementById("global-chart-summary"),
       allowBodyWeight: true,
       getExerciseNames: getAllHistoryExerciseNames,
       simpleFilterControl: globalChartShowAll,
@@ -723,7 +679,7 @@
       });
       const target = document.getElementById(stepId);
       if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        target.scrollIntoView({ block: "start" });
       }
     };
 
@@ -741,7 +697,7 @@
         if (window.__gymAppReady) return;
         const isHidden = infoPanel.classList.contains("is-hidden") || getComputedStyle(infoPanel).display === "none";
         setHidden(infoPanel, !isHidden);
-        if (isHidden) infoPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (isHidden) infoPanel.scrollIntoView({ block: "start" });
       });
     }
     if (legalBtn && legalPanel) {
@@ -749,7 +705,7 @@
         if (window.__gymAppReady) return;
         const isHidden = legalPanel.classList.contains("is-hidden") || getComputedStyle(legalPanel).display === "none";
         setHidden(legalPanel, !isHidden);
-        if (isHidden) legalPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (isHidden) legalPanel.scrollIntoView({ block: "start" });
       });
     }
   }

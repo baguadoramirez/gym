@@ -14,6 +14,8 @@ const ASSETS = [
   withVersion("./js/app-main.js"),
   withVersion("./js/app-history.js"),
   withVersion("./js/app-metrics.js"),
+  withVersion("./js/app-sensors.js"),
+  withVersion("./js/app-tests.js"),
   withVersion("./js/app-dashboard.js"),
   withVersion("./js/app-routines.js"),
   withVersion("./js/app-session.js"),
@@ -72,8 +74,10 @@ self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   const isNavigation = event.request.mode === "navigate";
   const isScript = event.request.destination === "script";
+  // Estilos también desde la red primero: si no, un cambio de CSS sin subir versión no llega nunca
+  const isStyle = event.request.destination === "style";
   const isVersionFile = url.origin === self.location.origin && url.pathname.endsWith("/version.js");
-  if (isNavigation || isScript || isVersionFile) {
+  if (isNavigation || isScript || isStyle || isVersionFile) {
     event.respondWith(
       fetch(event.request)
         .then(response => {

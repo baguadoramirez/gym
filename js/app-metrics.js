@@ -121,6 +121,27 @@
     ), 0);
   };
 
+  // Tendencia suavizada sin retraso: media de una exponencial hacia delante y otra hacia atrás.
+  // Los huecos (sesiones sin dato) se saltan y quedan como null.
+  const smoothTrend = (values, alpha = 0.35) => {
+    const numbers = (Array.isArray(values) ? values : []).map(numberOrNull);
+    const smooth = indexes => {
+      const result = numbers.map(() => null);
+      let previous = null;
+      indexes.forEach(index => {
+        const value = numbers[index];
+        if (value == null) return;
+        previous = previous == null ? value : (alpha * value) + ((1 - alpha) * previous);
+        result[index] = previous;
+      });
+      return result;
+    };
+    const indexes = numbers.map((_, index) => index);
+    const forward = smooth(indexes);
+    const backward = smooth(indexes.slice().reverse());
+    return numbers.map((value, index) => (value == null ? null : (forward[index] + backward[index]) / 2));
+  };
+
   const api = {
     numberOrNull,
     getBodyWeight,
@@ -132,7 +153,8 @@
     calculateExerciseVolume,
     calculateSetPerformance,
     calculateExercisePerformance,
-    calculateSessionVolume
+    calculateSessionVolume,
+    smoothTrend
   };
 
   globalThis.GymMetrics = api;
